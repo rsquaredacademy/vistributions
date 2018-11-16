@@ -4,15 +4,12 @@
 \alias{vdist_binom_plot}
 \title{Visualize binomial distribution}
 \usage{
-vdist_binom_plot(n, p, lib = c("ggplot2", "plotly"))
+vdist_binom_plot(n, p)
 }
 \arguments{
 \item{n}{Number of trials.}
 
 \item{p}{Aggregate probability.}
-
-\item{lib}{The library to be use for visualization. \code{ggplot2} is the
-default; the other option is \code{plotly}.}
 }
 \description{
 Visualize how changes in number of trials and the probability of
