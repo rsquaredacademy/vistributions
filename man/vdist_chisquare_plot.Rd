@@ -2,15 +2,22 @@
 % Please edit documentation in R/vdist-chisquare.R
 \name{vdist_chisquare_plot}
 \alias{vdist_chisquare_plot}
+\alias{vdist_chisquare_perc}
 \title{Visualize chi square distribution}
 \usage{
 vdist_chisquare_plot(df = 3, normal = FALSE)
+
+vdist_chisquare_perc(probs = 0.95, df = 3, type = c("lower", "upper"))
 }
 \arguments{
 \item{df}{Degrees of freedom.}
 
 \item{normal}{If \code{TRUE}, normal curve with same \code{mean} and
 \code{sd} as the chi square distribution is drawn.}
+
+\item{probs}{Probability value.}
+
+\item{type}{Lower tail or upper tail.}
 }
 \description{
 Visualize how changes in degrees of freedom affect the shape of
@@ -22,6 +29,10 @@ probability and probability from a given quantile.
 vdist_chisquare_plot()
 vdist_chisquare_plot(df = 5)
 vdist_chisquare_plot(df = 5, normal = TRUE)
+
+# visualize quantiles out of given probability
+vdist_chisquare_perc(0.165, 8, 'lower')
+vdist_chisquare_perc(0.22, 13, 'upper')
 
 }
 \seealso{

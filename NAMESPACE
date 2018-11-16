@@ -3,5 +3,6 @@
 export(vdist_binom_perc)
 export(vdist_binom_plot)
 export(vdist_binom_prob)
+export(vdist_chisquare_perc)
 export(vdist_chisquare_plot)
 importFrom(magrittr,"%>%")
