@@ -37,4 +37,5 @@ reference:
 
   contents:
   - vdist_binom_plot
+  - vdist_binom_prob
 
