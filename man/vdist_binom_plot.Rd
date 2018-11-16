@@ -11,7 +11,7 @@ vdist_binom_plot(n, p, lib = c("ggplot2", "plotly"))
 
 \item{p}{Aggregate probability.}
 
-\item{lib}{The library to be use for visualization. \code{ggplot2} is the 
+\item{lib}{The library to be use for visualization. \code{ggplot2} is the
 default; the other option is \code{plotly}.}
 }
 \description{

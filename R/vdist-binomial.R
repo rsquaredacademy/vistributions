@@ -6,7 +6,7 @@
 #'
 #' @param n Number of trials.
 #' @param p Aggregate probability.
-#' @param lib The library to be use for visualization. \code{ggplot2} is the 
+#' @param lib The library to be use for visualization. \code{ggplot2} is the
 #' default; the other option is \code{plotly}.
 #'
 #' @examples
@@ -20,6 +20,18 @@
 #' @export
 #'
 vdist_binom_plot <- function(n, p, lib = c("ggplot2", "plotly")) {
+
+  if (!is.numeric(n)) {
+    stop("n must be numeric/integer")
+  }
+
+  if (!is.numeric(p)) {
+    stop("p must be numeric")
+  }
+
+  if ((p < 0) | (p > 1)) {
+    stop("p must be between 0 and 1")
+  }
 
   n   <- as.integer(n)
   x   <- seq(0, n, 1)
