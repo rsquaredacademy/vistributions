@@ -8,6 +8,7 @@
 #' @param p Aggregate probability.
 #' @param s Number of success.
 #' @param type Lower/upper/exact/interval.
+#' @param tp Probability of success in a trial.
 #'
 #' @examples
 #' # visualize binomial distribution
@@ -19,6 +20,10 @@
 #' vdist_binom_prob(10, 0.3, 4, type = 'upper')
 #' vdist_binom_prob(10, 0.3, c(4, 6), type = 'interval')
 #'
+#'
+#' # visualize quantiles out of given probability
+#' vdist_binom_perc(10, 0.5, 0.05)
+#' vdist_binom_perc(10, 0.5, 0.05, "upper")
 #'
 #' @seealso \code{\link[stats]{Binomial}}
 #'
@@ -142,8 +147,6 @@ vdist_binom_prob <- function(n, p, s, type = c("lower", "upper", "exact", "inter
   data <- stats::dbinom(x, n, p)
   plot_data <- tibble::tibble(n = seq(0, n), df = data)
 
-
-
   pp <-
     plot_data %>%
     ggplot2::ggplot() +
@@ -174,3 +177,65 @@ vdist_binom_prob <- function(n, p, s, type = c("lower", "upper", "exact", "inter
 
 }
 
+#' @rdname vdist_binom_plot
+#' @export
+#'
+vdist_binom_perc <- function(n, p, tp, type = c("lower", "upper")) {
+
+  if (!is.numeric(n)) {
+    stop("n must be numeric/integer")
+  }
+
+  if (!is.numeric(p)) {
+    stop("p must be numeric")
+  }
+
+  if (!is.numeric(tp)) {
+    stop("tp must be numeric")
+  }
+
+  if ((p < 0) | (p > 1)) {
+    stop("p must be between 0 and 1")
+  }
+
+  if ((tp < 0) | (tp > 0.5)) {
+    stop("tp must be between 0 and 0.5")
+  }
+
+  n      <- as.integer(n)
+  method <- match.arg(type)
+  x      <- seq(0, n, 1)
+
+  if (method == "lower") {
+    k <- round(qbinom(tp, n, p), 3)
+    cols <- ifelse(cumsum(dbinom(x, n, p)) <= pbinom(k, n, p), "#0000CD", "#6495ED")
+  } else {
+    k <- round(qbinom(tp, n, p, lower.tail = F), 3)
+    cols <- ifelse(cumsum(dbinom(x, n, p)) > pbinom((k + 1), n, p), "#0000CD", "#6495ED")
+  }
+
+  data <- stats::dbinom(x, n, p)
+  plot_data <- tibble::tibble(n = seq(0, n), df = data)
+
+  pp <-
+    plot_data %>%
+    ggplot2::ggplot() +
+    ggplot2::geom_col(ggplot2::aes(x = n, y = df), fill = cols) +
+    ggplot2::ylab("Probability") + ggplot2::xlab("No. of success") +
+    ggplot2::scale_x_continuous(breaks = seq(0, n)) +
+    ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
+                   plot.subtitle = ggplot2::element_text(hjust = 0.5))
+
+
+  if (method == "lower") {
+    pp +
+      ggplot2::ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
+        subtitle = paste0("P(X <= ", k, ") <= ", tp, ", but P(X <= ", (k + 1),
+        ") > ", tp))
+  } else {
+    pp +
+      ggplot2::ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
+        subtitle = paste0("P(X >= ", (k + 1), ") <= ", tp, ", but P(X >= ", k,
+        ") > ", tp))
+  }
+}
