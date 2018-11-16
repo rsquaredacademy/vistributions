@@ -1,0 +1,8 @@
+pandoc: 2.0.5
+pkgdown: 1.1.0
+pkgdown_sha: ~
+articles: []
+urls:
+  reference: https://vistributions.rsquaredacademy.com/reference
+  article: https://vistributions.rsquaredacademy.com/articles
+
