@@ -49,6 +49,6 @@ test_that("vdist_binom_perc throws the appropriate errors", {
 
 test_that("binomial perc plot is as expected", {
   skip_on_cran()
-  vdiffr::expect_doppelganger("binom_perc_lower", vdist_binom_perc(10, 0.5, 0.05))
-  vdiffr::expect_doppelganger("binom_perc_upper", vdist_binom_perc(10, 0.5, 0.05, 'upper'))
+  vdiffr::expect_doppelganger("binom_perc_lower", vdist_binom_perc(10, 0.4, 0.05))
+  vdiffr::expect_doppelganger("binom_perc_upper", vdist_binom_perc(10, 0.4, 0.05, 'upper'))
 })
