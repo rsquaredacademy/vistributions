@@ -37,8 +37,9 @@ reference:
 
   contents:
   - vdist_binom_plot
-  - vdist_binom_prob
   - vdist_binom_perc
+  - vdist_binom_prob
+  
 
 - title: Chi Square Distribution
 
@@ -46,3 +47,8 @@ reference:
   - vdist_chisquare_plot
   - vdist_chisquare_perc
   - vdist_chisquare_prob
+
+- title: Normal Distribution
+
+  contents:
+  - vdist_normal_plot

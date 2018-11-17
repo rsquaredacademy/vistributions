@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • vistributions</title>
+<title>Visualize normal distribution — vdist_norm_plot • vistributions</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,7 +30,12 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="Visualize normal distribution — vdist_norm_plot" />
+
+<meta property="og:description" content="Visualize how changes in mean and standard deviation affect the
+shape of the normal distribution. Compute &amp;amp; visualize quantiles out of given
+probability  and probability from a given quantile." />
+<meta name="twitter:card" content="summary" />
 
 
 
@@ -46,7 +51,7 @@
   </head>
 
   <body>
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
   <div class="container">
@@ -101,72 +106,56 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>Visualize normal distribution</h1>
+    <small class="dont-index">Source: <a href='https://github.com/rsquaredacademy/vistributions/blob/master/R/vdist-normal.R'><code>R/vdist-normal.R</code></a></small>
+    <div class="hidden name"><code>vdist_norm_plot.Rd</code></div>
     </div>
 
-    <table class="ref-index">
+    <div class="ref-description">
+    
+    <p>Visualize how changes in mean and standard deviation affect the
+shape of the normal distribution. Compute &amp; visualize quantiles out of given
+probability  and probability from a given quantile.</p>
+    
+    </div>
 
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
-
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-binomial-distribution" class="hasAnchor"><a href="#section-binomial-distribution" class="anchor"></a>Binomial Distribution</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      <tr>
-        
-        <td>
-          <p><code><a href="vdist_binom_plot.html">vdist_binom_plot()</a></code> <code><a href="vdist_binom_plot.html">vdist_binom_prob()</a></code> <code><a href="vdist_binom_plot.html">vdist_binom_perc()</a></code> </p>
-        </td>
-        <td><p>Visualize binomial distribution</p></td>
-      </tr>
-    </tbody><tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-chi-square-distribution" class="hasAnchor"><a href="#section-chi-square-distribution" class="anchor"></a>Chi Square Distribution</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      <tr>
-        
-        <td>
-          <p><code><a href="vdist_chisquare_plot.html">vdist_chisquare_plot()</a></code> <code><a href="vdist_chisquare_plot.html">vdist_chisquare_perc()</a></code> <code><a href="vdist_chisquare_plot.html">vdist_chisquare_prob()</a></code> </p>
-        </td>
-        <td><p>Visualize chi square distribution</p></td>
-      </tr>
-    </tbody><tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-normal-distribution" class="hasAnchor"><a href="#section-normal-distribution" class="anchor"></a>Normal Distribution</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      <tr>
-        
-        <td>
-          <p><code><a href="vdist_normal_plot.html">vdist_normal_plot()</a></code> </p>
-        </td>
-        <td><p>Visualize normal distribution</p></td>
-      </tr>
-    </tbody>
+    <pre class="usage"><span class='fu'>vdist_norm_plot</span>(<span class='kw'>mean</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>sd</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
+    
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>mean</th>
+      <td><p>Mean of the normal distribution.</p></td>
+    </tr>
+    <tr>
+      <th>sd</th>
+      <td><p>Standard deviation of the normal distribution.</p></td>
+    </tr>
     </table>
-  </div>
+    
+    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
+    <div class='dont-index'><p><code><a href='http://www.rdocumentation.org/packages/stats/topics/Normal'>Normal</a></code></p></div>
+    
+
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='co'># visualize normal distribution</span>
+<span class='fu'>vdist_norm_plot</span>()</div><div class='img'><img src='vdist_norm_plot-1.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>vdist_norm_plot</span>(<span class='kw'>mean</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>sd</span> <span class='kw'>=</span> <span class='fl'>0.6</span>)</div><div class='img'><img src='vdist_norm_plot-2.png' alt='' width='700' height='433' /></div><div class='input'>
+</div></pre>
+  </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#section-binomial-distribution">Binomial Distribution</a></li>
-      <li><a href="#section-chi-square-distribution">Chi Square Distribution</a></li>
-      <li><a href="#section-normal-distribution">Normal Distribution</a></li>
+      <li><a href="#arguments">Arguments</a></li>
+      
+      <li><a href="#see-also">See also</a></li>
+      
+      <li><a href="#examples">Examples</a></li>
     </ul>
+
   </div>
 </div>
 
