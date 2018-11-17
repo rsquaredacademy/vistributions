@@ -124,7 +124,10 @@ probability  and probability from a given quantile.</p>
     <pre class="usage"><span class='fu'>vdist_normal_plot</span>(<span class='kw'>mean</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>sd</span> <span class='kw'>=</span> <span class='fl'>1</span>)
 
 <span class='fu'>vdist_normal_perc</span>(<span class='kw'>probs</span> <span class='kw'>=</span> <span class='fl'>0.95</span>, <span class='kw'>mean</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>sd</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"lower"</span>,
-  <span class='st'>"upper"</span>, <span class='st'>"both"</span>))</pre>
+  <span class='st'>"upper"</span>, <span class='st'>"both"</span>))
+
+<span class='fu'>vdist_normal_prob</span>(<span class='no'>perc</span>, <span class='kw'>mean</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>sd</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"lower"</span>, <span class='st'>"upper"</span>,
+  <span class='st'>"both"</span>))</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -145,6 +148,10 @@ probability  and probability from a given quantile.</p>
       <th>type</th>
       <td><p>Lower tail, upper tail or both.</p></td>
     </tr>
+    <tr>
+      <th>perc</th>
+      <td><p>Quantile value.</p></td>
+    </tr>
     </table>
     
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
@@ -157,6 +164,8 @@ probability  and probability from a given quantile.</p>
 <span class='fu'>vdist_normal_plot</span>()</div><div class='img'><img src='vdist_normal_plot-1.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>vdist_normal_plot</span>(<span class='kw'>mean</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>sd</span> <span class='kw'>=</span> <span class='fl'>0.6</span>)</div><div class='img'><img src='vdist_normal_plot-2.png' alt='' width='700' height='433' /></div><div class='input'>
 <span class='co'># visualize quantiles out of given probability</span>
 <span class='fu'>vdist_normal_perc</span>(<span class='fl'>0.95</span>, <span class='kw'>mean</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>sd</span> <span class='kw'>=</span> <span class='fl'>1.36</span>)</div><div class='img'><img src='vdist_normal_plot-3.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>vdist_normal_perc</span>(<span class='fl'>0.3</span>, <span class='kw'>mean</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>sd</span> <span class='kw'>=</span> <span class='fl'>1.36</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>'upper'</span>)</div><div class='img'><img src='vdist_normal_plot-4.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>vdist_normal_perc</span>(<span class='fl'>0.95</span>, <span class='kw'>mean</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>sd</span> <span class='kw'>=</span> <span class='fl'>1.36</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>'both'</span>)</div><div class='img'><img src='vdist_normal_plot-5.png' alt='' width='700' height='433' /></div><div class='input'>
+<span class='co'># visualize probability from a given quantile</span>
+<span class='fu'>vdist_normal_prob</span>(<span class='fl'>3.78</span>, <span class='kw'>mean</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>sd</span> <span class='kw'>=</span> <span class='fl'>1.36</span>)</div><div class='img'><img src='vdist_normal_plot-6.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>vdist_normal_prob</span>(<span class='fl'>3.43</span>, <span class='kw'>mean</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>sd</span> <span class='kw'>=</span> <span class='fl'>1.36</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>'upper'</span>)</div><div class='img'><img src='vdist_normal_plot-7.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>vdist_normal_prob</span>(<span class='fu'>c</span>(-<span class='fl'>1.74</span>, <span class='fl'>1.83</span>), <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>'both'</span>)</div><div class='img'><img src='vdist_normal_plot-8.png' alt='' width='700' height='433' /></div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">

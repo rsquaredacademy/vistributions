@@ -3,12 +3,16 @@
 \name{vdist_normal_plot}
 \alias{vdist_normal_plot}
 \alias{vdist_normal_perc}
+\alias{vdist_normal_prob}
 \title{Visualize normal distribution}
 \usage{
 vdist_normal_plot(mean = 0, sd = 1)
 
 vdist_normal_perc(probs = 0.95, mean = 0, sd = 1, type = c("lower",
   "upper", "both"))
+
+vdist_normal_prob(perc, mean = 0, sd = 1, type = c("lower", "upper",
+  "both"))
 }
 \arguments{
 \item{mean}{Mean of the normal distribution.}
@@ -18,6 +22,8 @@ vdist_normal_perc(probs = 0.95, mean = 0, sd = 1, type = c("lower",
 \item{probs}{Probability value.}
 
 \item{type}{Lower tail, upper tail or both.}
+
+\item{perc}{Quantile value.}
 }
 \description{
 Visualize how changes in mean and standard deviation affect the
@@ -33,6 +39,11 @@ vdist_normal_plot(mean = 2, sd = 0.6)
 vdist_normal_perc(0.95, mean = 2, sd = 1.36)
 vdist_normal_perc(0.3, mean = 2, sd = 1.36, type = 'upper')
 vdist_normal_perc(0.95, mean = 2, sd = 1.36, type = 'both')
+
+# visualize probability from a given quantile
+vdist_normal_prob(3.78, mean = 2, sd = 1.36)
+vdist_normal_prob(3.43, mean = 2, sd = 1.36, type = 'upper')
+vdist_normal_prob(c(-1.74, 1.83), type = 'both')
 
 }
 \seealso{
