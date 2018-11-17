@@ -184,7 +184,7 @@ vdist_xmm <- function(mean, sd) {
 
 vdist_pol_chi <- function(l1, l2, df) {
   x <- c(l1, seq(l1, l2, 0.01), l2)
-  y <- c(0, dchisq(seq(l1, l2, 0.01), df), 0)
+  y <- c(0, stats::dchisq(seq(l1, l2, 0.01), df), 0)
   out <- tibble::tibble(x = x, y = y)
   return(out)
 }

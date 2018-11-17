@@ -128,20 +128,20 @@ vdist_binom_prob <- function(n, p, s, type = c("lower", "upper", "exact", "inter
 
 
   if (method == "lower") {
-    k <- round(pbinom(s, n, p), 3)
-    cols <- ifelse(cumsum(round(dbinom(x, n, p), 3)) <= k, "#0000CD", "#6495ED")
+    k <- round(stats::pbinom(s, n, p), 3)
+    cols <- ifelse(cumsum(round(stats::dbinom(x, n, p), 3)) <= k, "#0000CD", "#6495ED")
   } else if (method == "upper") {
-    k <- round(1 - pbinom((s - 1), n, p), 3)
-    cols <- ifelse(cumsum(round(dbinom(x, n, p), 3)) >= k, "#0000CD", "#6495ED")
+    k <- round(1 - stats::pbinom((s - 1), n, p), 3)
+    cols <- ifelse(cumsum(round(stats::dbinom(x, n, p), 3)) >= k, "#0000CD", "#6495ED")
   } else if (method == "exact") {
-    k <- pbinom(s, n, p) - pbinom((s - 1), n, p)
-    cols <- ifelse(round(dbinom(x, n, p), 5) == round(k, 5), "#0000CD", "#6495ED")
+    k <- stats::pbinom(s, n, p) - stats::pbinom((s - 1), n, p)
+    cols <- ifelse(round(stats::dbinom(x, n, p), 5) == round(k, 5), "#0000CD", "#6495ED")
   } else {
-    k1 <- pbinom((s[1] - 1), n, p)
-    k2 <- pbinom(s[2], n, p)
-    k  <- pbinom(s[2], n, p) - pbinom((s[1] - 1), n, p)
-    cols <- ifelse((round(cumsum(dbinom(x, n, p)), 6) > round(k1, 6) &
-                      round(cumsum(dbinom(x, n, p)), 6) <= round(k2, 6)), "#0000CD", "#6495ED")
+    k1 <- stats::pbinom((s[1] - 1), n, p)
+    k2 <- stats::pbinom(s[2], n, p)
+    k  <- stats::pbinom(s[2], n, p) - stats::pbinom((s[1] - 1), n, p)
+    cols <- ifelse((round(cumsum(stats::dbinom(x, n, p)), 6) > round(k1, 6) &
+                      round(cumsum(stats::dbinom(x, n, p)), 6) <= round(k2, 6)), "#0000CD", "#6495ED")
   }
 
   data <- stats::dbinom(x, n, p)
@@ -207,11 +207,11 @@ vdist_binom_perc <- function(n, p, tp, type = c("lower", "upper")) {
   x      <- seq(0, n, 1)
 
   if (method == "lower") {
-    k <- round(qbinom(tp, n, p), 3)
-    cols <- ifelse(cumsum(dbinom(x, n, p)) <= pbinom(k, n, p), "#0000CD", "#6495ED")
+    k <- round(stats::qbinom(tp, n, p), 3)
+    cols <- ifelse(cumsum(stats::dbinom(x, n, p)) <= stats::pbinom(k, n, p), "#0000CD", "#6495ED")
   } else {
-    k <- round(qbinom(tp, n, p, lower.tail = F), 3)
-    cols <- ifelse(cumsum(dbinom(x, n, p)) > pbinom((k + 1), n, p), "#0000CD", "#6495ED")
+    k <- round(stats::qbinom(tp, n, p, lower.tail = F), 3)
+    cols <- ifelse(cumsum(stats::dbinom(x, n, p)) > stats::pbinom((k + 1), n, p), "#0000CD", "#6495ED")
   }
 
   data <- stats::dbinom(x, n, p)
