@@ -6,11 +6,18 @@
 #'
 #' @param mean Mean of the normal distribution.
 #' @param sd Standard deviation of the normal distribution.
+#' @param probs Probability value.
+#' @param type Lower tail, upper tail or both.
 #'
 #' @examples
 #' # visualize normal distribution
 #' vdist_normal_plot()
 #' vdist_normal_plot(mean = 2, sd = 0.6)
+#'
+#' # visualize quantiles out of given probability
+#' vdist_normal_perc(0.95, mean = 2, sd = 1.36)
+#' vdist_normal_perc(0.3, mean = 2, sd = 1.36, type = 'upper')
+#' vdist_normal_perc(0.95, mean = 2, sd = 1.36, type = 'both')
 #'
 #' @seealso \code{\link[stats]{Normal}}
 #'
@@ -62,6 +69,138 @@ vdist_normal_plot <- function(mean = 0, sd = 1) {
   print(gplot)
 }
 
+#' @rdname vdist_normal_plot
+#' @export
+#'
+vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", "upper", "both")) {
+
+  if (!is.numeric(mean)) {
+    stop("mean must be numeric/integer")
+  }
+
+  if (!is.numeric(sd)) {
+    stop("sd must be numeric/integer")
+  }
+
+  if (sd < 0) {
+    stop("sd must be positive")
+  }
+
+  if (!is.numeric(probs)) {
+    stop("probs must be numeric")
+  }
+
+  if ((probs < 0) | (probs > 1)) {
+    stop("probs must be between 0 and 1")
+  }
+
+  x      <- vdist_xax(mean)
+  method <- match.arg(type)
+  l      <- vdist_seql(mean, sd)
+  ln     <- length(l)
+
+  if (method == "lower") {
+    pp  <- round(stats::qnorm(probs, mean, sd), 3)
+    lc  <- c(l[1], pp, l[ln])
+    col <- c("#0000CD", "#6495ED")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  } else if (method == "upper") {
+    pp  <- round(stats::qnorm(probs, mean, sd, lower.tail = F), 3)
+    lc  <- c(l[1], pp, l[ln])
+    col <- c("#6495ED", "#0000CD")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  } else {
+    alpha <- (1 - probs) / 2
+    pp1 <- round(stats::qnorm(alpha, mean, sd), 3)
+    pp2 <- round(stats::qnorm(alpha, mean, sd, lower.tail = F), 3)
+    pp  <- c(pp1, pp2)
+    lc  <- c(l[1], pp1, pp2, l[ln])
+    col <- c("#6495ED", "#0000CD", "#6495ED")
+    l1  <- c(1, 2, 3)
+    l2  <- c(2, 3, 4)
+  }
+
+  xm <- vdist_xmm(mean, sd)
+
+  plot_data <- tibble::tibble(x = x, y = stats::dnorm(x, mean, sd))
+  
+  gplot <-
+    plot_data %>%
+    ggplot2::ggplot() +
+    ggplot2::geom_line(ggplot2::aes(x = x, y = y)) +
+    ggplot2::xlab(paste("Mean:", mean, " Standard Deviation:", sd)) + ggplot2::ylab('') +
+    ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
+                   plot.subtitle = ggplot2::element_text(hjust = 0.5))
+
+  if (method == "lower") {
+	  gplot <-
+	    gplot +
+	    ggplot2::ggtitle(label = "Normal Distribution",
+	      subtitle = paste0("P(X < ", pp, ") = ", probs * 100, "%")) +
+	    ggplot2::annotate("text", label = paste0(probs * 100, "%"), 
+	      x = pp - sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#0000CD", 
+	      size = 3) +
+	    ggplot2::annotate("text", label = paste0((1 - probs) * 100, "%"),
+	      x = pp + sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#6495ED", 
+	      size = 3)
+	    
+	} else if (method == "upper") {
+	  gplot <- 
+	  	gplot +
+	    ggplot2::ggtitle(label = "Normal Distribution",
+	      subtitle = paste0("P(X > ", pp, ") = ", probs * 100, "%")) +
+	    ggplot2::annotate("text", label = paste0((1 - probs) * 100, "%"), 
+	      x = pp - sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#6495ED", 
+	      size = 3) +
+	    ggplot2::annotate("text", label = paste0(probs * 100, "%"),
+	      x = pp + sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#0000CD", 
+	      size = 3) 
+	} else {
+		gplot <- 
+	  	gplot +
+	    ggplot2::ggtitle(label = "Normal Distribution",
+	      subtitle = paste0("P(", pp[1], " < X < ", pp[2], ") = ", probs * 100, "%")) +
+	    ggplot2::annotate("text", label = paste0(probs * 100, "%"), 
+	      x = mean, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#0000CD", 
+	      size = 3) +
+	    ggplot2::annotate("text", label = paste0(alpha * 100, "%"),
+	      x = pp[1] - sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#6495ED", 
+	      size = 3) +
+	    ggplot2::annotate("text", label = paste0(alpha * 100, "%"),
+	      x = pp[2] + sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#6495ED", 
+	      size = 3) 
+	}
+
+	for (i in seq_len(length(l1))) {
+		poly_data <- vdist_pol_cord(lc[l1[i]], lc[l2[i]], mean, sd)
+		gplot <-
+		  gplot +
+		  ggplot2::geom_polygon(data = poly_data, mapping = ggplot2::aes(x = x, y = y), fill = col[i])
+  }
+
+  pln <- length(pp)
+
+  for (i in seq_len(pln)) {
+
+  	point_data <- tibble::tibble(x = pp[i], y = 0)
+
+  	gplot <-
+  	  gplot +
+  	  ggplot2::geom_vline(xintercept = pp[i], linetype = 2, size = 1) +
+  	  ggplot2::geom_point(data = point_data, mapping = ggplot2::aes(x = x, y = y),
+	    shape = 4, color = 'red', size = 3) 
+  }
+
+  gplot <-
+    gplot +
+	 	 	ggplot2::scale_y_continuous(breaks = NULL) +
+	  	ggplot2::scale_x_continuous(breaks = l)
+
+  print(gplot)
+
+}
 
 vdist_xax <- function(mean) {
   xl <- mean - 3
