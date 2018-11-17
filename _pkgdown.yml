@@ -44,3 +44,5 @@ reference:
 
   contents:
   - vdist_chisquare_plot
+  - vdist_chisquare_perc
+  - vdist_chisquare_prob

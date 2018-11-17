@@ -3,11 +3,14 @@
 \name{vdist_chisquare_plot}
 \alias{vdist_chisquare_plot}
 \alias{vdist_chisquare_perc}
+\alias{vdist_chisquare_prob}
 \title{Visualize chi square distribution}
 \usage{
 vdist_chisquare_plot(df = 3, normal = FALSE)
 
 vdist_chisquare_perc(probs = 0.95, df = 3, type = c("lower", "upper"))
+
+vdist_chisquare_prob(perc, df, type = c("lower", "upper"))
 }
 \arguments{
 \item{df}{Degrees of freedom.}
@@ -18,6 +21,8 @@ vdist_chisquare_perc(probs = 0.95, df = 3, type = c("lower", "upper"))
 \item{probs}{Probability value.}
 
 \item{type}{Lower tail or upper tail.}
+
+\item{perc}{Quantile value.}
 }
 \description{
 Visualize how changes in degrees of freedom affect the shape of
@@ -33,6 +38,10 @@ vdist_chisquare_plot(df = 5, normal = TRUE)
 # visualize quantiles out of given probability
 vdist_chisquare_perc(0.165, 8, 'lower')
 vdist_chisquare_perc(0.22, 13, 'upper')
+
+# visualize probability from a given quantile.
+vdist_chisquare_prob(13.58, 11, 'lower')
+vdist_chisquare_prob(15.72, 13, 'upper')
 
 }
 \seealso{
