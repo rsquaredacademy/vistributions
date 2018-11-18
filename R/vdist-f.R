@@ -9,6 +9,7 @@
 #' @param normal If \code{TRUE}, normal curve with same \code{mean} and
 #' \code{sd} as the F distribution is drawn.
 #' @param probs Probability value.
+#' @param perc Quantile value.
 #' @param type Lower tail or upper tail.
 #'
 #' @examples
@@ -19,6 +20,10 @@
 #' # visualize probability from a given quantile
 #' vdist_f_perc(0.95, 3, 30, 'lower')
 #' vdist_f_perc(0.125, 9, 35, 'upper')
+#'
+#' # visualize quantiles out of given probability
+#' vdist_f_prob(2.35, 5, 32)
+#' vdist_f_prob(1.5222, 9, 35, type = "upper")
 #'
 #' @seealso \code{\link[stats]{FDist}}
 #'
@@ -186,8 +191,118 @@ vdist_f_perc <- function(probs = 0.95, num_df = 3, den_df = 30, type = c("lower"
 
   print(gplot)
 
+}
+
+#' @rdname vdist_f_plot
+#' @export
+#'
+vdist_f_prob <- function(perc, num_df, den_df, type = c("lower", "upper")) {
+
+  if (!is.numeric(perc)) {
+    stop("perc must be numeric/integer")
+  }
+
+  if (!is.numeric(num_df)) {
+    stop("num_df must be numeric/integer")
+  }
+
+  if (!is.numeric(den_df)) {
+    stop("den_df must be numeric/integer")
+  }
+
+  num_df <- as.integer(num_df)
+  den_df <- as.integer(den_df)
+  method <- match.arg(type)
+  fm     <- round(den_df / (den_df - 2), 3)
+  fsd    <- round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3)
+
+  l <- if (perc < 4) {
+    seq(0, 4, 0.01)
+  } else {
+    seq(0, (perc * 1.25), 0.01)
+  }
+  ln <- length(l)
+
+  if (method == "lower") {
+    pp  <- round(stats::pf(perc, num_df, den_df), 3)
+    lc  <- c(l[1], perc, l[ln])
+    col <- c("#0000CD", "#6495ED")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  } else {
+    pp  <- round(stats::pf(perc, num_df, den_df, lower.tail = F), 3)
+    lc  <- c(l[1], perc, l[ln])
+    col <- c("#6495ED", "#0000CD")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  }
+
+  plot_data <- tibble::tibble(x = l, y = stats::df(l, num_df, den_df))
+
+  gplot <-
+    plot_data %>%
+    ggplot2::ggplot() +
+    ggplot2::geom_line(data = plot_data, mapping = ggplot2::aes(x = x, y = y),
+      color = 'blue') + ggplot2::xlab(paste("Mean =", fm, " Std Dev. =", fsd)) +
+    ggplot2::ylab('') + 
+    ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
+                   plot.subtitle = ggplot2::element_text(hjust = 0.5))
+
+  if (method == "lower") {
+    gplot <-
+      gplot +
+      ggplot2::ggtitle(label = 'f Distribution',
+        subtitle = paste0("P(X < ", perc, ") = ", pp * 100, "%")) +
+      ggplot2::annotate("text", label = paste0(pp * 100, "%"), 
+        x = perc - fsd, y = max(stats::df(l, num_df, den_df)) + 0.04, color = "#0000CD", 
+        size = 3) +
+      ggplot2::annotate("text", label = paste0(round((1 - pp) * 100, 2), "%"),
+        x = perc + fsd, y = max(stats::df(l, num_df, den_df)) + 0.02, color = "#6495ED", 
+        size = 3)
+      
+  } else {
+    gplot <- 
+      gplot +
+      ggplot2::ggtitle(label = 'f Distribution',
+        subtitle = paste0("P(X > ", perc, ") = ", pp * 100, "%")) +
+      ggplot2::annotate("text", label = paste0(round((1 - pp) * 100, 2), "%"), 
+        x = perc - fsd, y = max(stats::df(l, num_df, den_df)) + 0.04, color = "#6495ED", 
+        size = 3) +
+      ggplot2::annotate("text", label = paste0(pp * 100, "%"),
+        x = perc + fsd, y = max(stats::df(l, num_df, den_df)) + 0.04, color = "#0000CD", 
+        size = 3) 
+  }
+
+  for (i in seq_len(length(l1))) {
+    poly_data <- vdist_pol_f(lc[l1[i]], lc[l2[i]], num_df, den_df)
+    gplot <- 
+      gplot +
+      ggplot2::geom_polygon(data = poly_data, mapping = ggplot2::aes(x = x, y = y),
+        fill = col[i])
+  }
+
+  pln <- length(pp)
+
+  for (i in seq_len(pln)) {
+
+    point_data <- tibble::tibble(x = perc[i], y = 0)
+
+    gplot <-
+      gplot +
+      ggplot2::geom_vline(xintercept = perc[i], linetype = 2, size = 1) +
+      ggplot2::geom_point(data = point_data, mapping = ggplot2::aes(x = x, y = y),
+      shape = 4, color = 'red', size = 3) 
+  }
+
+  gplot <-
+    gplot +
+      ggplot2::scale_y_continuous(breaks = NULL) +
+      ggplot2::scale_x_continuous(breaks = 0:max(l))
+
+  print(gplot)
 
 }
+
 
 vdist_pol_f <- function(l1, l2, num_df, den_df) {
   x <- c(l1, seq(l1, l2, 0.01), l2)
