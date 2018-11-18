@@ -2,9 +2,13 @@
 % Please edit documentation in R/vdist-f.R
 \name{vdist_f_plot}
 \alias{vdist_f_plot}
+\alias{vdist_f_perc}
 \title{Visualize f distribution}
 \usage{
 vdist_f_plot(num_df = 4, den_df = 30, normal = FALSE)
+
+vdist_f_perc(probs = 0.95, num_df = 3, den_df = 30, type = c("lower",
+  "upper"))
 }
 \arguments{
 \item{num_df}{Degrees of freedom associated with the numerator of f statistic.}
@@ -13,6 +17,10 @@ vdist_f_plot(num_df = 4, den_df = 30, normal = FALSE)
 
 \item{normal}{If \code{TRUE}, normal curve with same \code{mean} and
 \code{sd} as the F distribution is drawn.}
+
+\item{probs}{Probability value.}
+
+\item{type}{Lower tail or upper tail.}
 }
 \description{
 Visualize how changes in degrees of freedom affect the
@@ -23,6 +31,10 @@ probability and probability from a given quantile.
 # visualize F distribution
 vdist_f_plot()
 vdist_f_plot(6, 10, normal = TRUE)
+
+# visualize probability from a given quantile
+vdist_f_perc(0.95, 3, 30, 'lower')
+vdist_f_perc(0.125, 9, 35, 'upper')
 
 }
 \seealso{
