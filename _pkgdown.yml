@@ -54,3 +54,8 @@ reference:
   - vdist_normal_plot
   - vdist_normal_perc
   - vdist_normal_prob
+
+- title: F Distribution
+
+  contents:
+  - vdist_f_plot
