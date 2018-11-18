@@ -61,3 +61,9 @@ reference:
   - vdist_f_plot
   - vdist_f_perc
   - vdist_f_prob
+
+- title: t Distribution
+  
+  contents:
+  - vdist_t_plot
+  - vdist_t_perc
