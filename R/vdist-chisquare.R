@@ -69,10 +69,13 @@ vdist_chisquare_plot <- function(df = 3, normal = FALSE) {
 
 
 	if (normal) {
-	  pp +
+	  pp <- 
+	  	pp +
 	    ggplot2::geom_line(data = nline_data, mapping = ggplot2::aes(x = x, y = y),
 	      color = '#FF4500')
 	}
+
+	return(pp)
 
 }
 
@@ -169,6 +172,7 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3, type = c("lower", "upper"
 	  ggplot2::scale_y_continuous(breaks = NULL) +
 	  ggplot2::scale_x_continuous(breaks = seq(0, xm[2], by = 5))
 
+	 return(gplot)
 
 }
 
@@ -265,7 +269,7 @@ vdist_chisquare_prob <- function(perc, df, type = c("lower", "upper")) {
 	  ggplot2::scale_y_continuous(breaks = NULL) +
 	  ggplot2::scale_x_continuous(breaks = seq(0, l[ln], by = 5))
 
-	print(gplot)
+	return(gplot)
 
 }
 
