@@ -33,7 +33,12 @@ home:
     href: https://www.rsquaredacademy.com
 
 reference:
-- title: Binomial Distribution
+- title: Shiny App
+
+  contents:
+  - vdist_launch_app
+
+- title: Binomial 
 
   contents:
   - vdist_binom_plot
@@ -41,28 +46,28 @@ reference:
   - vdist_binom_prob
   
 
-- title: Chi Square Distribution
+- title: Chi Square 
 
   contents:
   - vdist_chisquare_plot
   - vdist_chisquare_perc
   - vdist_chisquare_prob
 
-- title: Normal Distribution
+- title: Normal 
 
   contents:
   - vdist_normal_plot
   - vdist_normal_perc
   - vdist_normal_prob
 
-- title: F Distribution
+- title: f 
 
   contents:
   - vdist_f_plot
   - vdist_f_perc
   - vdist_f_prob
 
-- title: t Distribution
+- title: t 
   
   contents:
   - vdist_t_plot
