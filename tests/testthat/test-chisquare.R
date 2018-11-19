@@ -27,21 +27,3 @@ test_that("chisquare perc plot is as expected", {
   vdiffr::expect_doppelganger("chi_perc", gplot)
 })
 
-test_that("chisquare perc normal plot is as expected", {
-  skip_on_cran()
-  gplot <- vdist_chisquare_plot(df = 5, normal = TRUE)
-  vdiffr::expect_doppelganger("chi_perc_normal", gplot)
-})
-
-
-test_that("chisquare perc lower plot is as expected", {
-  skip_on_cran()
-  gplot <- vdist_chisquare_perc(0.92, 6, 'lower')
-  vdiffr::expect_doppelganger("chi_perc_lower", gplot)
-})
-
-test_that("chisquare perc upper normal plot is as expected", {
-  skip_on_cran()
-  gplot <- vdist_chisquare_perc(0.165, 8, 'upper')
-  vdiffr::expect_doppelganger("chi_perc_upper", gplot)
-})
