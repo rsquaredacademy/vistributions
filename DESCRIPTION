@@ -18,6 +18,9 @@ Imports:
     stats,
     tibble
 Suggests: 
-	covr,
+    covr,
     testthat,
-    vdiffr
+    vdiffr,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
