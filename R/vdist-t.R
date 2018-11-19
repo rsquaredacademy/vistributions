@@ -46,7 +46,7 @@ vdist_t_plot <- function(df = 3) {
 
   plot_data <- tibble::tibble(x = x, y = stats::dt(x, df))
   poly_data <- tibble::tibble(y = c(-4, seq(-4, 4, 0.01), 4),
-    z = c(0, dt(seq(-4, 4, 0.01), df), 0))
+    z = c(0, stats::dt(seq(-4, 4, 0.01), df), 0))
 
   gplot <-
     plot_data %>%
