@@ -9,7 +9,8 @@
 \usage{
 vdist_t_plot(df = 3)
 
-vdist_t_perc(probs = 0.95, df = 4, type = c("lower", "upper", "both"))
+vdist_t_perc(probs = 0.95, df = 4, type = c("lower", "upper",
+  "both"))
 
 vdist_t_prob(perc, df, type = c("lower", "upper", "interval", "both"))
 }

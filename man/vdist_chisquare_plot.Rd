@@ -8,7 +8,8 @@
 \usage{
 vdist_chisquare_plot(df = 3, normal = FALSE)
 
-vdist_chisquare_perc(probs = 0.95, df = 3, type = c("lower", "upper"))
+vdist_chisquare_perc(probs = 0.95, df = 3, type = c("lower",
+  "upper"))
 
 vdist_chisquare_prob(perc, df, type = c("lower", "upper"))
 }

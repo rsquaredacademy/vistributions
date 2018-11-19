@@ -8,7 +8,8 @@
 \usage{
 vdist_binom_plot(n, p)
 
-vdist_binom_prob(n, p, s, type = c("lower", "upper", "exact", "interval"))
+vdist_binom_prob(n, p, s, type = c("lower", "upper", "exact",
+  "interval"))
 
 vdist_binom_perc(n, p, tp, type = c("lower", "upper"))
 }
