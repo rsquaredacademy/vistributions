@@ -3,16 +3,12 @@
 
 # vistributions
 
-> Visualize probability
-distributions
+> Visualize probability distributions
 
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/vistributions)](https://cran.r-project.org/package=vistributions)
 [![Travis-CI Build
 Status](https://travis-ci.org/rsquaredacademy/vistributions.svg?branch=master)](https://travis-ci.org/rsquaredacademy/vistributions)
 [![AppVeyor Build
 Status](https://ci.appveyor.com/api/projects/status/github/rsquaredacademy/vistributions?branch=master&svg=true)](https://ci.appveyor.com/project/aravindhebbali/vistributions)
-[![Coverage
-status](https://codecov.io/gh/rsquaredacademy/vistributions/branch/master/graph/badge.svg)](https://codecov.io/github/rsquaredacademy/vistributions?branch=master)
 ![](https://img.shields.io/badge/lifecycle-experimental-orange.svg)
 
 ## Installation
@@ -27,13 +23,30 @@ devtools::install_github("rsquaredacademy/vdistributions")
 
 ## Usage
 
-### Binomial Distribution
+### Normal Distribution
 
 ``` r
-vdist_binom_plot(n = 10, p = 0.3, lib = 'ggplot2')
+# visualize normal distribution
+vdist_normal_plot()
 ```
 
-<img src="man/figures/README-binom-1.png" width="100%" />
+<img src="man/figures/README-normal-1.png" width="100%" />
+
+``` r
+
+# visualize quantiles out of given probability
+vdist_normal_perc(0.95, mean = 2, sd = 1.36, type = 'both')
+```
+
+<img src="man/figures/README-normal-2.png" width="100%" />
+
+``` r
+
+# visualize probability from a given quantile
+vdist_normal_prob(c(-1.74, 1.83), type = 'both')
+```
+
+<img src="man/figures/README-normal-3.png" width="100%" />
 
 ## Community Guidelines
 

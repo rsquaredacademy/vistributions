@@ -4,10 +4,10 @@ Title: Visualize Probability Distributions
 Version: 0.1.0
 Authors@R: person("Aravind", "Hebbali", email = "hebbali.aravind@gmail.com", role = c("aut", "cre"),
     comment = c(ORCID = "0000-0001-9220-9669"))
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: Visualize and compute percentiles/probabilities of normal, t, f, chi square 
+    and binomial distributions.
 License: MIT + file LICENSE
-URL: https://github.com/rsquaredacademy/vistributions
+URL: https://github.com/rsquaredacademy/vistributions, https://vistributions.rsquaredacademy.com
 BugReports: https://github.com/rsquaredacademy/vistributions/issues
 Encoding: UTF-8
 LazyData: true
