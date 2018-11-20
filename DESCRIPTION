@@ -2,16 +2,11 @@ Package: vistributions
 Type: Package
 Title: Visualize Probability Distributions
 Version: 0.1.0
-Authors@R: person("Aravind", "Hebbali", email = "hebbali.aravind@gmail.com", role = c("aut", "cre"),
-    comment = c(ORCID = "0000-0001-9220-9669"))
+Authors@R: person("Aravind", "Hebbali", email = "hebbali.aravind@gmail.com", role = c("aut", "cre"))
 Description: Visualize and compute percentiles/probabilities of normal, t, f, chi square 
     and binomial distributions.
-License: MIT + file LICENSE
-URL: https://github.com/rsquaredacademy/vistributions, https://vistributions.rsquaredacademy.com
-BugReports: https://github.com/rsquaredacademy/vistributions/issues
-Encoding: UTF-8
-LazyData: true
-RoxygenNote: 6.1.1
+Depends:
+    R(>= 3.1)
 Imports:
     ggplot2,
     magrittr,
@@ -19,12 +14,16 @@ Imports:
     stats,
     tibble
 Suggests: 
-    covr,
     testthat,
-    vdiffr,
     knitr,
     rmarkdown,
     shinyBS,
     shinycssloaders,
     shinythemes
+License: MIT + file LICENSE
+URL: https://github.com/rsquaredacademy/vistributions, https://vistributions.rsquaredacademy.com
+BugReports: https://github.com/rsquaredacademy/vistributions/issues
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1
 VignetteBuilder: knitr
