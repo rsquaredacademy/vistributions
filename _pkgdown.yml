@@ -17,6 +17,10 @@ navbar:
   left:
     - text: "Home"
       href: index.html
+    - text: "Guides"
+      menu:
+        - text: "Introduction"
+          href: articles/introduction_to_vistributions.html
     - text: "Reference"
       menu:
         - text: "Functions"
@@ -31,6 +35,8 @@ home:
   links:
   - text: Learn more
     href: https://www.rsquaredacademy.com
+  - text: Try shiny app
+    href: https://www.rsquaredcomputing.com/shiny/vistributions/
 
 reference:
 - title: Shiny App

@@ -41,6 +41,18 @@
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Guides
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
+      <a href="articles/introduction_to_vistributions.html">Introduction</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Reference
      
     <span class="caret"></span>
@@ -84,13 +96,28 @@
 <blockquote>
 <p>Visualize probability distributions</p>
 </blockquote>
-<p><a href="https://travis-ci.org/rsquaredacademy/vistributions"><img src="https://travis-ci.org/rsquaredacademy/vistributions.svg?branch=master" alt="Travis-CI Build Status"></a> <a href="https://ci.appveyor.com/project/aravindhebbali/vistributions"><img src="https://ci.appveyor.com/api/projects/status/github/rsquaredacademy/vistributions?branch=master&amp;svg=true" alt="AppVeyor Build Status"></a> <img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg"></p>
+<p><a href="https://cran.r-project.org/package=vistributions"><img src="http://www.r-pkg.org/badges/version/vistributions" alt="CRAN_Status_Badge"></a> <a href="https://cran.r-project.org/web/checks/check_results_vistributions.html"><img src="https://cranchecks.info/badges/summary/vistributions" alt="cran checks"></a> <a href="https://travis-ci.org/rsquaredacademy/vistributions"><img src="https://travis-ci.org/rsquaredacademy/vistributions.svg?branch=master" alt="Travis-CI Build Status"></a> <a href="https://ci.appveyor.com/project/aravindhebbali/vistributions"><img src="https://ci.appveyor.com/api/projects/status/github/rsquaredacademy/vistributions?branch=master&amp;svg=true" alt="AppVeyor Build Status"></a> <a href="https://www.tidyverse.org/lifecycle/#maturing"><img src="https://img.shields.io/badge/lifecycle-maturing-blue.svg" alt="lifecycle"></a></p>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
-<p>You can install the development version of vistributions from <a href="https://github.com">GitHub</a> with:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">install.packages</span>(<span class="st">"devtools"</span>)</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2">devtools<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/devtools/topics/reexports">install_github</a></span>(<span class="st">"rsquaredacademy/vdistributions"</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="co"># Install release version from CRAN</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">install.packages</span>(<span class="st">"vistributions"</span>)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="co"># Install development version from GitHub</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="co"># install.packages("devtools")</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6">devtools<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/devtools/topics/reexports">install_github</a></span>(<span class="st">"rsquaredacademy/vistributions"</span>)</a></code></pre></div>
+</div>
+<div id="shiny-app" class="section level2">
+<h2 class="hasAnchor">
+<a href="#shiny-app" class="anchor"></a>Shiny App</h2>
+<p>Use <code><a href="reference/vdist_launch_app.html">vdist_launch_app()</a></code> to explore the package using a shiny app.</p>
+</div>
+<div id="articles" class="section level2">
+<h2 class="hasAnchor">
+<a href="#articles" class="anchor"></a>Articles</h2>
+<ul>
+<li><a href="https://vistributions.rsquaredacademy.com/articles/introduction_to_vistributions.html">Explore Distributions</a></li>
+</ul>
 </div>
 <div id="usage" class="section level2">
 <h2 class="hasAnchor">
@@ -111,6 +138,11 @@
 <p><img src="reference/figures/README-normal-3.png" width="100%"></p>
 </div>
 </div>
+<div id="getting-help" class="section level2">
+<h2 class="hasAnchor">
+<a href="#getting-help" class="anchor"></a>Getting Help</h2>
+<p>If you encounter a bug, please file a minimal reproducible example using <a href="https://reprex.tidyverse.org/index.html">reprex</a> on github. For questions and clarifications, use <a href="https://stackoverflow.com/">StackOverflow</a>.</p>
+</div>
 <div id="community-guidelines" class="section level2">
 <h2 class="hasAnchor">
 <a href="#community-guidelines" class="anchor"></a>Community Guidelines</h2>
@@ -123,11 +155,15 @@
     <div class="links">
 <h2>Links</h2>
 <ul class="list-unstyled">
+<li>Download from CRAN at <br><a href="https://cloud.r-project.org/package=vistributions">https://​cloud.r-project.org/​package=vistributions</a>
+</li>
 <li>Browse source code at <br><a href="https://github.com/rsquaredacademy/vistributions">https://​github.com/​rsquaredacademy/​vistributions</a>
 </li>
 <li>Report a bug at <br><a href="https://github.com/rsquaredacademy/vistributions/issues">https://​github.com/​rsquaredacademy/​vistributions/​issues</a>
 </li>
 <li>Learn more at <br><a href="https://www.rsquaredacademy.com">https://​www.rsquaredacademy.com</a>
+</li>
+<li>Try shiny app at <br><a href="https://www.rsquaredcomputing.com/shiny/vistributions/">https://​www.rsquaredcomputing.com/​shiny/​vistributions/​</a>
 </li>
 </ul>
 </div>
@@ -142,7 +178,7 @@
 <h2>Developers</h2>
 <ul class="list-unstyled">
 <li>
-<a href="https://www.aravindhebbali.com">Aravind Hebbali</a> <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0001-9220-9669" target="orcid.widget"><img src="https://members.orcid.org/sites/default/files/vector_iD_icon.svg" class="orcid" height="16"></a> </li>
+<a href="https://www.aravindhebbali.com">Aravind Hebbali</a> <br><small class="roles"> Author, maintainer </small>  </li>
 </ul>
 </div>
 
