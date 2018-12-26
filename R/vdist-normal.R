@@ -50,12 +50,10 @@ vdist_normal_plot <- function(mean = 0, sd = 1) {
   l2  <- c(5, 3, 2, 6, 7)
 
   xm <- vdist_xmm(mean, sd)
-
-  plot_data <- tibble::tibble(x = x, y = stats::dnorm(x, mean, sd))
+  plot_data <- data.frame(x = x, y = stats::dnorm(x, mean, sd))
   
   gplot <-
-    plot_data %>%
-    ggplot2::ggplot() +
+    ggplot2::ggplot(plot_data) +
     ggplot2::geom_line(ggplot2::aes(x = x, y = y)) +
     ggplot2::xlab('') + ggplot2::ylab('') +
     ggplot2::ggtitle(label = "Normal Distribution",
@@ -129,12 +127,10 @@ vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", 
   }
 
   xm <- vdist_xmm(mean, sd)
-
-  plot_data <- tibble::tibble(x = x, y = stats::dnorm(x, mean, sd))
+  plot_data <- data.frame(x = x, y = stats::dnorm(x, mean, sd))
   
   gplot <-
-    plot_data %>%
-    ggplot2::ggplot() +
+    ggplot2::ggplot(plot_data) +
     ggplot2::geom_line(ggplot2::aes(x = x, y = y)) +
     ggplot2::xlab(paste("Mean:", mean, " Standard Deviation:", sd)) + ggplot2::ylab('') +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
@@ -190,7 +186,7 @@ vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", 
 
   for (i in seq_len(pln)) {
 
-  	point_data <- tibble::tibble(x = pp[i], y = 0)
+  	point_data <- data.frame(x = pp[i], y = 0)
 
   	gplot <-
   	  gplot +
@@ -271,12 +267,10 @@ vdist_normal_prob <- function(perc, mean = 0, sd = 1, type = c("lower", "upper",
   }
 
   xm <- vdist_xmmp(mean, sd, el)
-
-  plot_data <- tibble::tibble(x = x, y = stats::dnorm(x, mean, sd))
+  plot_data <- data.frame(x = x, y = stats::dnorm(x, mean, sd))
   
   gplot <-
-    plot_data %>%
-    ggplot2::ggplot() +
+    ggplot2::ggplot(plot_data) +
     ggplot2::geom_line(ggplot2::aes(x = x, y = y)) +
     ggplot2::xlab(paste("Mean:", mean, " Standard Deviation:", sd)) + ggplot2::ylab('') +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
@@ -332,7 +326,7 @@ vdist_normal_prob <- function(perc, mean = 0, sd = 1, type = c("lower", "upper",
 
   for (i in seq_len(pln)) {
 
-  	point_data <- tibble::tibble(x = perc[i], y = 0)
+  	point_data <- data.frame(x = perc[i], y = 0)
 
   	gplot <-
   	  gplot +
@@ -368,7 +362,7 @@ vdist_seql <- function(mean, sd) {
 vdist_pol_cord <- function(l1, l2, mean, sd) {
   x <- c(l1, seq(l1, l2, 0.01), l2)
   y <- c(0, stats::dnorm(seq(l1, l2, 0.01), mean, sd), 0)
-  data <- tibble::tibble(x = x, y = y)
+  data <- data.frame(x = x, y = y)
   return(data)
 }
 

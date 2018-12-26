@@ -9,9 +9,7 @@ Depends:
     R(>= 3.1)
 Imports:
     ggplot2,
-    magrittr,
     stats,
-    tibble,
     utils
 Suggests: 
     testthat,

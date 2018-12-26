@@ -44,13 +44,12 @@ vdist_t_plot <- function(df = 3) {
 
   x <- seq(-4, 4, 0.01)
 
-  plot_data <- tibble::tibble(x = x, y = stats::dt(x, df))
-  poly_data <- tibble::tibble(y = c(-4, seq(-4, 4, 0.01), 4),
+  plot_data <- data.frame(x = x, y = stats::dt(x, df))
+  poly_data <- data.frame(y = c(-4, seq(-4, 4, 0.01), 4),
     z = c(0, stats::dt(seq(-4, 4, 0.01), df), 0))
 
   gplot <-
-    plot_data %>%
-    ggplot2::ggplot() +
+    ggplot2::ggplot(plot_data) +
     ggplot2::geom_line(ggplot2::aes(x = x, y = y), color = 'blue') +
     ggplot2::ggtitle(label = 't Distribution', subtitle = paste("df =", df)) +
     ggplot2::xlab('') + ggplot2::ylab('') + 
@@ -110,11 +109,10 @@ vdist_t_perc <- function(probs = 0.95, df = 4, type = c("lower", "upper", "both"
     l2    <- c(2, 3, 4)
   }
 
-  plot_data <- tibble::tibble(x = l, y = stats::dt(l, df))
+  plot_data <- data.frame(x = l, y = stats::dt(l, df))
 
   gplot <-
-    plot_data %>%
-    ggplot2::ggplot() +
+    ggplot2::ggplot(plot_data) +
     ggplot2::geom_line(ggplot2::aes(x = x, y = y), color = 'blue') +
     ggplot2::xlab(paste("df =", df)) + ggplot2::ylab('') +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
@@ -170,7 +168,7 @@ vdist_t_perc <- function(probs = 0.95, df = 4, type = c("lower", "upper", "both"
 
   for (i in seq_len(pln)) {
 
-    point_data <- tibble::tibble(x = pp[i], y = 0)
+    point_data <- data.frame(x = pp[i], y = 0)
 
     gplot <-
       gplot +
@@ -250,11 +248,10 @@ vdist_t_prob <- function(perc, df, type = c("lower", "upper", "interval", "both"
     l2  <- c(2, 3, 4)
   }
 
-  plot_data <- tibble::tibble(x = l, y = stats::dt(l, df))
+  plot_data <- data.frame(x = l, y = stats::dt(l, df))
 
   gplot <- 
-    plot_data %>%
-    ggplot2::ggplot() +
+    ggplot2::ggplot(plot_data) +
     ggplot2::geom_line(ggplot2::aes(x = x, y = y), color = 'blue') +
     ggplot2::xlab(paste("df =", df)) + ggplot2::ylab('') +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
@@ -272,7 +269,7 @@ vdist_t_prob <- function(perc, df, type = c("lower", "upper", "interval", "both"
 
   if (method == "lower") {
 
-    point_data <- tibble::tibble(x = perc, y = 0)
+    point_data <- data.frame(x = perc, y = 0)
 
     gplot <-
       gplot +
@@ -290,7 +287,7 @@ vdist_t_prob <- function(perc, df, type = c("lower", "upper", "interval", "both"
 
   } else if (method == "upper") {
     
-    point_data <- tibble::tibble(x = perc, y = 0)
+    point_data <- data.frame(x = perc, y = 0)
 
     gplot <-
       gplot +
@@ -308,7 +305,7 @@ vdist_t_prob <- function(perc, df, type = c("lower", "upper", "interval", "both"
 
   } else if (method == "interval") {
     
-    point_data <- tibble::tibble(x1 = perc, x2 = -perc, y = 0)
+    point_data <- data.frame(x1 = perc, x2 = -perc, y = 0)
 
     gplot <-
       gplot +
@@ -330,7 +327,7 @@ vdist_t_prob <- function(perc, df, type = c("lower", "upper", "interval", "both"
       shape = 4, color = 'red', size = 3)
   } else {
     
-    point_data <- tibble::tibble(x1 = perc, x2 = -perc, y = 0)
+    point_data <- data.frame(x1 = perc, x2 = -perc, y = 0)
 
     gplot <-
       gplot +
@@ -360,6 +357,6 @@ vdist_t_prob <- function(perc, df, type = c("lower", "upper", "interval", "both"
 vdist_pol_t <- function(l1, l2, df) {
   x <- c(l1, seq(l1, l2, 0.01), l2)
   y <- c(0, stats::dt(seq(l1, l2, 0.01), df), 0)
-  data <- tibble::tibble(x = x, y = y)
+  data <- data.frame(x = x, y = y)
   return(data)
 }
