@@ -10,16 +10,13 @@ Depends:
 Imports:
     ggplot2,
     magrittr,
-    shiny,
     stats,
-    tibble
+    tibble,
+    utils
 Suggests: 
     testthat,
     knitr,
-    rmarkdown,
-    shinyBS,
-    shinycssloaders,
-    shinythemes
+    rmarkdown
 License: MIT + file LICENSE
 URL: https://github.com/rsquaredacademy/vistributions, https://vistributions.rsquaredacademy.com
 BugReports: https://github.com/rsquaredacademy/vistributions/issues
