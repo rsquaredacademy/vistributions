@@ -27,7 +27,6 @@
 #'
 #' @seealso \code{\link[stats]{Binomial}}
 #'
-#' @importFrom magrittr %>%
 #'
 #' @export
 #'
@@ -49,23 +48,13 @@ vdist_binom_plot <- function(n, p) {
   x   <- seq(0, n, 1)
   xn  <- n / 40
 
-  bm <-
-    n %>%
-    magrittr::multiply_by(p) %>%
-    round(2)
+  bm <- round(n * p, 2)
 
-  bsd <-
-    1 %>%
-    magrittr::subtract(p) %>%
-    magrittr::multiply_by(bm) %>%
-    sqrt(.) %>%
-    round(2)
-
+  bsd <- round(sqrt((1 - p) * bm) , 2)
   data <- stats::dbinom(x, n, p)
-  plot_data <- tibble::tibble(n = seq(0, n), df = data)
+  plot_data <- data.frame(n = seq(0, n), df = data)
 
-  plot_data %>%
-    ggplot2::ggplot() +
+  ggplot2::ggplot(plot_data) +
     ggplot2::geom_col(ggplot2::aes(x = n, y = df), fill = "blue") +
     ggplot2::ylab("Probability") + ggplot2::xlab("No. of success") +
     ggplot2::ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
@@ -114,18 +103,8 @@ vdist_binom_prob <- function(n, p, s, type = c("lower", "upper", "exact", "inter
   s   <- as.integer(s)
   x   <- seq(0, n, 1)
 
-  bm <-
-    n %>%
-    magrittr::multiply_by(p) %>%
-    round(2)
-
-  bsd <-
-    1 %>%
-    magrittr::subtract(p) %>%
-    magrittr::multiply_by(bm) %>%
-    sqrt(.) %>%
-    round(2)
-
+  bm <- round(n * p, 2)
+  bsd <- round(sqrt((1 - p) * bm), 2)
 
   if (method == "lower") {
     k <- round(stats::pbinom(s, n, p), 3)
@@ -145,11 +124,10 @@ vdist_binom_prob <- function(n, p, s, type = c("lower", "upper", "exact", "inter
   }
 
   data <- stats::dbinom(x, n, p)
-  plot_data <- tibble::tibble(n = seq(0, n), df = data)
+  plot_data <- data.frame(n = seq(0, n), df = data)
 
-  pp <-
-    plot_data %>%
-    ggplot2::ggplot() +
+  pp <- 
+    ggplot2::ggplot(plot_data) +
     ggplot2::geom_col(ggplot2::aes(x = n, y = df), fill = cols) +
     ggplot2::ylab("Probability") +
     ggplot2::xlab(paste("No. of success\n", "Mean =", bm, ", Std. Dev. =", bsd)) +
@@ -215,11 +193,10 @@ vdist_binom_perc <- function(n, p, tp, type = c("lower", "upper")) {
   }
 
   data <- stats::dbinom(x, n, p)
-  plot_data <- tibble::tibble(n = seq(0, n), df = data)
+  plot_data <- data.frame(n = seq(0, n), df = data)
 
-  pp <-
-    plot_data %>%
-    ggplot2::ggplot() +
+  pp <- 
+    ggplot2::ggplot(plot_data) +
     ggplot2::geom_col(ggplot2::aes(x = n, y = df), fill = cols) +
     ggplot2::ylab("Probability") + ggplot2::xlab("No. of success") +
     ggplot2::scale_x_continuous(breaks = seq(0, n)) +

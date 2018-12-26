@@ -39,11 +39,6 @@ home:
     href: https://www.rsquaredcomputing.com/shiny/vistributions/
 
 reference:
-- title: Shiny App
-
-  contents:
-  - vdist_launch_app
-
 - title: Binomial 
 
   contents:

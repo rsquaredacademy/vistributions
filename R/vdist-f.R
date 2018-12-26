@@ -50,15 +50,14 @@ vdist_f_plot <- function(num_df = 4, den_df = 30, normal = FALSE) {
   x      <- seq(0, 4, 0.01)
   nx     <- seq(-2, 4, 0.01)
   
-  plot_data  <- tibble::tibble(x = x, y = stats::df(x, num_df, den_df))
-  poly_data  <- tibble::tibble(y = c(0, seq(0, 4, 0.01), 4),
+  plot_data  <- data.frame(x = x, y = stats::df(x, num_df, den_df))
+  poly_data  <- data.frame(y = c(0, seq(0, 4, 0.01), 4),
     z = c(0, stats::df(seq(0, 4, 0.01), num_df, den_df), 0))
-  point_data <- tibble::tibble(x = fm, y = 0)
-  nline_data <- tibble::tibble(x = nx, y = stats::dnorm(nx, fm, fsd))
+  point_data <- data.frame(x = fm, y = 0)
+  nline_data <- data.frame(x = nx, y = stats::dnorm(nx, fm, fsd))
 
   gplot <-
-    plot_data %>%
-    ggplot2::ggplot() +
+    ggplot2::ggplot(plot_data) +
     ggplot2::geom_line(ggplot2::aes(x = x, y = y), color = "blue") +
     ggplot2::geom_polygon(data = poly_data, mapping = ggplot2::aes(x = y, y = z), 
       fill = '#4682B4') +
@@ -126,11 +125,10 @@ vdist_f_perc <- function(probs = 0.95, num_df = 3, den_df = 30, type = c("lower"
     l2  <- c(2, 3)
   }
 
-  plot_data <- tibble::tibble(x = l, y = stats::df(l, num_df, den_df))
+  plot_data <- data.frame(x = l, y = stats::df(l, num_df, den_df))
 
   gplot <-
-    plot_data %>%
-    ggplot2::ggplot() +
+    ggplot2::ggplot(plot_data) +
     ggplot2::geom_line(data = plot_data, mapping = ggplot2::aes(x = x, y = y),
       color = 'blue') + ggplot2::xlab(paste("Mean =", fm, " Std Dev. =", fsd)) +
     ggplot2::ylab('') + 
@@ -175,7 +173,7 @@ vdist_f_perc <- function(probs = 0.95, num_df = 3, den_df = 30, type = c("lower"
 
   for (i in seq_len(pln)) {
 
-    point_data <- tibble::tibble(x = pp[i], y = 0)
+    point_data <- data.frame(x = pp[i], y = 0)
 
     gplot <-
       gplot +
@@ -237,11 +235,10 @@ vdist_f_prob <- function(perc, num_df, den_df, type = c("lower", "upper")) {
     l2  <- c(2, 3)
   }
 
-  plot_data <- tibble::tibble(x = l, y = stats::df(l, num_df, den_df))
+  plot_data <- data.frame(x = l, y = stats::df(l, num_df, den_df))
 
   gplot <-
-    plot_data %>%
-    ggplot2::ggplot() +
+    ggplot2::ggplot(plot_data) +
     ggplot2::geom_line(data = plot_data, mapping = ggplot2::aes(x = x, y = y),
       color = 'blue') + ggplot2::xlab(paste("Mean =", fm, " Std Dev. =", fsd)) +
     ggplot2::ylab('') + 
@@ -285,7 +282,7 @@ vdist_f_prob <- function(perc, num_df, den_df, type = c("lower", "upper")) {
 
   for (i in seq_len(pln)) {
 
-    point_data <- tibble::tibble(x = perc[i], y = 0)
+    point_data <- data.frame(x = perc[i], y = 0)
 
     gplot <-
       gplot +
@@ -307,6 +304,6 @@ vdist_f_prob <- function(perc, num_df, den_df, type = c("lower", "upper")) {
 vdist_pol_f <- function(l1, l2, num_df, den_df) {
   x <- c(l1, seq(l1, l2, 0.01), l2)
   y <- c(0, df(seq(l1, l2, 0.01), num_df, den_df), 0)
-  data <- tibble::tibble(x = x, y = y)
+  data <- data.frame(x = x, y = y)
   return(data)
 }

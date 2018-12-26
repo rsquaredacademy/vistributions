@@ -45,16 +45,15 @@ vdist_chisquare_plot <- function(df = 3, normal = FALSE) {
 	x     <- seq(0, 25, 0.01)
 	data  <- stats::dchisq(x, df)
 
-	plot_data  <- tibble::tibble(x = x, chi = data)
-	poly_data  <- tibble::tibble(y = c(0, seq(0, 25, 0.01), 25),
+	plot_data  <- data.frame(x = x, chi = data)
+	poly_data  <- data.frame(y = c(0, seq(0, 25, 0.01), 25),
 	                            z = c(0, stats::dchisq(seq(0, 25, 0.01), df), 0))
-	point_data <- tibble::tibble(x = chim, y = min(data))
-	nline_data <- tibble::tibble(x = x, y = stats::dnorm(x, chim, chisd))
+	point_data <- data.frame(x = chim, y = min(data))
+	nline_data <- data.frame(x = x, y = stats::dnorm(x, chim, chisd))
 
 
 	pp <-
-	  plot_data %>%
-	  ggplot2::ggplot() +
+	  ggplot2::ggplot(plot_data) +
 	  ggplot2::geom_line(ggplot2::aes(x, chi), color = '#4682B4', size = 2) +
 	  ggplot2::ggtitle(label = "Chi Square Distribution",
 	                   subtitle = paste("df =", df)) + ggplot2::ylab('') +
@@ -118,10 +117,9 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3, type = c("lower", "upper"
 	}
 	xm <- vdist_xmm(chim, chisd)
 
-	plot_data <- tibble::tibble(x = l, y = stats::dchisq(l, df))
+	plot_data <- data.frame(x = l, y = stats::dchisq(l, df))
 	gplot <- 
-	  plot_data %>%
-	  ggplot2::ggplot() +
+	  ggplot2::ggplot(plot_data) +
 	  ggplot2::geom_line(ggplot2::aes(x = x, y = y), color = "blue") +
 	  ggplot2::xlab(paste("Mean =", chim, " Std Dev. =", chisd)) + 
 	  ggplot2::ylab('') +
@@ -162,7 +160,7 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3, type = c("lower", "upper"
 	                          fill = col[i])
 	}
 
-	point_data <- tibble::tibble(x = pp, y = min(stats::dchisq(l, df)))
+	point_data <- data.frame(x = pp, y = min(stats::dchisq(l, df)))
 
 	gplot <- 
 	  gplot +
@@ -214,10 +212,9 @@ vdist_chisquare_prob <- function(perc, df, type = c("lower", "upper")) {
     l2  <- c(2, 3)
   }
 
-  plot_data <- tibble::tibble(x = l, y = stats::dchisq(l, df))
+  plot_data <- data.frame(x = l, y = stats::dchisq(l, df))
 	gplot <- 
-	  plot_data %>%
-	  ggplot2::ggplot() +
+	  ggplot2::ggplot(plot_data) +
 	  ggplot2::geom_line(ggplot2::aes(x = x, y = y), color = "blue") +
 	  ggplot2::xlab(paste("Mean =", chim, " Std Dev. =", chisd)) + 
 	  ggplot2::ylab('') +
@@ -259,7 +256,7 @@ vdist_chisquare_prob <- function(perc, df, type = c("lower", "upper")) {
 	                          fill = col[i])
 	}
 
-	point_data <- tibble::tibble(x = perc, y = min(stats::dchisq(l, df)))
+	point_data <- data.frame(x = perc, y = min(stats::dchisq(l, df)))
 
 	gplot <- 
 	  gplot +
@@ -292,6 +289,6 @@ vdist_xmm <- function(mean, sd) {
 vdist_pol_chi <- function(l1, l2, df) {
   x <- c(l1, seq(l1, l2, 0.01), l2)
   y <- c(0, stats::dchisq(seq(l1, l2, 0.01), df), 0)
-  out <- tibble::tibble(x = x, y = y)
+  out <- data.frame(x = x, y = y)
   return(out)
 }

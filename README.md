@@ -26,10 +26,6 @@ install.packages("vistributions")
 devtools::install_github("rsquaredacademy/vistributions")
 ```
 
-## Shiny App
-
-Use `vdist_launch_app()` to explore the package using a shiny app.
-
 ## Articles
 
   - [Explore
