@@ -10,7 +10,8 @@ Depends:
 Imports:
     ggplot2,
     stats,
-    utils
+    utils,
+    xplorerr
 Suggests: 
     testthat,
     knitr,
