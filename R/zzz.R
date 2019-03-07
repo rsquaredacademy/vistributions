@@ -1,3 +1,4 @@
+#' @importFrom magrittr %>%
 .onAttach <- function(...) {
 
   if (!interactive() || stats::runif(1) > 0.1) return()
@@ -6,7 +7,7 @@
   
   cran_version <- 
     pkgs %>%
-    extract("vistributions", "Version") %>%
+    magrittr::extract("vistributions", "Version") %>%
     package_version()
 
   local_version <- utils::packageVersion("vistributions")
@@ -23,8 +24,8 @@
 
   if (interactive()) {
     if (behind_cran) {
-      msg <- message("A new version of vistributions is available with bug fixes and new features.")
-      message(msg, "\nWould you like to install it?")
+      msg <- "A new version of vistributions is available with bug fixes and new features."
+      packageStartupMessage(msg, "\nWould you like to install it?")
       if (utils::menu(c("Yes", "No")) == 1) {
         utils::update.packages("vistributions")
       } 

@@ -7,7 +7,7 @@
 vdist_launch_app()
 }
 \description{
-Launches shiny app for interactive model building.
+Launches shiny app for visualizing distributions.
 }
 \examples{
 \dontrun{
