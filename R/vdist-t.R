@@ -60,7 +60,7 @@ vdist_t_plot <- function(df = 3) {
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
                    plot.subtitle = ggplot2::element_text(hjust = 0.5))
 
-  print(gplot)
+  return(gplot)
 
 }
 
@@ -182,7 +182,7 @@ vdist_t_perc <- function(probs = 0.95, df = 4, type = c("lower", "upper", "both"
       ggplot2::scale_y_continuous(breaks = NULL) +
       ggplot2::scale_x_continuous(breaks = -5:5)
 
-  print(gplot)
+  return(gplot)
 
 }
 
@@ -349,7 +349,7 @@ vdist_t_prob <- function(perc, df, type = c("lower", "upper", "interval", "both"
       shape = 4, color = 'red', size = 3)
   }
 
-  print(gplot)
+  return(gplot)
 
 }
 

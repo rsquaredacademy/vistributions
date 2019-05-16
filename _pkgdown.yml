@@ -20,7 +20,7 @@ navbar:
     - text: "Guides"
       menu:
         - text: "Introduction"
-          href: articles/introduction_to_vistributions.html
+          href: articles/introduction-to-vistributions.html
     - text: "Reference"
       menu:
         - text: "Functions"
