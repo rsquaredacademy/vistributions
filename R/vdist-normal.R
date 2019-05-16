@@ -70,7 +70,7 @@ vdist_normal_plot <- function(mean = 0, sd = 1) {
       ggplot2::geom_polygon(data = poly_data, mapping = ggplot2::aes(x = x, y = y), fill = col[i])
   }
 
-  print(gplot)
+  return(gplot)
 }
 
 #' @rdname vdist_normal_plot
@@ -200,7 +200,7 @@ vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", 
 	 	 	ggplot2::scale_y_continuous(breaks = NULL) +
 	  	ggplot2::scale_x_continuous(breaks = l)
 
-  print(gplot)
+  return(gplot)
 
 }
 
@@ -340,7 +340,7 @@ vdist_normal_prob <- function(perc, mean = 0, sd = 1, type = c("lower", "upper",
 	 	 	ggplot2::scale_y_continuous(breaks = NULL) +
 	  	ggplot2::scale_x_continuous(breaks = l)
 
-  print(gplot)
+  return(gplot)
 
 }
 

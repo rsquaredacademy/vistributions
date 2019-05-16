@@ -3,8 +3,7 @@
 
 # vistributions
 
-> Visualize probability
-distributions
+> Visualize probability distributions
 
 [![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/vistributions)](https://cran.r-project.org/package=vistributions)
 [![cran
@@ -13,6 +12,8 @@ checks](https://cranchecks.info/badges/summary/vistributions)](https://cran.r-pr
 Status](https://travis-ci.org/rsquaredacademy/vistributions.svg?branch=master)](https://travis-ci.org/rsquaredacademy/vistributions)
 [![AppVeyor Build
 Status](https://ci.appveyor.com/api/projects/status/github/rsquaredacademy/vistributions?branch=master&svg=true)](https://ci.appveyor.com/project/aravindhebbali/vistributions)
+[![Coverage
+Status](https://img.shields.io/codecov/c/github/rsquaredacademy/vistributions/master.svg)](https://codecov.io/github/rsquaredacademy/vistributions?branch=master)
 [![](https://cranlogs.r-pkg.org/badges/grand-total/vistributions)](https://cran.r-project.org/package=vistributions)
 [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 

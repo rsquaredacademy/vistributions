@@ -78,7 +78,7 @@ vdist_f_plot <- function(num_df = 4, den_df = 30, normal = FALSE) {
         color = '#FF4500')
   }
 
-  print(gplot)
+  return(gplot)
 
 }
 
@@ -187,7 +187,7 @@ vdist_f_perc <- function(probs = 0.95, num_df = 3, den_df = 30, type = c("lower"
       ggplot2::scale_y_continuous(breaks = NULL) +
       ggplot2::scale_x_continuous(breaks = 0:5)
 
-  print(gplot)
+  return(gplot)
 
 }
 
@@ -296,7 +296,7 @@ vdist_f_prob <- function(perc, num_df, den_df, type = c("lower", "upper")) {
       ggplot2::scale_y_continuous(breaks = NULL) +
       ggplot2::scale_x_continuous(breaks = 0:max(l))
 
-  print(gplot)
+  return(gplot)
 
 }
 
