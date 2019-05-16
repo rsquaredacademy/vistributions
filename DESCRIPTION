@@ -19,7 +19,7 @@ Suggests:
     rmarkdown,
     shinyBS,
     shinycssloaders,
-    shinythemes.
+    shinythemes,
     vdiffr
 License: MIT + file LICENSE
 URL: https://github.com/rsquaredacademy/vistributions, https://vistributions.rsquaredacademy.com
