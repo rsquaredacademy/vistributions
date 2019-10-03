@@ -6,18 +6,20 @@
 \alias{vdist_normal_prob}
 \title{Visualize normal distribution}
 \usage{
-vdist_normal_plot(mean = 0, sd = 1)
+vdist_normal_plot(mean = 0, sd = 1, print_plot = TRUE)
 
 vdist_normal_perc(probs = 0.95, mean = 0, sd = 1, type = c("lower",
-  "upper", "both"))
+  "upper", "both"), print_plot = TRUE)
 
 vdist_normal_prob(perc, mean = 0, sd = 1, type = c("lower", "upper",
-  "both"))
+  "both"), print_plot = TRUE)
 }
 \arguments{
 \item{mean}{Mean of the normal distribution.}
 
 \item{sd}{Standard deviation of the normal distribution.}
+
+\item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
 \item{probs}{Probability value.}
 

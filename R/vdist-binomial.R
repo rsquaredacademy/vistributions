@@ -9,6 +9,7 @@
 #' @param s Number of success.
 #' @param type Lower/upper/exact/interval.
 #' @param tp Probability of success in a trial.
+#' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
 #' @examples
 #' # visualize binomial distribution
@@ -30,7 +31,7 @@
 #'
 #' @export
 #'
-vdist_binom_plot <- function(n, p) {
+vdist_binom_plot <- function(n, p, print_plot = TRUE) {
 
   if (!is.numeric(n)) {
     stop("n must be numeric/integer")
@@ -44,17 +45,17 @@ vdist_binom_plot <- function(n, p) {
     stop("p must be between 0 and 1")
   }
 
-  n   <- as.integer(n)
-  x   <- seq(0, n, 1)
-  xn  <- n / 40
-
-  bm <- round(n * p, 2)
-
-  bsd <- round(sqrt((1 - p) * bm) , 2)
+  n    <- as.integer(n)
+  x    <- seq(0, n, 1)
+  xn   <- n / 40
+  bm   <- round(n * p, 2)
+  bsd  <- round(sqrt((1 - p) * bm) , 2)
   data <- stats::dbinom(x, n, p)
+
   plot_data <- data.frame(n = seq(0, n), df = data)
 
-  ggplot2::ggplot(plot_data) +
+  pp <-
+    ggplot2::ggplot(plot_data) +
     ggplot2::geom_col(ggplot2::aes(x = n, y = df), fill = "blue") +
     ggplot2::ylab("Probability") + ggplot2::xlab("No. of success") +
     ggplot2::ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
@@ -63,13 +64,21 @@ vdist_binom_plot <- function(n, p) {
                    plot.subtitle = ggplot2::element_text(hjust = 0.5)) +
     ggplot2::scale_x_continuous(breaks = seq(0, n))
 
+  if (print_plot) {
+    print(pp)
+  } else {
+    return(pp)
+  }
+
 }
 
 
 #' @rdname vdist_binom_plot
 #' @export
 #'
-vdist_binom_prob <- function(n, p, s, type = c("lower", "upper", "exact", "interval")) {
+vdist_binom_prob <- function(n, p, s,
+                             type = c("lower", "upper", "exact", "interval"),
+                             print_plot = TRUE) {
 
   method  <- match.arg(type)
 
@@ -102,8 +111,7 @@ vdist_binom_prob <- function(n, p, s, type = c("lower", "upper", "exact", "inter
   n   <- as.integer(n)
   s   <- as.integer(s)
   x   <- seq(0, n, 1)
-
-  bm <- round(n * p, 2)
+  bm  <- round(n * p, 2)
   bsd <- round(sqrt((1 - p) * bm), 2)
 
   if (method == "lower") {
@@ -126,7 +134,7 @@ vdist_binom_prob <- function(n, p, s, type = c("lower", "upper", "exact", "inter
   data <- stats::dbinom(x, n, p)
   plot_data <- data.frame(n = seq(0, n), df = data)
 
-  pp <- 
+  pp <-
     ggplot2::ggplot(plot_data) +
     ggplot2::geom_col(ggplot2::aes(x = n, y = df), fill = cols) +
     ggplot2::ylab("Probability") +
@@ -153,12 +161,19 @@ vdist_binom_prob <- function(n, p, s, type = c("lower", "upper", "exact", "inter
                        subtitle = paste0("P(", s[1], " <= X <= ", s[2], ")", " = ", round(k, 3)))
   }
 
+  if (print_plot) {
+    print(pp)
+  } else {
+    return(pp)
+  }
+
 }
 
 #' @rdname vdist_binom_plot
 #' @export
 #'
-vdist_binom_perc <- function(n, p, tp, type = c("lower", "upper")) {
+vdist_binom_perc <- function(n, p, tp, type = c("lower", "upper"),
+                             print_plot = TRUE) {
 
   if (!is.numeric(n)) {
     stop("n must be numeric/integer")
@@ -195,7 +210,7 @@ vdist_binom_perc <- function(n, p, tp, type = c("lower", "upper")) {
   data <- stats::dbinom(x, n, p)
   plot_data <- data.frame(n = seq(0, n), df = data)
 
-  pp <- 
+  pp <-
     ggplot2::ggplot(plot_data) +
     ggplot2::geom_col(ggplot2::aes(x = n, y = df), fill = cols) +
     ggplot2::ylab("Probability") + ggplot2::xlab("No. of success") +
@@ -214,5 +229,11 @@ vdist_binom_perc <- function(n, p, tp, type = c("lower", "upper")) {
       ggplot2::ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
         subtitle = paste0("P(X >= ", (k + 1), ") <= ", tp, ", but P(X >= ", k,
         ") > ", tp))
+  }
+
+  if (print_plot) {
+    print(pp)
+  } else {
+    return(pp)
   }
 }

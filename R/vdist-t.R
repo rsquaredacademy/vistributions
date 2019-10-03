@@ -8,6 +8,7 @@
 #' @param probs Probability value.
 #' @param perc Quantile value.
 #' @param type Lower tail, upper tail, interval or both.
+#' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
 #' @examples
 #' # visualize t distribution
@@ -34,7 +35,7 @@ NULL
 #' @export
 #' @rdname vdist_t
 #'
-vdist_t_plot <- function(df = 3) {
+vdist_t_plot <- function(df = 3, print_plot = TRUE) {
 
   if (!is.numeric(df)) {
     stop("df must be numeric/integer")
@@ -52,7 +53,7 @@ vdist_t_plot <- function(df = 3) {
     ggplot2::ggplot(plot_data) +
     ggplot2::geom_line(ggplot2::aes(x = x, y = y), color = 'blue') +
     ggplot2::ggtitle(label = 't Distribution', subtitle = paste("df =", df)) +
-    ggplot2::xlab('') + ggplot2::ylab('') + 
+    ggplot2::xlab('') + ggplot2::ylab('') +
     ggplot2::geom_polygon(data = poly_data, mapping = ggplot2::aes(x = y, y = z),
       fill = '#4682B4') +
     ggplot2::scale_y_continuous(breaks = NULL) +
@@ -60,15 +61,21 @@ vdist_t_plot <- function(df = 3) {
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
                    plot.subtitle = ggplot2::element_text(hjust = 0.5))
 
-  return(gplot)
+  if (print_plot) {
+    print(gplot)
+  } else {
+    return(gplot)
+  }
 
 }
 
 #' @rdname vdist_t
 #' @export
 #'
-vdist_t_perc <- function(probs = 0.95, df = 4, type = c("lower", "upper", "both")) {
- 
+vdist_t_perc <- function(probs = 0.95, df = 4,
+                         type = c("lower", "upper", "both"),
+                         print_plot = TRUE) {
+
   if (!is.numeric(probs)) {
     stop("probs must be numeric")
   }
@@ -123,38 +130,38 @@ vdist_t_perc <- function(probs = 0.95, df = 4, type = c("lower", "upper", "both"
       gplot +
       ggplot2::ggtitle(label = "t Distribution",
         subtitle = paste0("P(X < ", pp, ") = ", probs * 100, "%")) +
-      ggplot2::annotate("text", label = paste0(probs * 100, "%"), 
-        x = pp - 0.3, y = max(stats::dt(l, df)) + 0.025, color = "#0000CD", 
+      ggplot2::annotate("text", label = paste0(probs * 100, "%"),
+        x = pp - 0.3, y = max(stats::dt(l, df)) + 0.025, color = "#0000CD",
         size = 3) +
       ggplot2::annotate("text", label = paste0((1 - probs) * 100, "%"),
-        x = pp + 0.3, y = max(stats::dt(l, df)) + 0.025, color = "#6495ED", 
+        x = pp + 0.3, y = max(stats::dt(l, df)) + 0.025, color = "#6495ED",
         size = 3)
-      
+
   } else if (method == "upper") {
-    gplot <- 
+    gplot <-
       gplot +
       ggplot2::ggtitle(label = "t Distribution",
         subtitle = paste0("P(X > ", pp, ") = ", probs * 100, "%")) +
-      ggplot2::annotate("text", label = paste0((1 - probs) * 100, "%"), 
-        x = pp - 0.3, y = max(stats::dt(l, df)) + 0.025, color = "#6495ED", 
+      ggplot2::annotate("text", label = paste0((1 - probs) * 100, "%"),
+        x = pp - 0.3, y = max(stats::dt(l, df)) + 0.025, color = "#6495ED",
         size = 3) +
       ggplot2::annotate("text", label = paste0(probs * 100, "%"),
-        x = pp + 0.3, y = max(stats::dt(l, df)) + 0.025, color = "#0000CD", 
-        size = 3) 
+        x = pp + 0.3, y = max(stats::dt(l, df)) + 0.025, color = "#0000CD",
+        size = 3)
   } else {
-    gplot <- 
+    gplot <-
       gplot +
       ggplot2::ggtitle(label = "t Distribution",
         subtitle = paste0("P(", pp[1], " < X < ", pp[2], ") = ", probs * 100, "%")) +
-      ggplot2::annotate("text", label = paste0(probs * 100, "%"), 
-        x = mean(l), y = max(stats::dt(l, df)) + 0.025, color = "#0000CD", 
+      ggplot2::annotate("text", label = paste0(probs * 100, "%"),
+        x = mean(l), y = max(stats::dt(l, df)) + 0.025, color = "#0000CD",
         size = 3) +
       ggplot2::annotate("text", label = paste0(alpha * 100, "%"),
-        x = pp[1] - 0.3, y = max(stats::dt(l, df)) + 0.025, color = "#6495ED", 
+        x = pp[1] - 0.3, y = max(stats::dt(l, df)) + 0.025, color = "#6495ED",
         size = 3) +
       ggplot2::annotate("text", label = paste0(alpha * 100, "%"),
-        x = pp[2] + 0.3, y = max(stats::dt(l, df)) + 0.025, color = "#6495ED", 
-        size = 3) 
+        x = pp[2] + 0.3, y = max(stats::dt(l, df)) + 0.025, color = "#6495ED",
+        size = 3)
   }
 
   for (i in seq_len(length(l1))) {
@@ -174,7 +181,7 @@ vdist_t_perc <- function(probs = 0.95, df = 4, type = c("lower", "upper", "both"
       gplot +
       ggplot2::geom_vline(xintercept = pp[i], linetype = 2, size = 1) +
       ggplot2::geom_point(data = point_data, mapping = ggplot2::aes(x = x, y = y),
-      shape = 4, color = 'red', size = 3) 
+      shape = 4, color = 'red', size = 3)
   }
 
   gplot <-
@@ -182,14 +189,20 @@ vdist_t_perc <- function(probs = 0.95, df = 4, type = c("lower", "upper", "both"
       ggplot2::scale_y_continuous(breaks = NULL) +
       ggplot2::scale_x_continuous(breaks = -5:5)
 
-  return(gplot)
+  if (print_plot) {
+    print(gplot)
+  } else {
+    return(gplot)
+  }
 
 }
 
 #' @rdname vdist_t
 #' @export
 #'
-vdist_t_prob <- function(perc, df, type = c("lower", "upper", "interval", "both")) {
+vdist_t_prob <- function(perc, df,
+                         type = c("lower", "upper", "interval", "both"),
+                         print_plot = TRUE) {
 
   if (!is.numeric(perc)) {
     stop("perc must be numeric/integer")
@@ -250,7 +263,7 @@ vdist_t_prob <- function(perc, df, type = c("lower", "upper", "interval", "both"
 
   plot_data <- data.frame(x = l, y = stats::dt(l, df))
 
-  gplot <- 
+  gplot <-
     ggplot2::ggplot(plot_data) +
     ggplot2::geom_line(ggplot2::aes(x = x, y = y), color = 'blue') +
     ggplot2::xlab(paste("df =", df)) + ggplot2::ylab('') +
@@ -275,49 +288,49 @@ vdist_t_prob <- function(perc, df, type = c("lower", "upper", "interval", "both"
       gplot +
       ggplot2::ggtitle(label = "t Distribution",
         subtitle = paste0("P(X < ", perc, ") = ", pp * 100, "%")) +
-      ggplot2::annotate("text", label = paste0(pp * 100, "%"), 
-        x = perc - 1, y = max(stats::dt(l, df)) + 0.07, color = "#0000CD", 
+      ggplot2::annotate("text", label = paste0(pp * 100, "%"),
+        x = perc - 1, y = max(stats::dt(l, df)) + 0.07, color = "#0000CD",
         size = 3) +
       ggplot2::annotate("text", label = paste0((1 - pp) * 100, "%"),
-        x = perc + 1, y = max(stats::dt(l, df)) + 0.07, color = "#6495ED", 
+        x = perc + 1, y = max(stats::dt(l, df)) + 0.07, color = "#6495ED",
         size = 3) +
       ggplot2::geom_vline(xintercept = perc, linetype = 2, size = 1) +
       ggplot2::geom_point(data = point_data, mapping = ggplot2::aes(x = x, y = y),
-      shape = 4, color = 'red', size = 3) 
+      shape = 4, color = 'red', size = 3)
 
   } else if (method == "upper") {
-    
+
     point_data <- data.frame(x = perc, y = 0)
 
     gplot <-
       gplot +
       ggplot2::ggtitle(label = "t Distribution",
         subtitle = paste0("P(X > ", perc, ") = ", pp * 100, "%")) +
-      ggplot2::annotate("text", label = paste0((1 - pp) * 100, "%"), 
-        x = perc - 1, y = max(stats::dt(l, df)) + 0.07, color = "#0000CD", 
+      ggplot2::annotate("text", label = paste0((1 - pp) * 100, "%"),
+        x = perc - 1, y = max(stats::dt(l, df)) + 0.07, color = "#0000CD",
         size = 3) +
       ggplot2::annotate("text", label = paste0(pp * 100, "%"),
-        x = perc + 1, y = max(stats::dt(l, df)) + 0.07, color = "#6495ED", 
+        x = perc + 1, y = max(stats::dt(l, df)) + 0.07, color = "#6495ED",
         size = 3) +
       ggplot2::geom_vline(xintercept = perc, linetype = 2, size = 1) +
       ggplot2::geom_point(data = point_data, mapping = ggplot2::aes(x = x, y = y),
-      shape = 4, color = 'red', size = 3) 
+      shape = 4, color = 'red', size = 3)
 
   } else if (method == "interval") {
-    
+
     point_data <- data.frame(x1 = perc, x2 = -perc, y = 0)
 
     gplot <-
       gplot +
       ggplot2::ggtitle(label = "t Distribution",
         subtitle = paste0("P(", -perc, " < X < ", perc, ") = ", (1 - (pp1 + pp2)) * 100, "%")) +
-      ggplot2::annotate("text", label = paste0((1 - (pp1 + pp2)) * 100, "%"), 
+      ggplot2::annotate("text", label = paste0((1 - (pp1 + pp2)) * 100, "%"),
         x = 0, y = max(stats::dt(l, df)) + 0.07, color = "#0000CD", size = 3) +
-      ggplot2::annotate("text", label = paste0(pp[1] * 100, "%"), 
-        x = perc + 1, y = max(stats::dt(l, df)) + 0.07, color = "#6495ED", 
+      ggplot2::annotate("text", label = paste0(pp[1] * 100, "%"),
+        x = perc + 1, y = max(stats::dt(l, df)) + 0.07, color = "#6495ED",
         size = 3) +
       ggplot2::annotate("text", label = paste0(pp[2] * 100, "%"),
-        x = -perc - 1, y = max(stats::dt(l, df)) + 0.07, color = "#6495ED", 
+        x = -perc - 1, y = max(stats::dt(l, df)) + 0.07, color = "#6495ED",
         size = 3) +
       ggplot2::geom_vline(xintercept = perc, linetype = 2, size = 1) +
       ggplot2::geom_vline(xintercept = -perc, linetype = 2, size = 1) +
@@ -326,20 +339,20 @@ vdist_t_prob <- function(perc, df, type = c("lower", "upper", "interval", "both"
       ggplot2::geom_point(data = point_data, mapping = ggplot2::aes(x = x2, y = y),
       shape = 4, color = 'red', size = 3)
   } else {
-    
+
     point_data <- data.frame(x1 = perc, x2 = -perc, y = 0)
 
     gplot <-
       gplot +
       ggplot2::ggtitle(label = "t Distribution",
         subtitle = paste0("P(|X| > ", perc, ") = ", (pp1 + pp2) * 100, "%")) +
-      ggplot2::annotate("text", label = paste0((1 - (pp1 + pp2)) * 100, "%"), 
+      ggplot2::annotate("text", label = paste0((1 - (pp1 + pp2)) * 100, "%"),
         x = 0, y = max(stats::dt(l, df)) + 0.07, color = "#0000CD", size = 3) +
-      ggplot2::annotate("text", label = paste0(pp[1] * 100, "%"), 
-        x = perc + 1, y = max(stats::dt(l, df)) + 0.07, color = "#6495ED", 
+      ggplot2::annotate("text", label = paste0(pp[1] * 100, "%"),
+        x = perc + 1, y = max(stats::dt(l, df)) + 0.07, color = "#6495ED",
         size = 3) +
       ggplot2::annotate("text", label = paste0(pp[2] * 100, "%"),
-        x = -perc - 1, y = max(stats::dt(l, df)) + 0.07, color = "#6495ED", 
+        x = -perc - 1, y = max(stats::dt(l, df)) + 0.07, color = "#6495ED",
         size = 3) +
       ggplot2::geom_vline(xintercept = perc, linetype = 2, size = 1) +
       ggplot2::geom_vline(xintercept = -perc, linetype = 2, size = 1) +
@@ -349,14 +362,18 @@ vdist_t_prob <- function(perc, df, type = c("lower", "upper", "interval", "both"
       shape = 4, color = 'red', size = 3)
   }
 
-  return(gplot)
+  if (print_plot) {
+    print(gplot)
+  } else {
+    return(gplot)
+  }
 
 }
 
 
 vdist_pol_t <- function(l1, l2, df) {
-  x <- c(l1, seq(l1, l2, 0.01), l2)
-  y <- c(0, stats::dt(seq(l1, l2, 0.01), df), 0)
+  x    <- c(l1, seq(l1, l2, 0.01), l2)
+  y    <- c(0, stats::dt(seq(l1, l2, 0.01), df), 0)
   data <- data.frame(x = x, y = y)
   return(data)
 }

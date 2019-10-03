@@ -6,12 +6,14 @@
 \alias{vdist_f_prob}
 \title{Visualize f distribution}
 \usage{
-vdist_f_plot(num_df = 4, den_df = 30, normal = FALSE)
+vdist_f_plot(num_df = 4, den_df = 30, normal = FALSE,
+  print_plot = TRUE)
 
 vdist_f_perc(probs = 0.95, num_df = 3, den_df = 30,
-  type = c("lower", "upper"))
+  type = c("lower", "upper"), print_plot = TRUE)
 
-vdist_f_prob(perc, num_df, den_df, type = c("lower", "upper"))
+vdist_f_prob(perc, num_df, den_df, type = c("lower", "upper"),
+  print_plot = TRUE)
 }
 \arguments{
 \item{num_df}{Degrees of freedom associated with the numerator of f statistic.}
@@ -20,6 +22,8 @@ vdist_f_prob(perc, num_df, den_df, type = c("lower", "upper"))
 
 \item{normal}{If \code{TRUE}, normal curve with same \code{mean} and
 \code{sd} as the F distribution is drawn.}
+
+\item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
 \item{probs}{Probability value.}
 
