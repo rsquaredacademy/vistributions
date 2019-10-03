@@ -7,15 +7,18 @@
 \alias{vdist_t_prob}
 \title{Visualize t distribution}
 \usage{
-vdist_t_plot(df = 3)
+vdist_t_plot(df = 3, print_plot = TRUE)
 
 vdist_t_perc(probs = 0.95, df = 4, type = c("lower", "upper",
-  "both"))
+  "both"), print_plot = TRUE)
 
-vdist_t_prob(perc, df, type = c("lower", "upper", "interval", "both"))
+vdist_t_prob(perc, df, type = c("lower", "upper", "interval", "both"),
+  print_plot = TRUE)
 }
 \arguments{
 \item{df}{Degrees of freedom.}
+
+\item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
 \item{probs}{Probability value.}
 

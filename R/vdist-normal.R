@@ -9,6 +9,7 @@
 #' @param sd Standard deviation of the normal distribution.
 #' @param probs Probability value.
 #' @param type Lower tail, upper tail or both.
+#' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
 #' @examples
 #' # visualize normal distribution
@@ -29,8 +30,8 @@
 #'
 #' @export
 #'
-vdist_normal_plot <- function(mean = 0, sd = 1) {
-  
+vdist_normal_plot <- function(mean = 0, sd = 1, print_plot = TRUE) {
+
   if (!is.numeric(mean)) {
     stop("mean must be numeric/integer")
   }
@@ -51,7 +52,7 @@ vdist_normal_plot <- function(mean = 0, sd = 1) {
 
   xm <- vdist_xmm(mean, sd)
   plot_data <- data.frame(x = x, y = stats::dnorm(x, mean, sd))
-  
+
   gplot <-
     ggplot2::ggplot(plot_data) +
     ggplot2::geom_line(ggplot2::aes(x = x, y = y)) +
@@ -65,18 +66,25 @@ vdist_normal_plot <- function(mean = 0, sd = 1) {
 
   for (i in seq_len(length(l1))) {
     poly_data <- vdist_pol_cord(ll[l1[i]], ll[l2[i]], mean, sd)
-    gplot <- 
+    gplot <-
       gplot +
       ggplot2::geom_polygon(data = poly_data, mapping = ggplot2::aes(x = x, y = y), fill = col[i])
   }
 
-  return(gplot)
+  if (print_plot) {
+    print(gplot)
+  } else {
+    return(gplot)
+  }
+
 }
 
 #' @rdname vdist_normal_plot
 #' @export
 #'
-vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", "upper", "both")) {
+vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1,
+                              type = c("lower", "upper", "both"),
+                              print_plot = TRUE) {
 
   if (!is.numeric(mean)) {
     stop("mean must be numeric/integer")
@@ -128,7 +136,7 @@ vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", 
 
   xm <- vdist_xmm(mean, sd)
   plot_data <- data.frame(x = x, y = stats::dnorm(x, mean, sd))
-  
+
   gplot <-
     ggplot2::ggplot(plot_data) +
     ggplot2::geom_line(ggplot2::aes(x = x, y = y)) +
@@ -141,38 +149,38 @@ vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", 
 	    gplot +
 	    ggplot2::ggtitle(label = "Normal Distribution",
 	      subtitle = paste0("P(X < ", pp, ") = ", probs * 100, "%")) +
-	    ggplot2::annotate("text", label = paste0(probs * 100, "%"), 
-	      x = pp - sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#0000CD", 
+	    ggplot2::annotate("text", label = paste0(probs * 100, "%"),
+	      x = pp - sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#0000CD",
 	      size = 3) +
 	    ggplot2::annotate("text", label = paste0((1 - probs) * 100, "%"),
-	      x = pp + sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#6495ED", 
+	      x = pp + sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#6495ED",
 	      size = 3)
-	    
+
 	} else if (method == "upper") {
-	  gplot <- 
+	  gplot <-
 	  	gplot +
 	    ggplot2::ggtitle(label = "Normal Distribution",
 	      subtitle = paste0("P(X > ", pp, ") = ", probs * 100, "%")) +
-	    ggplot2::annotate("text", label = paste0((1 - probs) * 100, "%"), 
-	      x = pp - sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#6495ED", 
+	    ggplot2::annotate("text", label = paste0((1 - probs) * 100, "%"),
+	      x = pp - sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#6495ED",
 	      size = 3) +
 	    ggplot2::annotate("text", label = paste0(probs * 100, "%"),
-	      x = pp + sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#0000CD", 
-	      size = 3) 
+	      x = pp + sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#0000CD",
+	      size = 3)
 	} else {
-		gplot <- 
+		gplot <-
 	  	gplot +
 	    ggplot2::ggtitle(label = "Normal Distribution",
 	      subtitle = paste0("P(", pp[1], " < X < ", pp[2], ") = ", probs * 100, "%")) +
-	    ggplot2::annotate("text", label = paste0(probs * 100, "%"), 
-	      x = mean, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#0000CD", 
+	    ggplot2::annotate("text", label = paste0(probs * 100, "%"),
+	      x = mean, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#0000CD",
 	      size = 3) +
 	    ggplot2::annotate("text", label = paste0(alpha * 100, "%"),
-	      x = pp[1] - sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#6495ED", 
+	      x = pp[1] - sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#6495ED",
 	      size = 3) +
 	    ggplot2::annotate("text", label = paste0(alpha * 100, "%"),
-	      x = pp[2] + sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#6495ED", 
-	      size = 3) 
+	      x = pp[2] + sd, y = max(stats::dnorm(x, mean, sd)) + 0.025, color = "#6495ED",
+	      size = 3)
 	}
 
 	for (i in seq_len(length(l1))) {
@@ -192,7 +200,7 @@ vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", 
   	  gplot +
   	  ggplot2::geom_vline(xintercept = pp[i], linetype = 2, size = 1) +
   	  ggplot2::geom_point(data = point_data, mapping = ggplot2::aes(x = x, y = y),
-	    shape = 4, color = 'red', size = 3) 
+	    shape = 4, color = 'red', size = 3)
   }
 
   gplot <-
@@ -200,14 +208,20 @@ vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", 
 	 	 	ggplot2::scale_y_continuous(breaks = NULL) +
 	  	ggplot2::scale_x_continuous(breaks = l)
 
-  return(gplot)
+  if (print_plot) {
+    print(gplot)
+  } else {
+    return(gplot)
+  }
 
 }
 
 #' @rdname vdist_normal_plot
 #' @export
 #'
-vdist_normal_prob <- function(perc, mean = 0, sd = 1, type = c("lower", "upper", "both")) {
+vdist_normal_prob <- function(perc, mean = 0, sd = 1,
+                              type = c("lower", "upper", "both"),
+                              print_plot = TRUE) {
 
   method <- match.arg(type)
 
@@ -268,7 +282,7 @@ vdist_normal_prob <- function(perc, mean = 0, sd = 1, type = c("lower", "upper",
 
   xm <- vdist_xmmp(mean, sd, el)
   plot_data <- data.frame(x = x, y = stats::dnorm(x, mean, sd))
-  
+
   gplot <-
     ggplot2::ggplot(plot_data) +
     ggplot2::geom_line(ggplot2::aes(x = x, y = y)) +
@@ -281,38 +295,38 @@ vdist_normal_prob <- function(perc, mean = 0, sd = 1, type = c("lower", "upper",
 	    gplot +
 	    ggplot2::ggtitle(label = "Normal Distribution",
 	      subtitle = paste0("P(X < ", perc, ") = ", pp * 100, "%")) +
-	    ggplot2::annotate("text", label = paste0(pp * 100, "%"), 
-	      x = perc - sd, y = max(stats::dnorm(x, mean, sd)) + 0.07, color = "#0000CD", 
+	    ggplot2::annotate("text", label = paste0(pp * 100, "%"),
+	      x = perc - sd, y = max(stats::dnorm(x, mean, sd)) + 0.07, color = "#0000CD",
 	      size = 3) +
 	    ggplot2::annotate("text", label = paste0((1 - pp) * 100, "%"),
-	      x = perc + sd, y = max(stats::dnorm(x, mean, sd)) + 0.07, color = "#6495ED", 
+	      x = perc + sd, y = max(stats::dnorm(x, mean, sd)) + 0.07, color = "#6495ED",
 	      size = 3)
-	    
+
 	} else if (method == "upper") {
-	  gplot <- 
+	  gplot <-
 	  	gplot +
 	    ggplot2::ggtitle(label = "Normal Distribution",
 	      subtitle = paste0("P(X > ", perc, ") = ", pp * 100, "%")) +
-	    ggplot2::annotate("text", label = paste0((1 - pp) * 100, "%"), 
-	      x = perc - sd, y = max(stats::dnorm(x, mean, sd)) + 0.07, color = "#6495ED", 
+	    ggplot2::annotate("text", label = paste0((1 - pp) * 100, "%"),
+	      x = perc - sd, y = max(stats::dnorm(x, mean, sd)) + 0.07, color = "#6495ED",
 	      size = 3) +
 	    ggplot2::annotate("text", label = paste0(pp * 100, "%"),
-	      x = perc + sd, y = max(stats::dnorm(x, mean, sd)) + 0.07, color = "#0000CD", 
-	      size = 3) 
+	      x = perc + sd, y = max(stats::dnorm(x, mean, sd)) + 0.07, color = "#0000CD",
+	      size = 3)
 	} else {
-		gplot <- 
+		gplot <-
 	  	gplot +
 	    ggplot2::ggtitle(label = "Normal Distribution",
 	      subtitle = paste0("P(", perc[1], " < X < ", perc[2], ") = ", (1 - (pp1 + pp2)) * 100, "%")) +
-	    ggplot2::annotate("text", label = paste0((1 - (pp1 + pp2)) * 100, "%"), 
-	      x = mean(perc), y = max(stats::dnorm(x, mean, sd)) + 0.07, color = "#0000CD", 
+	    ggplot2::annotate("text", label = paste0((1 - (pp1 + pp2)) * 100, "%"),
+	      x = mean(perc), y = max(stats::dnorm(x, mean, sd)) + 0.07, color = "#0000CD",
 	      size = 3) +
 	    ggplot2::annotate("text", label = paste0(pp[1] * 100, "%"),
-	      x = perc[1] - sd, y = max(stats::dnorm(x, mean, sd)) + 0.07, color = "#6495ED", 
+	      x = perc[1] - sd, y = max(stats::dnorm(x, mean, sd)) + 0.07, color = "#6495ED",
 	      size = 3) +
 	    ggplot2::annotate("text", label = paste0(pp[2] * 100, "%"),
-	      x = perc[2] + sd, y = max(stats::dnorm(x, mean, sd)) + 0.07, color = "#6495ED", 
-	      size = 3) 
+	      x = perc[2] + sd, y = max(stats::dnorm(x, mean, sd)) + 0.07, color = "#6495ED",
+	      size = 3)
 	}
 
   for (i in seq_len(length(l1))) {
@@ -332,7 +346,7 @@ vdist_normal_prob <- function(perc, mean = 0, sd = 1, type = c("lower", "upper",
   	  gplot +
   	  ggplot2::geom_vline(xintercept = perc[i], linetype = 2, size = 1) +
   	  ggplot2::geom_point(data = point_data, mapping = ggplot2::aes(x = x, y = y),
-	    shape = 4, color = 'red', size = 3) 
+	    shape = 4, color = 'red', size = 3)
   }
 
   gplot <-
@@ -340,7 +354,11 @@ vdist_normal_prob <- function(perc, mean = 0, sd = 1, type = c("lower", "upper",
 	 	 	ggplot2::scale_y_continuous(breaks = NULL) +
 	  	ggplot2::scale_x_continuous(breaks = l)
 
-  return(gplot)
+  if (print_plot) {
+    print(gplot)
+  } else {
+    return(gplot)
+  }
 
 }
 
