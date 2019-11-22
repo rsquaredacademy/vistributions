@@ -139,7 +139,8 @@ probability and probability from a given quantile.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>vdist_chisquare_plot</span>(<span class='kw'>df</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>normal</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>print_plot</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)
+    <pre class="usage"><span class='fu'>vdist_chisquare_plot</span>(<span class='kw'>df</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>normal</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>xaxis_range</span> <span class='kw'>=</span> <span class='fl'>25</span>,
+  <span class='kw'>print_plot</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)
 
 <span class='fu'>vdist_chisquare_perc</span>(<span class='kw'>probs</span> <span class='kw'>=</span> <span class='fl'>0.95</span>, <span class='kw'>df</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"lower"</span>,
   <span class='st'>"upper"</span>), <span class='kw'>print_plot</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)
@@ -158,6 +159,10 @@ probability and probability from a given quantile.</p>
       <th>normal</th>
       <td><p>If <code>TRUE</code>, normal curve with same <code>mean</code> and
 <code>sd</code> as the chi square distribution is drawn.</p></td>
+    </tr>
+    <tr>
+      <th>xaxis_range</th>
+      <td><p>The upper range of the X axis.</p></td>
     </tr>
     <tr>
       <th>print_plot</th>
