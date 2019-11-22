@@ -10,6 +10,7 @@
 #' @param type Lower tail or upper tail.
 #' @param normal If \code{TRUE}, normal curve with same \code{mean} and
 #' \code{sd} as the chi square distribution is drawn.
+#' @param xaxis_range The upper range of the X axis.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
 #' @examples
@@ -30,7 +31,8 @@
 #'
 #' @export
 #'
-vdist_chisquare_plot <- function(df = 3, normal = FALSE, print_plot = TRUE) {
+vdist_chisquare_plot <- function(df = 3, normal = FALSE,
+                                 xaxis_range = 25, print_plot = TRUE) {
 
 	if (!is.numeric(df)) {
     stop("df must be numeric/integer")
@@ -43,7 +45,7 @@ vdist_chisquare_plot <- function(df = 3, normal = FALSE, print_plot = TRUE) {
 	df    <- as.integer(df)
 	chim  <- round(df, 3)
 	chisd <- round(sqrt(2 * df), 3)
-	x     <- seq(0, 25, 0.01)
+	x     <- seq(0, xaxis_range, 0.01)
 	data  <- stats::dchisq(x, df)
 
 	plot_data  <- data.frame(x = x, chi = data)
@@ -62,7 +64,7 @@ vdist_chisquare_plot <- function(df = 3, normal = FALSE, print_plot = TRUE) {
 	  ggplot2::xlab(paste("Mean =", chim, " Std Dev. =", chisd)) +
 	  ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
 	                 plot.subtitle = ggplot2::element_text(hjust = 0.5)) +
-	  ggplot2::scale_x_continuous(breaks = seq(0, 25, 2)) +
+	  ggplot2::scale_x_continuous(breaks = seq(0, xaxis_range, 2)) +
 	  ggplot2::geom_polygon(data    = poly_data,
 	                        mapping = ggplot2::aes(x = y, y = z),
 	                        fill    = '#4682B4') +

@@ -38,6 +38,9 @@ test_that("output from vdist_chisquare_plot is as expected", {
   p7 <- vdist_chisquare_plot()
   vdiffr::expect_doppelganger("chisquare plot 1", p7)
 
+  p7a <- vdist_chisquare_plot(xaxis_range = 35)
+  vdiffr::expect_doppelganger("chisquare plot 1a", p7a)
+
   p8 <- vdist_chisquare_plot(df = 5)
   vdiffr::expect_doppelganger("chisquare plot 2", p8)
 
