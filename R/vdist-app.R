@@ -7,11 +7,7 @@
 #' @export
 #'
 vdist_launch_app  <- function() {
-
-	check_suggests('shinyBS')
-	check_suggests('shinycssloaders')
-	check_suggests('shinythemes')
-
-	shiny::runApp(appDir = system.file("application", package = "vistributions"))
+	
+	xplorerr::app_descriptive()
 }
  
