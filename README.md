@@ -14,8 +14,9 @@ checks](https://cranchecks.info/badges/summary/vistributions)](https://cran.r-pr
 status](https://github.com/rsquaredacademy/vistributions/workflows/R-CMD-check/badge.svg)](https://github.com/rsquaredacademy/vistributions/actions)
 [![Coverage
 Status](https://img.shields.io/codecov/c/github/rsquaredacademy/vistributions/master.svg)](https://codecov.io/github/rsquaredacademy/vistributions?branch=master)
-[![](https://cranlogs.r-pkg.org/badges/grand-total/vistributions)](https://cran.r-project.org/package=vistributions)
+[![status](https://tinyverse.netlify.com/badge/vistributions)](https://CRAN.R-project.org/package=vistributions)
 [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
+[![](https://cranlogs.r-pkg.org/badges/grand-total/vistributions)](https://cran.r-project.org/package=vistributions)
 <!-- badges: end -->
 
 ## Installation
