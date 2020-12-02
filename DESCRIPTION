@@ -10,7 +10,6 @@ Depends:
 Imports:
     ggplot2,
     magrittr,
-    shiny,
     stats,
     utils
 Suggests: 
