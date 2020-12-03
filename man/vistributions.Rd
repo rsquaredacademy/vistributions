@@ -3,7 +3,6 @@
 \docType{package}
 \name{vistributions}
 \alias{vistributions}
-\alias{vistributions-package}
 \title{\code{vistributions} package}
 \description{
 Visualize probability distributions.

@@ -213,11 +213,11 @@ vdist_normal_prob <- function(perc, mean = 0, sd = 1,
   check_positive(sd)
 
   if (length(perc) > 2) {
-    stop("Please do not specify more than 2 percentile values")
+    stop("Please do not specify more than 2 percentile values.", call. = FALSE)
   }
 
   if ((method == "both") & (length(perc) != 2)) {
-    stop("Specify two percentile values")
+    stop("Specify two percentile values.", call. = FALSE)
   }
 
   el <- max(abs(perc - mean)) / sd + 1

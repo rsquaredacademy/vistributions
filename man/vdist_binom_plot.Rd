@@ -8,11 +8,15 @@
 \usage{
 vdist_binom_plot(n, p, print_plot = TRUE)
 
-vdist_binom_prob(n, p, s, type = c("lower", "upper", "exact",
-  "interval"), print_plot = TRUE)
+vdist_binom_prob(
+  n,
+  p,
+  s,
+  type = c("lower", "upper", "exact", "interval"),
+  print_plot = TRUE
+)
 
-vdist_binom_perc(n, p, tp, type = c("lower", "upper"),
-  print_plot = TRUE)
+vdist_binom_perc(n, p, tp, type = c("lower", "upper"), print_plot = TRUE)
 }
 \arguments{
 \item{n}{Number of trials.}

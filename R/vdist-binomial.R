@@ -80,12 +80,12 @@ vdist_binom_prob <- function(n, p, s,
 
 	if (method == "interval") {
 		if (length(s) != 2) {
-			stop("Please specify an interval for s")
+			stop("Please specify an interval for s.", call. = FALSE)
 		}
 	}
 
 	if (any(s > n)) {
-		stop("s must be less than or equal to n")
+		stop("s must be less than or equal to n.", call. = FALSE)
 	}
 
 	n   <- as.integer(n)

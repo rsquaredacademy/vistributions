@@ -19,3 +19,13 @@ test_that("vdist_chisquare_perc returns appropriate error messages", {
 
   expect_error(vdist_chisquare_perc(df = as.factor(3)), "df must be numeric.")
 })
+
+test_that("vdist_chisquare_prob returns appropriate error messages", {
+  expect_error(vdist_chisquare_prob("0.95", df = 3), "perc must be numeric.")
+
+  expect_error(vdist_chisquare_prob(as.factor(1), df = 3), "perc must be numeric.")
+
+  expect_error(vdist_chisquare_prob(df = "3"), "df must be numeric.")
+
+  expect_error(vdist_chisquare_prob(df = as.factor(3)), "df must be numeric.")
+})
