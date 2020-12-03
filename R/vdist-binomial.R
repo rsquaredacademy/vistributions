@@ -31,7 +31,7 @@
 #'
 #' @export
 #'
-vdist_binom_plot <- function(n, p, print_plot = TRUE) {
+vdist_binom_plot <- function(n = 10, p = 0.3, print_plot = TRUE) {
 
 	check_numeric(n)
 	check_numeric(p, "p")
@@ -67,7 +67,7 @@ vdist_binom_plot <- function(n, p, print_plot = TRUE) {
 #' @rdname vdist_binom_plot
 #' @export
 #'
-vdist_binom_prob <- function(n, p, s,
+vdist_binom_prob <- function(n = 10, p = 0.3, s = 4,
 														 type = c("lower", "upper", "exact", "interval"),
 														 print_plot = TRUE) {
 
@@ -152,7 +152,7 @@ vdist_binom_prob <- function(n, p, s,
 #' @rdname vdist_binom_plot
 #' @export
 #'
-vdist_binom_perc <- function(n, p, tp, type = c("lower", "upper"),
+vdist_binom_perc <- function(n = 10, p = 0.5, tp = 0.05, type = c("lower", "upper"),
 														 print_plot = TRUE) {
 
 	check_numeric(n)

@@ -17,8 +17,8 @@ vdist_t_perc(
 )
 
 vdist_t_prob(
-  perc,
-  df,
+  perc = 1.6,
+  df = 7,
   type = c("lower", "upper", "interval", "both"),
   print_plot = TRUE
 )

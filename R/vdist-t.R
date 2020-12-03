@@ -189,7 +189,7 @@ vdist_t_perc <- function(probs = 0.95, df = 4,
 #' @rdname vdist_t
 #' @export
 #'
-vdist_t_prob <- function(perc, df,
+vdist_t_prob <- function(perc = 1.6, df = 7,
                          type = c("lower", "upper", "interval", "both"),
                          print_plot = TRUE) {
 

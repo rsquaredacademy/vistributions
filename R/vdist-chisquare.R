@@ -200,7 +200,7 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3,
 #' @rdname vdist_chisquare_plot
 #' @export
 #'
-vdist_chisquare_prob <- function(perc, df, type = c("lower", "upper"),
+vdist_chisquare_prob <- function(perc = 13, df = 11, type = c("lower", "upper"),
                                  print_plot = TRUE) {
 
 

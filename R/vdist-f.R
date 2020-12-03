@@ -186,7 +186,7 @@ vdist_f_perc <- function(probs = 0.95, num_df = 3, den_df = 30,
 #' @rdname vdist_f_plot
 #' @export
 #'
-vdist_f_prob <- function(perc, num_df, den_df, type = c("lower", "upper"),
+vdist_f_prob <- function(perc = 2.35, num_df = 5, den_df = 32, type = c("lower", "upper"),
                          print_plot = TRUE) {
 
   check_numeric(perc, "perc")

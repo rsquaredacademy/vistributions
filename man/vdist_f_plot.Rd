@@ -17,9 +17,9 @@ vdist_f_perc(
 )
 
 vdist_f_prob(
-  perc,
-  num_df,
-  den_df,
+  perc = 2.35,
+  num_df = 5,
+  den_df = 32,
   type = c("lower", "upper"),
   print_plot = TRUE
 )

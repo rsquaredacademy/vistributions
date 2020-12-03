@@ -20,7 +20,12 @@ vdist_chisquare_perc(
   print_plot = TRUE
 )
 
-vdist_chisquare_prob(perc, df, type = c("lower", "upper"), print_plot = TRUE)
+vdist_chisquare_prob(
+  perc = 13,
+  df = 11,
+  type = c("lower", "upper"),
+  print_plot = TRUE
+)
 }
 \arguments{
 \item{df}{Degrees of freedom.}

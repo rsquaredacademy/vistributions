@@ -197,7 +197,7 @@ vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1,
 #' @rdname vdist_normal_plot
 #' @export
 #'
-vdist_normal_prob <- function(perc, mean = 0, sd = 1,
+vdist_normal_prob <- function(perc = 3, mean = 0, sd = 1,
                               type = c("lower", "upper", "both"),
                               print_plot = TRUE) {
 

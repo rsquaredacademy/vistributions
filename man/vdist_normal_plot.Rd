@@ -17,7 +17,7 @@ vdist_normal_perc(
 )
 
 vdist_normal_prob(
-  perc,
+  perc = 3,
   mean = 0,
   sd = 1,
   type = c("lower", "upper", "both"),
