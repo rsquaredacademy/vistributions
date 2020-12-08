@@ -33,17 +33,9 @@
 vdist_f_plot <- function(num_df = 4, den_df = 30, normal = FALSE,
                          print_plot = TRUE) {
 
-  if (!is.numeric(num_df)) {
-    stop("Numerator DF must be numeric/integer")
-  }
-
-  if (!is.numeric(den_df)) {
-    stop("Denominator DF must be numeric/integer")
-  }
-
-  if (!is.logical(normal)) {
-    stop("input for normal must be logical")
-  }
+  check_numeric(num_df, "num_df")
+  check_numeric(den_df, "den_df")
+  check_logical(normal)
 
   num_df <- as.integer(num_df)
   den_df <- as.integer(den_df)
@@ -94,21 +86,10 @@ vdist_f_plot <- function(num_df = 4, den_df = 30, normal = FALSE,
 vdist_f_perc <- function(probs = 0.95, num_df = 3, den_df = 30,
                          type = c("lower", "upper"), print_plot = TRUE) {
 
-  if (!is.numeric(num_df)) {
-    stop("Numerator DF must be numeric/integer")
-  }
-
-  if (!is.numeric(den_df)) {
-    stop("Denominator DF must be numeric/integer")
-  }
-
-  if (!is.numeric(probs)) {
-    stop("probs must be numeric")
-  }
-
-  if ((probs < 0) | (probs > 1)) {
-    stop("probs must be between 0 and 1")
-  }
+  check_numeric(num_df, "num_df")
+  check_numeric(den_df, "den_df")
+  check_numeric(probs, "probs")
+  check_range(probs, 0, 1, "probs")
 
   num_df <- as.integer(num_df)
   den_df <- as.integer(den_df)
@@ -205,20 +186,12 @@ vdist_f_perc <- function(probs = 0.95, num_df = 3, den_df = 30,
 #' @rdname vdist_f_plot
 #' @export
 #'
-vdist_f_prob <- function(perc, num_df, den_df, type = c("lower", "upper"),
+vdist_f_prob <- function(perc = 2.35, num_df = 5, den_df = 32, type = c("lower", "upper"),
                          print_plot = TRUE) {
 
-  if (!is.numeric(perc)) {
-    stop("perc must be numeric/integer")
-  }
-
-  if (!is.numeric(num_df)) {
-    stop("num_df must be numeric/integer")
-  }
-
-  if (!is.numeric(den_df)) {
-    stop("den_df must be numeric/integer")
-  }
+  check_numeric(perc, "perc")
+  check_numeric(num_df, "num_df")
+  check_numeric(den_df, "den_df")
 
   num_df <- as.integer(num_df)
   den_df <- as.integer(den_df)

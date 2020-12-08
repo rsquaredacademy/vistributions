@@ -37,13 +37,10 @@ NULL
 #'
 vdist_t_plot <- function(df = 3, print_plot = TRUE) {
 
-  if (!is.numeric(df)) {
-    stop("df must be numeric/integer")
-  }
+  check_numeric(df, "df")
 
   df <- as.integer(df)
-
-  x <- seq(-4, 4, 0.01)
+  x  <- seq(-4, 4, 0.01)
 
   plot_data <- data.frame(x = x, y = stats::dt(x, df))
   poly_data <- data.frame(y = c(-4, seq(-4, 4, 0.01), 4),
@@ -76,17 +73,9 @@ vdist_t_perc <- function(probs = 0.95, df = 4,
                          type = c("lower", "upper", "both"),
                          print_plot = TRUE) {
 
-  if (!is.numeric(probs)) {
-    stop("probs must be numeric")
-  }
-
-  if (!is.numeric(df)) {
-    stop("df must be numeric/integer")
-  }
-
-  if ((probs < 0) | (probs > 1)) {
-    stop("probs must be between 0 and 1")
-  }
+  check_numeric(probs, "probs")
+  check_numeric(df, "df")
+  check_range(probs, 0, 1, "probs")
 
   df      <- as.integer(df)
   method  <- match.arg(type)
@@ -200,17 +189,12 @@ vdist_t_perc <- function(probs = 0.95, df = 4,
 #' @rdname vdist_t
 #' @export
 #'
-vdist_t_prob <- function(perc, df,
+vdist_t_prob <- function(perc = 1.6, df = 7,
                          type = c("lower", "upper", "interval", "both"),
                          print_plot = TRUE) {
 
-  if (!is.numeric(perc)) {
-    stop("perc must be numeric/integer")
-  }
-
-  if (!is.numeric(df)) {
-    stop("df must be numeric/integer")
-  }
+  check_numeric(perc, "perc")
+  check_numeric(df, "df")
 
   df     <- as.integer(df)
   method <- match.arg(type)

@@ -8,11 +8,21 @@
 \usage{
 vdist_normal_plot(mean = 0, sd = 1, print_plot = TRUE)
 
-vdist_normal_perc(probs = 0.95, mean = 0, sd = 1, type = c("lower",
-  "upper", "both"), print_plot = TRUE)
+vdist_normal_perc(
+  probs = 0.95,
+  mean = 0,
+  sd = 1,
+  type = c("lower", "upper", "both"),
+  print_plot = TRUE
+)
 
-vdist_normal_prob(perc, mean = 0, sd = 1, type = c("lower", "upper",
-  "both"), print_plot = TRUE)
+vdist_normal_prob(
+  perc = 3,
+  mean = 0,
+  sd = 1,
+  type = c("lower", "upper", "both"),
+  print_plot = TRUE
+)
 }
 \arguments{
 \item{mean}{Mean of the normal distribution.}

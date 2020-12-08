@@ -32,25 +32,17 @@
 #'
 vdist_normal_plot <- function(mean = 0, sd = 1, print_plot = TRUE) {
 
-  if (!is.numeric(mean)) {
-    stop("mean must be numeric/integer")
-  }
-
-  if (!is.numeric(sd)) {
-    stop("sd must be numeric/integer")
-  }
-
-  if (sd < 0) {
-    stop("sd must be positive")
-  }
+  check_numeric(mean, "mean")
+  check_numeric(sd, "sd")
+  check_positive(sd)
 
   x   <- vdist_xax(mean)
   l   <- vdist_seql(mean, sd)
   col <- c("#0000CD", "#4682B4", "#6495ED", "#4682B4", "#6495ED")
   l1  <- c(3, 2, 1, 5, 6)
   l2  <- c(5, 3, 2, 6, 7)
-
-  xm <- vdist_xmm(mean, sd)
+  xm  <- vdist_xmm(mean, sd)
+  
   plot_data <- data.frame(x = x, y = stats::dnorm(x, mean, sd))
 
   gplot <-
@@ -86,25 +78,11 @@ vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1,
                               type = c("lower", "upper", "both"),
                               print_plot = TRUE) {
 
-  if (!is.numeric(mean)) {
-    stop("mean must be numeric/integer")
-  }
-
-  if (!is.numeric(sd)) {
-    stop("sd must be numeric/integer")
-  }
-
-  if (sd < 0) {
-    stop("sd must be positive")
-  }
-
-  if (!is.numeric(probs)) {
-    stop("probs must be numeric")
-  }
-
-  if ((probs < 0) | (probs > 1)) {
-    stop("probs must be between 0 and 1")
-  }
+  check_numeric(mean, "mean")
+  check_numeric(sd, "sd")
+  check_positive(sd)
+  check_numeric(probs, "probs")
+  check_range(probs, 0, 1, "probs")
 
   x      <- vdist_xax(mean)
   method <- match.arg(type)
@@ -219,7 +197,7 @@ vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1,
 #' @rdname vdist_normal_plot
 #' @export
 #'
-vdist_normal_prob <- function(perc, mean = 0, sd = 1,
+vdist_normal_prob <- function(perc = 3, mean = 0, sd = 1,
                               type = c("lower", "upper", "both"),
                               print_plot = TRUE) {
 
@@ -229,28 +207,17 @@ vdist_normal_prob <- function(perc, mean = 0, sd = 1,
     method <- "both"
   }
 
-  if (!is.numeric(mean)) {
-    stop("mean must be numeric/integer")
-  }
-
-  if (!is.numeric(sd)) {
-    stop("sd must be numeric/integer")
-  }
-
-  if (!is.numeric(perc)) {
-    stop("perc must be numeric/integer")
-  }
-
-  if (sd < 0) {
-    stop("sd must be positive")
-  }
+  check_numeric(mean, "mean")
+  check_numeric(sd, "sd")
+  check_numeric(perc, "perc")
+  check_positive(sd)
 
   if (length(perc) > 2) {
-    stop("Please do not specify more than 2 percentile values")
+    stop("Please do not specify more than 2 percentile values.", call. = FALSE)
   }
 
   if ((method == "both") & (length(perc) != 2)) {
-    stop("Specify two percentile values")
+    stop("Specify two percentile values.", call. = FALSE)
   }
 
   el <- max(abs(perc - mean)) / sd + 1

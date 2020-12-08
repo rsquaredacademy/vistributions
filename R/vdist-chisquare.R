@@ -34,13 +34,8 @@
 vdist_chisquare_plot <- function(df = 3, normal = FALSE,
                                  xaxis_range = 25, print_plot = TRUE) {
 
-	if (!is.numeric(df)) {
-    stop("df must be numeric/integer")
-  }
-
-  if (!is.logical(normal)) {
-    stop("normal must be logical")
-  }
+  check_numeric(df, "df")
+  check_logical(normal)
 
 	df    <- as.integer(df)
 	chim  <- round(df, 3)
@@ -97,17 +92,9 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3,
                                  type = c("lower", "upper"),
                                  print_plot = TRUE) {
 
-  if (!is.numeric(probs)) {
-    stop("probs must be numeric")
-  }
-
-  if (!is.numeric(df)) {
-    stop("df must be numeric/integer")
-  }
-
-  if ((probs < 0) | (probs > 1)) {
-    stop("probs must be between 0 and 1")
-  }
+  check_numeric(probs, "probs")
+  check_numeric(df, "df")
+  check_range(probs, 0, 1, "probs")
 
   df     <- as.integer(df)
 	method <- match.arg(type)
@@ -213,16 +200,12 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3,
 #' @rdname vdist_chisquare_plot
 #' @export
 #'
-vdist_chisquare_prob <- function(perc, df, type = c("lower", "upper"),
+vdist_chisquare_prob <- function(perc = 13, df = 11, type = c("lower", "upper"),
                                  print_plot = TRUE) {
 
-  if (!is.numeric(df)) {
-    stop("df must be numeric/integer")
-  }
 
-  if (!is.numeric(perc)) {
-    stop("perc must be numeric/integer")
-  }
+  check_numeric(df, "df")
+  check_numeric(perc, "perc")
 
   method <- match.arg(type)
   chim   <- round(df, 3)

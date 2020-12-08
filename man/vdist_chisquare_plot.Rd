@@ -6,14 +6,26 @@
 \alias{vdist_chisquare_prob}
 \title{Visualize chi square distribution}
 \usage{
-vdist_chisquare_plot(df = 3, normal = FALSE, xaxis_range = 25,
-  print_plot = TRUE)
+vdist_chisquare_plot(
+  df = 3,
+  normal = FALSE,
+  xaxis_range = 25,
+  print_plot = TRUE
+)
 
-vdist_chisquare_perc(probs = 0.95, df = 3, type = c("lower",
-  "upper"), print_plot = TRUE)
+vdist_chisquare_perc(
+  probs = 0.95,
+  df = 3,
+  type = c("lower", "upper"),
+  print_plot = TRUE
+)
 
-vdist_chisquare_prob(perc, df, type = c("lower", "upper"),
-  print_plot = TRUE)
+vdist_chisquare_prob(
+  perc = 13,
+  df = 11,
+  type = c("lower", "upper"),
+  print_plot = TRUE
+)
 }
 \arguments{
 \item{df}{Degrees of freedom.}

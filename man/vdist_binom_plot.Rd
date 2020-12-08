@@ -6,13 +6,23 @@
 \alias{vdist_binom_perc}
 \title{Visualize binomial distribution}
 \usage{
-vdist_binom_plot(n, p, print_plot = TRUE)
+vdist_binom_plot(n = 10, p = 0.3, print_plot = TRUE)
 
-vdist_binom_prob(n, p, s, type = c("lower", "upper", "exact",
-  "interval"), print_plot = TRUE)
+vdist_binom_prob(
+  n = 10,
+  p = 0.3,
+  s = 4,
+  type = c("lower", "upper", "exact", "interval"),
+  print_plot = TRUE
+)
 
-vdist_binom_perc(n, p, tp, type = c("lower", "upper"),
-  print_plot = TRUE)
+vdist_binom_perc(
+  n = 10,
+  p = 0.5,
+  tp = 0.05,
+  type = c("lower", "upper"),
+  print_plot = TRUE
+)
 }
 \arguments{
 \item{n}{Number of trials.}
