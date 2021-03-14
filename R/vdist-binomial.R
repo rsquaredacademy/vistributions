@@ -42,19 +42,19 @@ vdist_binom_plot <- function(n = 10, p = 0.3, print_plot = TRUE) {
 	xn   <- n / 40
 	bm   <- round(n * p, 2)
 	bsd  <- round(sqrt((1 - p) * bm) , 2)
-	data <- stats::dbinom(x, n, p)
+	data <- dbinom(x, n, p)
 
 	plot_data <- data.frame(n = seq(0, n), df = data)
 
 	pp <-
-		ggplot2::ggplot(plot_data) +
-		ggplot2::geom_col(ggplot2::aes(x = n, y = df), fill = "blue") +
-		ggplot2::ylab("Probability") + ggplot2::xlab("No. of success") +
-		ggplot2::ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
+		ggplot(plot_data) +
+		geom_col(aes(x = n, y = df), fill = "blue") +
+		ylab("Probability") + xlab("No. of success") +
+		ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
 										 subtitle = paste("Mean =", bm, ", Std. Dev. =", bsd)) +
-		ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
-									 plot.subtitle = ggplot2::element_text(hjust = 0.5)) +
-		ggplot2::scale_x_continuous(breaks = seq(0, n))
+		theme(plot.title = element_text(hjust = 0.5),
+									 plot.subtitle = element_text(hjust = 0.5)) +
+		scale_x_continuous(breaks = seq(0, n))
 
 	if (print_plot) {
 		print(pp)
@@ -95,49 +95,49 @@ vdist_binom_prob <- function(n = 10, p = 0.3, s = 4,
 	bsd <- round(sqrt((1 - p) * bm), 2)
 
 	if (method == "lower") {
-		k    <- round(stats::pbinom(s, n, p), 3)
-		cols <- ifelse(cumsum(round(stats::dbinom(x, n, p), 3)) <= k, "#0000CD", "#6495ED")
+		k    <- round(pbinom(s, n, p), 3)
+		cols <- ifelse(cumsum(round(dbinom(x, n, p), 3)) <= k, "#0000CD", "#6495ED")
 	} else if (method == "upper") {
-		k    <- round(1 - stats::pbinom((s - 1), n, p), 3)
-		cols <- ifelse(cumsum(round(stats::dbinom(x, n, p), 3)) >= k, "#0000CD", "#6495ED")
+		k    <- round(1 - pbinom((s - 1), n, p), 3)
+		cols <- ifelse(cumsum(round(dbinom(x, n, p), 3)) >= k, "#0000CD", "#6495ED")
 	} else if (method == "exact") {
-		k    <- stats::pbinom(s, n, p) - stats::pbinom((s - 1), n, p)
-		cols <- ifelse(round(stats::dbinom(x, n, p), 5) == round(k, 5), "#0000CD", "#6495ED")
+		k    <- pbinom(s, n, p) - pbinom((s - 1), n, p)
+		cols <- ifelse(round(dbinom(x, n, p), 5) == round(k, 5), "#0000CD", "#6495ED")
 	} else {
-		k1   <- stats::pbinom((s[1] - 1), n, p)
-		k2   <- stats::pbinom(s[2], n, p)
-		k    <- stats::pbinom(s[2], n, p) - stats::pbinom((s[1] - 1), n, p)
-		cols <- ifelse((round(cumsum(stats::dbinom(x, n, p)), 6) > round(k1, 6) &
-											round(cumsum(stats::dbinom(x, n, p)), 6) <= round(k2, 6)), "#0000CD", "#6495ED")
+		k1   <- pbinom((s[1] - 1), n, p)
+		k2   <- pbinom(s[2], n, p)
+		k    <- pbinom(s[2], n, p) - pbinom((s[1] - 1), n, p)
+		cols <- ifelse((round(cumsum(dbinom(x, n, p)), 6) > round(k1, 6) &
+											round(cumsum(dbinom(x, n, p)), 6) <= round(k2, 6)), "#0000CD", "#6495ED")
 	}
 
-	data      <- stats::dbinom(x, n, p)
+	data      <- dbinom(x, n, p)
 	plot_data <- data.frame(n = seq(0, n), df = data)
 
 	pp <-
-		ggplot2::ggplot(plot_data) +
-		ggplot2::geom_col(ggplot2::aes(x = n, y = df), fill = cols) +
-		ggplot2::ylab("Probability") +
-		ggplot2::xlab(paste("No. of success\n", "Mean =", bm, ", Std. Dev. =", bsd)) +
-		ggplot2::scale_x_continuous(breaks = seq(0, n)) +
-		ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
-									 plot.subtitle = ggplot2::element_text(hjust = 0.5))
+		ggplot(plot_data) +
+		geom_col(aes(x = n, y = df), fill = cols) +
+		ylab("Probability") +
+		xlab(paste("No. of success\n", "Mean =", bm, ", Std. Dev. =", bsd)) +
+		scale_x_continuous(breaks = seq(0, n)) +
+		theme(plot.title = element_text(hjust = 0.5),
+									 plot.subtitle = element_text(hjust = 0.5))
 
 	if (method == "lower") {
 		pp +
-			ggplot2::ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
+			ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
 											 subtitle = paste("P(X) <=", s, "=", round(k, 3)))
 	} else if (method == "upper") {
 		pp +
-			ggplot2::ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
+			ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
 											 subtitle = paste("P(X) >=", s, "=", round(k, 3)))
 	} else if (method == "exact") {
 		pp +
-			ggplot2::ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
+			ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
 											 subtitle = paste("P(X) =", s, "=", round(k, 3)))
 	} else {
 		pp +
-			ggplot2::ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
+			ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
 											 subtitle = paste0("P(", s[1], " <= X <= ", s[2], ")", " = ", round(k, 3)))
 	}
 
@@ -166,33 +166,33 @@ vdist_binom_perc <- function(n = 10, p = 0.5, tp = 0.05, type = c("lower", "uppe
 	x      <- seq(0, n, 1)
 
 	if (method == "lower") {
-		k    <- round(stats::qbinom(tp, n, p), 3)
-		cols <- ifelse(cumsum(stats::dbinom(x, n, p)) <= stats::pbinom(k, n, p), "#0000CD", "#6495ED")
+		k    <- round(qbinom(tp, n, p), 3)
+		cols <- ifelse(cumsum(dbinom(x, n, p)) <= pbinom(k, n, p), "#0000CD", "#6495ED")
 	} else {
-		k    <- round(stats::qbinom(tp, n, p, lower.tail = F), 3)
-		cols <- ifelse(cumsum(stats::dbinom(x, n, p)) > stats::pbinom((k + 1), n, p), "#0000CD", "#6495ED")
+		k    <- round(qbinom(tp, n, p, lower.tail = F), 3)
+		cols <- ifelse(cumsum(dbinom(x, n, p)) > pbinom((k + 1), n, p), "#0000CD", "#6495ED")
 	}
 
-	data      <- stats::dbinom(x, n, p)
+	data      <- dbinom(x, n, p)
 	plot_data <- data.frame(n = seq(0, n), df = data)
 
 	pp <-
-		ggplot2::ggplot(plot_data) +
-		ggplot2::geom_col(ggplot2::aes(x = n, y = df), fill = cols) +
-		ggplot2::ylab("Probability") + ggplot2::xlab("No. of success") +
-		ggplot2::scale_x_continuous(breaks = seq(0, n)) +
-		ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
-									 plot.subtitle = ggplot2::element_text(hjust = 0.5))
+		ggplot(plot_data) +
+		geom_col(aes(x = n, y = df), fill = cols) +
+		ylab("Probability") + xlab("No. of success") +
+		scale_x_continuous(breaks = seq(0, n)) +
+		theme(plot.title = element_text(hjust = 0.5),
+									 plot.subtitle = element_text(hjust = 0.5))
 
 
 	if (method == "lower") {
 		pp +
-			ggplot2::ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
+			ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
 				subtitle = paste0("P(X <= ", k, ") <= ", tp, ", but P(X <= ", (k + 1),
 				") > ", tp))
 	} else {
 		pp +
-			ggplot2::ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
+			ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
 				subtitle = paste0("P(X >= ", (k + 1), ") <= ", tp, ", but P(X >= ", k,
 				") > ", tp))
 	}
