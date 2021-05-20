@@ -15,7 +15,8 @@ status](https://github.com/rsquaredacademy/vistributions/workflows/R-CMD-check/b
 [![Coverage
 Status](https://img.shields.io/codecov/c/github/rsquaredacademy/vistributions/master.svg)](https://codecov.io/github/rsquaredacademy/vistributions?branch=master)
 [![status](https://tinyverse.netlify.com/badge/vistributions)](https://CRAN.R-project.org/package=vistributions)
-[![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
+[![Lifecycle:
+stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![](https://cranlogs.r-pkg.org/badges/grand-total/vistributions)](https://cran.r-project.org/package=vistributions)
 <!-- badges: end -->
 
@@ -32,8 +33,8 @@ devtools::install_github("rsquaredacademy/vistributions")
 
 ## Articles
 
-  - [Explore
-    Distributions](https://vistributions.rsquaredacademy.com/articles/introduction_to_vistributions.html)
+-   [Explore
+    Distributions](https://vistributions.rsquaredacademy.com/articles/introduction-to-vistributions.html)
 
 ## Usage
 
@@ -47,7 +48,6 @@ vdist_normal_plot()
 <img src="man/figures/README-normal-1.png" width="100%" />
 
 ``` r
-
 # visualize quantiles out of given probability
 vdist_normal_perc(0.95, mean = 2, sd = 1.36, type = 'both')
 ```
@@ -55,7 +55,6 @@ vdist_normal_perc(0.95, mean = 2, sd = 1.36, type = 'both')
 <img src="man/figures/README-normal-2.png" width="100%" />
 
 ``` r
-
 # visualize probability from a given quantile
 vdist_normal_prob(c(-1.74, 1.83), type = 'both')
 ```
@@ -68,9 +67,3 @@ If you encounter a bug, please file a minimal reproducible example using
 [reprex](https://reprex.tidyverse.org/index.html) on github. For
 questions and clarifications, use
 [StackOverflow](https://stackoverflow.com/).
-
-## Community Guidelines
-
-Please note that the ‘vistributions’ project is released with a
-[Contributor Code of Conduct](CODE_OF_CONDUCT.md). By contributing to
-this project, you agree to abide by its terms.

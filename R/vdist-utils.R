@@ -1,7 +1,8 @@
-#' @importFrom utils packageVersion menu install.packages
+#' @import utils 
+#' @import ggplot2
 check_suggests <- function(pkg) {
 
-  pkg_flag <- tryCatch(utils::packageVersion(pkg), error = function(e) NA)
+  pkg_flag <- tryCatch(packageVersion(pkg), error = function(e) NA)
 
   if (is.na(pkg_flag)) {
 
@@ -9,8 +10,8 @@ check_suggests <- function(pkg) {
 
     if (interactive()) {
       message(msg, "\nWould you like to install it?")
-      if (utils::menu(c("Yes", "No")) == 1) {
-        utils::install.packages(pkg)
+      if (menu(c("Yes", "No")) == 1) {
+        install.packages(pkg)
       } else {
         stop(msg, call. = FALSE)
       }
