@@ -1,3 +1,7 @@
+# vistributions 0.1.2
+
+This is a patch release to fix CRAN note about lazy data.
+
 # vistributions 0.1.1
 
 This is a patch release to fix bugs in the app.
