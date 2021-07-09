@@ -45,31 +45,44 @@ vdist_f_plot <- function(num_df = 4, den_df = 30, normal = FALSE,
   nx     <- seq(-2, 4, 0.01)
 
   plot_data  <- data.frame(x = x, y = df(x, num_df, den_df))
-  poly_data  <- data.frame(y = c(0, seq(0, 4, 0.01), 4),
-    z = c(0, df(seq(0, 4, 0.01), num_df, den_df), 0))
   point_data <- data.frame(x = fm, y = 0)
   nline_data <- data.frame(x = nx, y = dnorm(nx, fm, fsd))
 
+  poly_data  <- data.frame(y = c(0, seq(0, 4, 0.01), 4),
+                           z = c(0,
+                                 df(seq(0, 4, 0.01),
+                                    num_df,
+                                    den_df),
+                                 0))
+
+
   gplot <-
     ggplot(plot_data) +
-    geom_line(aes(x = x, y = y), color = "blue") +
-    geom_polygon(data = poly_data, mapping = aes(x = y, y = z),
-      fill = '#4682B4') +
-    geom_point(data = point_data, mapping = aes(x = x, y = y),
-      shape = 4, color = 'red', size = 3) +
-    xlab(paste("Mean =", fm, " Std Dev. =", fsd)) + ylab('') +
-    ggtitle(label = 'f Distribution',
-      subtitle = paste("Num df =", num_df, "  Den df =", den_df)) +
-    theme(plot.title = element_text(hjust = 0.5),
-                   plot.subtitle = element_text(hjust = 0.5)) +
+    geom_line(aes(x = x, y = y),
+              color = "blue") +
+    geom_polygon(data    = poly_data,
+                 mapping = aes(x = y, y = z),
+                 fill    = '#4682B4') +
+    geom_point(data    = point_data,
+               mapping = aes(x = x, y = y),
+               shape   = 4,
+               color   = 'red',
+               size    = 3) +
+    xlab(paste("Mean =", fm, " Std Dev. =", fsd)) +
+    ylab('') +
+    ggtitle(label    = 'f Distribution',
+            subtitle = paste("Num df =", num_df, "  Den df =", den_df)) +
+    theme(plot.title    = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5)) +
     scale_x_continuous(breaks = c(-2:4)) +
     scale_y_continuous(breaks = NULL)
 
   if (normal) {
     gplot <-
       gplot +
-      geom_line(data = nline_data, mapping = aes(x = x, y = y),
-        color = '#FF4500')
+      geom_line(data    = nline_data,
+                mapping = aes(x = x, y = y),
+                color   = '#FF4500')
   }
 
   if (print_plot) {
@@ -117,44 +130,59 @@ vdist_f_perc <- function(probs = 0.95, num_df = 3, den_df = 30,
 
   gplot <-
     ggplot(plot_data) +
-    geom_line(data = plot_data, mapping = aes(x = x, y = y),
-      color = 'blue') + xlab(paste("Mean =", fm, " Std Dev. =", fsd)) +
+    geom_line(data    = plot_data,
+              mapping = aes(x = x, y = y),
+              color   = 'blue') +
+    xlab(paste("Mean =", fm, " Std Dev. =", fsd)) +
     ylab('') +
-    theme(plot.title = element_text(hjust = 0.5),
-                   plot.subtitle = element_text(hjust = 0.5))
+    theme(plot.title    = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))
 
 
   if (method == "lower") {
     gplot <-
       gplot +
-      ggtitle(label = 'f Distribution',
-        subtitle = paste0("P(X < ", pp, ") = ", probs * 100, "%")) +
-      annotate("text", label = paste0(probs * 100, "%"),
-        x = pp - 0.2, y = max(df(l, num_df, den_df)) + 0.02, color = "#0000CD",
-        size = 3) +
-      annotate("text", label = paste0((1 - probs) * 100, "%"),
-        x = pp + 0.2, y = max(df(l, num_df, den_df)) + 0.02, color = "#6495ED",
-        size = 3)
+      ggtitle(label    = 'f Distribution',
+              subtitle = paste0("P(X < ", pp, ") = ", probs * 100, "%")) +
+      annotate("text",
+               label = paste0(probs * 100, "%"),
+               x     = pp - 0.2,
+               y     = max(df(l, num_df, den_df)) + 0.02,
+               color = "#0000CD",
+               size  = 3) +
+      annotate("text",
+               label = paste0((1 - probs) * 100, "%"),
+               x     = pp + 0.2,
+               y     = max(df(l, num_df, den_df)) + 0.02,
+               color = "#6495ED",
+               size  = 3)
 
   } else {
     gplot <-
       gplot +
-      ggtitle(label = 'f Distribution',
-        subtitle = paste0("P(X > ", pp, ") = ", probs * 100, "%")) +
-      annotate("text", label = paste0((1 - probs) * 100, "%"),
-        x = pp - 0.2, y = max(df(l, num_df, den_df)) + 0.02, color = "#6495ED",
-        size = 3) +
-      annotate("text", label = paste0(probs * 100, "%"),
-        x = pp + 0.2, y = max(df(l, num_df, den_df)) + 0.02, color = "#0000CD",
-        size = 3)
+      ggtitle(label    = 'f Distribution',
+              subtitle = paste0("P(X > ", pp, ") = ", probs * 100, "%")) +
+      annotate("text",
+               label = paste0((1 - probs) * 100, "%"),
+               x     = pp - 0.2,
+               y     = max(df(l, num_df, den_df)) + 0.02,
+               color = "#6495ED",
+               size  = 3) +
+      annotate("text",
+               label = paste0(probs * 100, "%"),
+               x     = pp + 0.2,
+               y     = max(df(l, num_df, den_df)) + 0.02,
+               color = "#0000CD",
+               size  = 3)
   }
 
   for (i in seq_len(length(l1))) {
     poly_data <- vdist_pol_f(lc[l1[i]], lc[l2[i]], num_df, den_df)
     gplot <-
       gplot +
-      geom_polygon(data = poly_data, mapping = aes(x = x, y = y),
-        fill = col[i])
+      geom_polygon(data    = poly_data,
+                   mapping = aes(x = x, y = y),
+                   fill    = col[i])
   }
 
   pln <- length(pp)
@@ -165,9 +193,14 @@ vdist_f_perc <- function(probs = 0.95, num_df = 3, den_df = 30,
 
     gplot <-
       gplot +
-      geom_vline(xintercept = pp[i], linetype = 2, size = 1) +
-      geom_point(data = point_data, mapping = aes(x = x, y = y),
-      shape = 4, color = 'red', size = 3)
+      geom_vline(xintercept = pp[i],
+                 linetype   = 2,
+                 size       = 1) +
+      geom_point(data    = point_data,
+                 mapping = aes(x = x, y = y),
+                 shape   = 4,
+                 color   = 'red',
+                 size    = 3)
   }
 
   gplot <-
@@ -224,43 +257,58 @@ vdist_f_prob <- function(perc = 2.35, num_df = 5, den_df = 32, type = c("lower",
 
   gplot <-
     ggplot(plot_data) +
-    geom_line(data = plot_data, mapping = aes(x = x, y = y),
-      color = 'blue') + xlab(paste("Mean =", fm, " Std Dev. =", fsd)) +
+    geom_line(data    = plot_data,
+              mapping = aes(x = x, y = y),
+              color   = 'blue') +
+    xlab(paste("Mean =", fm, " Std Dev. =", fsd)) +
     ylab('') +
-    theme(plot.title = element_text(hjust = 0.5),
-                   plot.subtitle = element_text(hjust = 0.5))
+    theme(plot.title    = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))
 
   if (method == "lower") {
     gplot <-
       gplot +
-      ggtitle(label = 'f Distribution',
-        subtitle = paste0("P(X < ", perc, ") = ", pp * 100, "%")) +
-      annotate("text", label = paste0(pp * 100, "%"),
-        x = perc - fsd, y = max(df(l, num_df, den_df)) + 0.04, color = "#0000CD",
-        size = 3) +
-      annotate("text", label = paste0(round((1 - pp) * 100, 2), "%"),
-        x = perc + fsd, y = max(df(l, num_df, den_df)) + 0.02, color = "#6495ED",
-        size = 3)
+      ggtitle(label    = 'f Distribution',
+              subtitle = paste0("P(X < ", perc, ") = ", pp * 100, "%")) +
+      annotate("text",
+               label = paste0(pp * 100, "%"),
+               x     = perc - fsd,
+               y     = max(df(l, num_df, den_df)) + 0.04,
+               color = "#0000CD",
+               size  = 3) +
+      annotate("text",
+               label = paste0(round((1 - pp) * 100, 2), "%"),
+               x     = perc + fsd,
+               y     = max(df(l, num_df, den_df)) + 0.02,
+               color = "#6495ED",
+               size  = 3)
 
   } else {
     gplot <-
       gplot +
-      ggtitle(label = 'f Distribution',
-        subtitle = paste0("P(X > ", perc, ") = ", pp * 100, "%")) +
-      annotate("text", label = paste0(round((1 - pp) * 100, 2), "%"),
-        x = perc - fsd, y = max(df(l, num_df, den_df)) + 0.04, color = "#6495ED",
-        size = 3) +
-      annotate("text", label = paste0(pp * 100, "%"),
-        x = perc + fsd, y = max(df(l, num_df, den_df)) + 0.04, color = "#0000CD",
-        size = 3)
+      ggtitle(label    = 'f Distribution',
+              subtitle = paste0("P(X > ", perc, ") = ", pp * 100, "%")) +
+      annotate("text",
+               label = paste0(round((1 - pp) * 100, 2), "%"),
+               x     = perc - fsd,
+               y     = max(df(l, num_df, den_df)) + 0.04,
+               color = "#6495ED",
+               size  = 3) +
+      annotate("text",
+               label = paste0(pp * 100, "%"),
+               x     = perc + fsd,
+               y     = max(df(l, num_df, den_df)) + 0.04,
+               color = "#0000CD",
+               size  = 3)
   }
 
   for (i in seq_len(length(l1))) {
     poly_data <- vdist_pol_f(lc[l1[i]], lc[l2[i]], num_df, den_df)
     gplot <-
       gplot +
-      geom_polygon(data = poly_data, mapping = aes(x = x, y = y),
-        fill = col[i])
+      geom_polygon(data    = poly_data,
+                   mapping = aes(x = x, y = y),
+                   fill    = col[i])
   }
 
   pln <- length(pp)
@@ -271,9 +319,14 @@ vdist_f_prob <- function(perc = 2.35, num_df = 5, den_df = 32, type = c("lower",
 
     gplot <-
       gplot +
-      geom_vline(xintercept = perc[i], linetype = 2, size = 1) +
-      geom_point(data = point_data, mapping = aes(x = x, y = y),
-      shape = 4, color = 'red', size = 3)
+      geom_vline(xintercept = perc[i],
+                 linetype   = 2,
+                 size       = 1) +
+      geom_point(data    = point_data,
+                 mapping = aes(x = x, y = y),
+                 shape   = 4,
+                 color   = 'red',
+                 size    = 3)
   }
 
   gplot <-

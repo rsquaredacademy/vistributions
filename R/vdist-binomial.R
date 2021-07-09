@@ -48,12 +48,14 @@ vdist_binom_plot <- function(n = 10, p = 0.3, print_plot = TRUE) {
 
 	pp <-
 		ggplot(plot_data) +
-		geom_col(aes(x = n, y = df), fill = "blue") +
-		ylab("Probability") + xlab("No. of success") +
-		ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
-										 subtitle = paste("Mean =", bm, ", Std. Dev. =", bsd)) +
-		theme(plot.title = element_text(hjust = 0.5),
-									 plot.subtitle = element_text(hjust = 0.5)) +
+		geom_col(aes(x = n, y = df),
+		         fill = "blue") +
+		ylab("Probability") +
+	  xlab("No. of success") +
+		ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
+		        subtitle = paste("Mean =", bm, ", Std. Dev. =", bsd)) +
+		theme(plot.title    = element_text(hjust = 0.5),
+		      plot.subtitle = element_text(hjust = 0.5)) +
 		scale_x_continuous(breaks = seq(0, n))
 
 	if (print_plot) {
@@ -116,29 +118,30 @@ vdist_binom_prob <- function(n = 10, p = 0.3, s = 4,
 
 	pp <-
 		ggplot(plot_data) +
-		geom_col(aes(x = n, y = df), fill = cols) +
+		geom_col(aes(x = n, y = df),
+		         fill = cols) +
 		ylab("Probability") +
 		xlab(paste("No. of success\n", "Mean =", bm, ", Std. Dev. =", bsd)) +
 		scale_x_continuous(breaks = seq(0, n)) +
-		theme(plot.title = element_text(hjust = 0.5),
-									 plot.subtitle = element_text(hjust = 0.5))
+		theme(plot.title    = element_text(hjust = 0.5),
+		      plot.subtitle = element_text(hjust = 0.5))
 
 	if (method == "lower") {
 		pp +
-			ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
-											 subtitle = paste("P(X) <=", s, "=", round(k, 3)))
+			ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
+			        subtitle = paste("P(X) <=", s, "=", round(k, 3)))
 	} else if (method == "upper") {
 		pp +
-			ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
-											 subtitle = paste("P(X) >=", s, "=", round(k, 3)))
+			ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
+			        subtitle = paste("P(X) >=", s, "=", round(k, 3)))
 	} else if (method == "exact") {
 		pp +
-			ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
-											 subtitle = paste("P(X) =", s, "=", round(k, 3)))
+			ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
+			        subtitle = paste("P(X) =", s, "=", round(k, 3)))
 	} else {
 		pp +
-			ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
-											 subtitle = paste0("P(", s[1], " <= X <= ", s[2], ")", " = ", round(k, 3)))
+			ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
+			        subtitle = paste0("P(", s[1], " <= X <= ", s[2], ")", " = ", round(k, 3)))
 	}
 
 	if (print_plot) {
@@ -160,7 +163,7 @@ vdist_binom_perc <- function(n = 10, p = 0.5, tp = 0.05, type = c("lower", "uppe
 	check_numeric(tp, "tp")
 	check_range(p)
 	check_range(tp, 0, 0.5, "tp")
-	
+
 	n      <- as.integer(n)
 	method <- match.arg(type)
 	x      <- seq(0, n, 1)
@@ -178,23 +181,25 @@ vdist_binom_perc <- function(n = 10, p = 0.5, tp = 0.05, type = c("lower", "uppe
 
 	pp <-
 		ggplot(plot_data) +
-		geom_col(aes(x = n, y = df), fill = cols) +
-		ylab("Probability") + xlab("No. of success") +
+		geom_col(aes(x = n, y = df),
+		         fill = cols) +
+		ylab("Probability") +
+	  xlab("No. of success") +
 		scale_x_continuous(breaks = seq(0, n)) +
-		theme(plot.title = element_text(hjust = 0.5),
-									 plot.subtitle = element_text(hjust = 0.5))
+		theme(plot.title    = element_text(hjust = 0.5),
+		      plot.subtitle = element_text(hjust = 0.5))
 
 
 	if (method == "lower") {
 		pp +
-			ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
-				subtitle = paste0("P(X <= ", k, ") <= ", tp, ", but P(X <= ", (k + 1),
-				") > ", tp))
+			ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
+			        subtitle = paste0("P(X <= ", k, ") <= ", tp, ", but P(X <= ", (k + 1), ") > ", tp)
+			        )
 	} else {
 		pp +
-			ggtitle(label = paste("Binomial Distribution: n =", n, ", p =", p),
-				subtitle = paste0("P(X >= ", (k + 1), ") <= ", tp, ", but P(X >= ", k,
-				") > ", tp))
+			ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
+			        subtitle = paste0("P(X >= ", (k + 1), ") <= ", tp, ", but P(X >= ", k, ") > ", tp)
+			        )
 	}
 
 	if (print_plot) {

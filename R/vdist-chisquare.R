@@ -31,8 +31,7 @@
 #'
 #' @export
 #'
-vdist_chisquare_plot <- function(df = 3, normal = FALSE,
-                                 xaxis_range = 25, print_plot = TRUE) {
+vdist_chisquare_plot <- function(df = 3, normal = FALSE, xaxis_range = 25, print_plot = TRUE) {
 
   check_numeric(df, "df")
   check_logical(normal)
@@ -52,29 +51,32 @@ vdist_chisquare_plot <- function(df = 3, normal = FALSE,
 
 	pp <-
 	  ggplot(plot_data) +
-	  geom_line(aes(x, chi), color = '#4682B4', size = 2) +
+	  geom_line(aes(x, chi),
+	            color = '#4682B4',
+	            size  = 2) +
 	  ggtitle(label    = "Chi Square Distribution",
-	                   subtitle = paste("df =", df)) +
+	          subtitle = paste("df =", df)) +
 	  ylab('') +
 	  xlab(paste("Mean =", chim, " Std Dev. =", chisd)) +
-	  theme(plot.title = element_text(hjust = 0.5),
-	                 plot.subtitle = element_text(hjust = 0.5)) +
+	  theme(plot.title    = element_text(hjust = 0.5),
+	        plot.subtitle = element_text(hjust = 0.5)) +
 	  scale_x_continuous(breaks = seq(0, xaxis_range, 2)) +
 	  geom_polygon(data    = poly_data,
-	                        mapping = aes(x = y, y = z),
-	                        fill    = '#4682B4') +
+	               mapping = aes(x = y, y = z),
+	               fill    = '#4682B4') +
 	  geom_point(data    = point_data,
-	                      mapping = aes(x = x, y = y),
-	                      shape   = 4,
-	                      color   = 'red',
-	                      size    = 3)
+	             mapping = aes(x = x, y = y),
+	             shape   = 4,
+	             color   = 'red',
+	             size    = 3)
 
 
 	if (normal) {
 	  pp <-
 	  	pp +
-	    geom_line(data = nline_data, mapping = aes(x = x, y = y),
-	      color = '#FF4500')
+	    geom_line(data    = nline_data,
+	              mapping = aes(x = x, y = y),
+	              color   = '#FF4500')
 	}
 
 	if (print_plot) {
@@ -88,9 +90,7 @@ vdist_chisquare_plot <- function(df = 3, normal = FALSE,
 #' @rdname vdist_chisquare_plot
 #' @export
 #'
-vdist_chisquare_perc <- function(probs = 0.95, df = 3,
-                                 type = c("lower", "upper"),
-                                 print_plot = TRUE) {
+vdist_chisquare_perc <- function(probs = 0.95, df = 3, type = c("lower", "upper"), print_plot = TRUE) {
 
   check_numeric(probs, "probs")
   check_numeric(df, "df")
@@ -121,48 +121,49 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3,
 	plot_data <- data.frame(x = l, y = dchisq(l, df))
 	gplot <-
 	  ggplot(plot_data) +
-	  geom_line(aes(x = x, y = y), color = "blue") +
+	  geom_line(aes(x = x, y = y),
+	            color = "blue") +
 	  xlab(paste("Mean =", chim, " Std Dev. =", chisd)) +
 	  ylab('') +
 	  theme(plot.title    = element_text(hjust = 0.5),
-	                 plot.subtitle = element_text(hjust = 0.5))
+	        plot.subtitle = element_text(hjust = 0.5))
 
 
 	if (method == "lower") {
 	  gplot <-
 	    gplot +
 	    ggtitle(label    = paste("Chi Square Distribution: df =", df),
-	                     subtitle = paste0("P(X < ", pp, ") = ", probs * 100, "%")) +
+	            subtitle = paste0("P(X < ", pp, ") = ", probs * 100, "%")) +
 	    annotate("text",
-	                      label   = paste0(probs * 100, "%"),
-	                      x       = pp - chisd,
-	                      y       = max(dchisq(l, df)) + 0.02,
-	                      color   = "#0000CD",
-	                      size    = 3) +
+	             label   = paste0(probs * 100, "%"),
+	             x       = pp - chisd,
+	             y       = max(dchisq(l, df)) + 0.02,
+	             color   = "#0000CD",
+	             size    = 3) +
 	    annotate("text",
-	                      label   = paste0((1 - probs) * 100, "%"),
-	                      x       = pp + chisd,
-	                      y       = max(dchisq(l, df)) + 0.02,
-	                      color   = "#6495ED",
-	                      size    = 3)
+	             label   = paste0((1 - probs) * 100, "%"),
+	             x       = pp + chisd,
+	             y       = max(dchisq(l, df)) + 0.02,
+	             color   = "#6495ED",
+	             size    = 3)
 
 	} else {
 	  gplot <-
 	  	gplot +
 	    ggtitle(label    = paste("Chi Square Distribution: df =", df),
-	                     subtitle = paste0("P(X > ", pp, ") = ", probs * 100, "%")) +
+	            subtitle = paste0("P(X > ", pp, ") = ", probs * 100, "%")) +
 	    annotate("text",
-	                      label   = paste0((1 - probs) * 100, "%"),
-	                      x       = pp - chisd,
-	                      y       = max(dchisq(l, df)) + 0.02,
-	                      color   = "#6495ED",
-	                      size    = 3) +
+	             label   = paste0((1 - probs) * 100, "%"),
+	             x       = pp - chisd,
+	             y       = max(dchisq(l, df)) + 0.02,
+	             color   = "#6495ED",
+	             size    = 3) +
 	    annotate("text",
-	                      label   = paste0(probs * 100, "%"),
-	                      x       = pp + chisd,
-	                      y       = max(dchisq(l, df)) + 0.02,
-	                      color   = "#0000CD",
-	                      size    = 3)
+	             label   = paste0(probs * 100, "%"),
+	             x       = pp + chisd,
+	             y       = max(dchisq(l, df)) + 0.02,
+	             color   = "#0000CD",
+	             size    = 3)
 	}
 
 	for (i in seq_len(length(l1))) {
@@ -170,8 +171,8 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3,
 	  gplot <-
 	    gplot +
 	    geom_polygon(data    = pol_data,
-	                          mapping = aes(x = x, y = y),
-	                          fill    = col[i])
+	                 mapping = aes(x = x, y = y),
+	                 fill    = col[i])
 	}
 
 	point_data <- data.frame(x = pp, y = min(dchisq(l, df)))
@@ -179,13 +180,13 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3,
 	gplot <-
 	  gplot +
 	  geom_vline(xintercept = pp,
-	                      linetype   = 2,
-	                      size       = 1) +
+	             linetype   = 2,
+	             size       = 1) +
 	  geom_point(data       = point_data,
-	                      mapping    = aes(x = x, y = y),
-	                      shape      = 4,
-	                      color      = 'red',
-	                      size       = 3) +
+	             mapping    = aes(x = x, y = y),
+	             shape      = 4,
+	             color      = 'red',
+	             size       = 3) +
 	  scale_y_continuous(breaks = NULL) +
 	  scale_x_continuous(breaks = seq(0, xm[2], by = 5))
 
@@ -200,8 +201,7 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3,
 #' @rdname vdist_chisquare_plot
 #' @export
 #'
-vdist_chisquare_prob <- function(perc = 13, df = 11, type = c("lower", "upper"),
-                                 print_plot = TRUE) {
+vdist_chisquare_prob <- function(perc = 13, df = 11, type = c("lower", "upper"), print_plot = TRUE) {
 
 
   check_numeric(df, "df")
@@ -235,36 +235,49 @@ vdist_chisquare_prob <- function(perc = 13, df = 11, type = c("lower", "upper"),
   plot_data <- data.frame(x = l, y = dchisq(l, df))
 	gplot <-
 	  ggplot(plot_data) +
-	  geom_line(aes(x = x, y = y), color = "blue") +
+	  geom_line(aes(x = x, y = y),
+	            color = "blue") +
 	  xlab(paste("Mean =", chim, " Std Dev. =", chisd)) +
 	  ylab('') +
-	  theme(plot.title = element_text(hjust = 0.5),
-	                 plot.subtitle = element_text(hjust = 0.5))
+	  theme(plot.title    = element_text(hjust = 0.5),
+	        plot.subtitle = element_text(hjust = 0.5))
 
 
   if (method == "lower") {
 	  gplot <-
 	    gplot +
-	    ggtitle(label = paste("Chi Square Distribution: df =", df),
-	      subtitle = paste0("P(X < ", perc, ") = ", pp * 100, "%")) +
-	    annotate("text", label = paste0(pp * 100, "%"),
-	      x = perc - chisd, y = max(dchisq(l, df)) + 0.02, color = "#0000CD",
-	      size = 3) +
-	    annotate("text", label = paste0((1 - pp) * 100, "%"),
-	      x = perc + chisd, y = max(dchisq(l, df)) + 0.02, color = "#6495ED",
-	      size = 3)
+	    ggtitle(label    = paste("Chi Square Distribution: df =", df),
+	            subtitle = paste0("P(X < ", perc, ") = ", pp * 100, "%")) +
+	    annotate("text",
+	             label = paste0(pp * 100, "%"),
+	             x     = perc - chisd,
+	             y     = max(dchisq(l, df)) + 0.02,
+	             color = "#0000CD",
+	             size  = 3) +
+	    annotate("text",
+	             label = paste0((1 - pp) * 100, "%"),
+	             x     = perc + chisd,
+	             y     = max(dchisq(l, df)) + 0.02,
+	             color = "#6495ED",
+	             size  = 3)
 
 	} else {
 	  gplot <-
 	  	gplot +
-	    ggtitle(label = paste("Chi Square Distribution: df =", df),
-	      subtitle = paste0("P(X > ", perc, ") = ", pp * 100, "%")) +
-	    annotate("text", label = paste0((1 - pp) * 100, "%"),
-	      x = perc - chisd, y = max(dchisq(l, df)) + 0.02, color = "#6495ED",
-	      size = 3) +
-	    annotate("text", label = paste0(pp * 100, "%"),
-	      x = perc + chisd, y = max(dchisq(l, df)) + 0.02, color = "#0000CD",
-	      size = 3)
+	    ggtitle(label    = paste("Chi Square Distribution: df =", df),
+	            subtitle = paste0("P(X > ", perc, ") = ", pp * 100, "%")) +
+	    annotate("text",
+	             label = paste0((1 - pp) * 100, "%"),
+	             x     = perc - chisd,
+	             y     = max(dchisq(l, df)) + 0.02,
+	             color = "#6495ED",
+	             size  = 3) +
+	    annotate("text",
+	             label = paste0(pp * 100, "%"),
+	             x     = perc + chisd,
+	             y     = max(dchisq(l, df)) + 0.02,
+	             color = "#0000CD",
+	             size  = 3)
 	}
 
 
@@ -273,8 +286,8 @@ vdist_chisquare_prob <- function(perc = 13, df = 11, type = c("lower", "upper"),
 	  gplot <-
 	    gplot +
 	    geom_polygon(data    = pol_data,
-	                          mapping = aes(x = x, y = y),
-	                          fill    = col[i])
+	                 mapping = aes(x = x, y = y),
+	                 fill    = col[i])
 	}
 
 	point_data <- data.frame(x = perc,
@@ -283,13 +296,13 @@ vdist_chisquare_prob <- function(perc = 13, df = 11, type = c("lower", "upper"),
 	gplot <-
 	  gplot +
 	  geom_vline(xintercept = perc,
-	                      linetype   = 2,
-	                      size       = 1) +
+	             linetype   = 2,
+	             size       = 1) +
 	  geom_point(data       = point_data,
-	                      mapping    = aes(x = x, y = y),
-	                      shape      = 4,
-	                      color      = 'red',
-	                      size       = 3) +
+	             mapping    = aes(x = x, y = y),
+	             shape      = 4,
+	             color      = 'red',
+	             size       = 3) +
 	  scale_y_continuous(breaks = NULL) +
 	  scale_x_continuous(breaks = seq(0, l[ln], by = 5))
 
