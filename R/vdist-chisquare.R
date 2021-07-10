@@ -36,53 +36,17 @@ vdist_chisquare_plot <- function(df = 3, normal = FALSE, xaxis_range = 25, print
   check_numeric(df, "df")
   check_logical(normal)
 
-	df    <- as.integer(df)
-	chim  <- round(df, 3)
-	chisd <- round(sqrt(2 * df), 3)
-	x     <- seq(0, xaxis_range, 0.01)
-	data  <- dchisq(x, df)
-
-	plot_data  <- data.frame(x = x, chi = data)
-	poly_data  <- data.frame(y = c(0, seq(0, 25, 0.01), 25),
-	                         z = c(0, dchisq(seq(0, 25, 0.01), df), 0))
-	point_data <- data.frame(x = chim, y = min(data))
-	nline_data <- data.frame(x = x, y = dnorm(x, chim, chisd))
-
-
-	pp <-
-	  ggplot(plot_data) +
-	  geom_line(aes(x, chi),
-	            color = '#4682B4',
-	            size  = 2) +
-	  ggtitle(label    = "Chi Square Distribution",
-	          subtitle = paste("df =", df)) +
-	  ylab('') +
-	  xlab(paste("Mean =", chim, " Std Dev. =", chisd)) +
-	  theme(plot.title    = element_text(hjust = 0.5),
-	        plot.subtitle = element_text(hjust = 0.5)) +
-	  scale_x_continuous(breaks = seq(0, xaxis_range, 2)) +
-	  geom_polygon(data    = poly_data,
-	               mapping = aes(x = y, y = z),
-	               fill    = '#4682B4') +
-	  geom_point(data    = point_data,
-	             mapping = aes(x = x, y = y),
-	             shape   = 4,
-	             color   = 'red',
-	             size    = 3)
-
+  cplot_data <- cplot_data_prep(df, xaxis_range)
+  plot_base  <- cplot_plot_build(cplot_data, df, xaxis_range)
 
 	if (normal) {
-	  pp <-
-	  	pp +
-	    geom_line(data    = nline_data,
-	              mapping = aes(x = x, y = y),
-	              color   = '#FF4500')
+	  plot_base <- cplot_plot_modify(plot_base, cplot_data)
 	}
 
 	if (print_plot) {
-	  print(pp)
+	  print(plot_base)
 	} else {
-	  return(pp)
+	  return(plot_base)
 	}
 
 }

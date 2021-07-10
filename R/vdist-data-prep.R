@@ -72,3 +72,27 @@ bperc_data_prep <- function(n, p, tp, method) {
   list(plot_data = plot_data, k = k, cols = cols)
 
 }
+
+cplot_data_prep <- function(df, range) {
+
+  df    <- as.integer(df)
+  chim  <- round(df, 3)
+  chisd <- round(sqrt(2 * df), 3)
+  x     <- seq(0, range, 0.01)
+  data  <- dchisq(x, df)
+
+  plot_data  <- data.frame(x = x, chi = data)
+  poly_data  <- data.frame(y = c(0, seq(0, 25, 0.01), 25),
+                           z = c(0, dchisq(seq(0, 25, 0.01), df), 0))
+  point_data <- data.frame(x = chim, y = min(data))
+  nline_data <- data.frame(x = x, y = dnorm(x, chim, chisd))
+
+  list(plot_data  = plot_data,
+       poly_data  = poly_data,
+       point_data = point_data,
+       nline_data = nline_data,
+       chim       = chim,
+       chisd      = chisd)
+
+}
+
