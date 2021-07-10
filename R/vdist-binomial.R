@@ -37,26 +37,8 @@ vdist_binom_plot <- function(n = 10, p = 0.3, print_plot = TRUE) {
 	check_numeric(p, "p")
 	check_range(p)
 
-	n    <- as.integer(n)
-	x    <- seq(0, n, 1)
-	xn   <- n / 40
-	bm   <- round(n * p, 2)
-	bsd  <- round(sqrt((1 - p) * bm) , 2)
-	data <- dbinom(x, n, p)
-
-	plot_data <- data.frame(n = seq(0, n), df = data)
-
-	pp <-
-		ggplot(plot_data) +
-		geom_col(aes(x = n, y = df),
-		         fill = "blue") +
-		ylab("Probability") +
-	  xlab("No. of success") +
-		ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
-		        subtitle = paste("Mean =", bm, ", Std. Dev. =", bsd)) +
-		theme(plot.title    = element_text(hjust = 0.5),
-		      plot.subtitle = element_text(hjust = 0.5)) +
-		scale_x_continuous(breaks = seq(0, n))
+	bplot_data <- bplot_data_prep(n, p)
+	pp         <- bplot_plot_build(bplot_data, n, p)
 
 	if (print_plot) {
 		print(pp)
@@ -69,9 +51,7 @@ vdist_binom_plot <- function(n = 10, p = 0.3, print_plot = TRUE) {
 #' @rdname vdist_binom_plot
 #' @export
 #'
-vdist_binom_prob <- function(n = 10, p = 0.3, s = 4,
-														 type = c("lower", "upper", "exact", "interval"),
-														 print_plot = TRUE) {
+vdist_binom_prob <- function(n = 10, p = 0.3, s = 4, type = c("lower", "upper", "exact", "interval"), print_plot = TRUE) {
 
 	check_range(p)
 	check_numeric(n)
@@ -155,8 +135,7 @@ vdist_binom_prob <- function(n = 10, p = 0.3, s = 4,
 #' @rdname vdist_binom_plot
 #' @export
 #'
-vdist_binom_perc <- function(n = 10, p = 0.5, tp = 0.05, type = c("lower", "upper"),
-														 print_plot = TRUE) {
+vdist_binom_perc <- function(n = 10, p = 0.5, tp = 0.05, type = c("lower", "upper"), print_plot = TRUE) {
 
 	check_numeric(n)
 	check_numeric(p, "p")
