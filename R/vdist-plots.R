@@ -139,3 +139,164 @@ cplot_plot_modify <- function(plot, data) {
   return(plot)
 
 }
+
+cperc_plot_build <- function(data) {
+
+  p <-
+    ggplot(data$plot_data) +
+    geom_line(aes(x = x, y = y),
+              color = "blue") +
+    xlab(paste("Mean =", data$chim, " Std Dev. =", data$chisd)) +
+    ylab('') +
+    theme(plot.title    = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))
+
+  return(p)
+
+}
+
+cperc_plot_modify <- function(plot, data, method, probs, df) {
+
+  if (method == "lower") {
+    plot <-
+      plot +
+      ggtitle(label    = paste("Chi Square Distribution: df =", df),
+              subtitle = paste0("P(X < ", data$pp, ") = ", probs * 100, "%")) +
+      annotate("text",
+               label   = paste0(probs * 100, "%"),
+               x       = data$pp - data$chisd,
+               y       = max(dchisq(data$l, df)) + 0.02,
+               color   = "#0000CD",
+               size    = 3) +
+      annotate("text",
+               label   = paste0((1 - probs) * 100, "%"),
+               x       = data$pp + data$chisd,
+               y       = max(dchisq(data$l, df)) + 0.02,
+               color   = "#6495ED",
+               size    = 3)
+
+  } else {
+    plot <-
+      plot +
+      ggtitle(label    = paste("Chi Square Distribution: df =", df),
+              subtitle = paste0("P(X > ", data$pp, ") = ", probs * 100, "%")) +
+      annotate("text",
+               label   = paste0((1 - probs) * 100, "%"),
+               x       = data$pp - data$chisd,
+               y       = max(dchisq(data$l, df)) + 0.02,
+               color   = "#6495ED",
+               size    = 3) +
+      annotate("text",
+               label   = paste0(probs * 100, "%"),
+               x       = data$pp + data$chisd,
+               y       = max(dchisq(data$l, df)) + 0.02,
+               color   = "#0000CD",
+               size    = 3)
+  }
+
+  for (i in seq_len(length(data$l1))) {
+    pol_data <- vdist_pol_chi(data$lc[data$l1[i]], data$lc[data$l2[i]], df)
+    plot <-
+      plot +
+      geom_polygon(data    = pol_data,
+                   mapping = aes(x = x, y = y),
+                   fill    = data$col[i])
+  }
+
+
+  plot <-
+    plot +
+    geom_vline(xintercept = data$pp,
+               linetype   = 2,
+               size       = 1) +
+    geom_point(data       = data$point_data,
+               mapping    = aes(x = x, y = y),
+               shape      = 4,
+               color      = 'red',
+               size       = 3) +
+    scale_y_continuous(breaks = NULL) +
+    scale_x_continuous(breaks = seq(0, data$xm[2], by = 5))
+
+  return(plot)
+}
+
+cprob_plot_build <- function(data, method, perc, df) {
+
+  gplot <-
+    ggplot(data$plot_data) +
+    geom_line(aes(x = x, y = y),
+              color = "blue") +
+    xlab(paste("Mean =", data$chim, " Std Dev. =", data$chisd)) +
+    ylab('') +
+    theme(plot.title    = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))
+
+
+  if (method == "lower") {
+    gplot <-
+      gplot +
+      ggtitle(label    = paste("Chi Square Distribution: df =", df),
+              subtitle = paste0("P(X < ", perc, ") = ", data$pp * 100, "%")) +
+      annotate("text",
+               label = paste0(data$pp * 100, "%"),
+               x     = perc - data$chisd,
+               y     = max(dchisq(data$l, df)) + 0.02,
+               color = "#0000CD",
+               size  = 3) +
+      annotate("text",
+               label = paste0((1 - data$pp) * 100, "%"),
+               x     = perc + data$chisd,
+               y     = max(dchisq(data$l, df)) + 0.02,
+               color = "#6495ED",
+               size  = 3)
+
+  } else {
+    gplot <-
+      gplot +
+      ggtitle(label    = paste("Chi Square Distribution: df =", df),
+              subtitle = paste0("P(X > ", perc, ") = ", data$pp * 100, "%")) +
+      annotate("text",
+               label = paste0((1 - data$pp) * 100, "%"),
+               x     = perc - data$chisd,
+               y     = max(dchisq(data$l, df)) + 0.02,
+               color = "#6495ED",
+               size  = 3) +
+      annotate("text",
+               label = paste0(data$pp * 100, "%"),
+               x     = perc + data$chisd,
+               y     = max(dchisq(data$l, df)) + 0.02,
+               color = "#0000CD",
+               size  = 3)
+  }
+
+
+  for (i in seq_len(length(data$l1))) {
+    pol_data <- vdist_pol_chi(data$lc[data$l1[i]], data$lc[data$l2[i]], df)
+    gplot <-
+      gplot +
+      geom_polygon(data    = pol_data,
+                   mapping = aes(x = x, y = y),
+                   fill    = data$col[i])
+  }
+
+  gplot <-
+    gplot +
+    geom_vline(xintercept = perc,
+               linetype   = 2,
+               size       = 1) +
+    geom_point(data       = data$point_data,
+               mapping    = aes(x = x, y = y),
+               shape      = 4,
+               color      = 'red',
+               size       = 3) +
+    scale_y_continuous(breaks = NULL) +
+    scale_x_continuous(breaks = seq(0, data$l[data$ln], by = 5))
+
+  return(gplot)
+}
+
+vdist_pol_chi <- function(l1, l2, df) {
+  x   <- c(l1, seq(l1, l2, 0.01), l2)
+  y   <- c(0, dchisq(seq(l1, l2, 0.01), df), 0)
+  data.frame(x = x, y = y)
+}

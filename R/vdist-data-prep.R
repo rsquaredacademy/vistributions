@@ -96,3 +96,97 @@ cplot_data_prep <- function(df, range) {
 
 }
 
+cperc_data_prep <- function(probs, df, method) {
+
+  df     <- as.integer(df)
+  chim   <- round(df, 3)
+  chisd  <- round(sqrt(2 * df), 3)
+  l      <- vdist_chiseql(chim, chisd)
+  ln     <- length(l)
+
+  if (method == "lower") {
+    pp  <- round(qchisq(probs, df), 3)
+    lc  <- c(l[1], pp, l[ln])
+    col <- c("#0000CD", "#6495ED")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  } else {
+    pp  <- round(qchisq(probs, df, lower.tail = F), 3)
+    lc  <- c(l[1], pp, l[ln])
+    col <- c("#6495ED", "#0000CD")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  }
+
+  xm         <- vdist_xmm(chim, chisd)
+  plot_data  <- data.frame(x = l, y = dchisq(l, df))
+  point_data <- data.frame(x = pp, y = min(dchisq(l, df)))
+
+  list(plot_data  = plot_data,
+       point_data = point_data,
+       chim       = chim,
+       chisd      = chisd,
+       xm         = xm,
+       l          = l,
+       pp         = pp,
+       lc         = lc,
+       l1         = l1,
+       l2         = l2,
+       col        = col)
+}
+
+vdist_chiseql <- function(mean, sd) {
+  lmin <- mean - (5 * sd)
+  lmax <- mean + (5 * sd)
+  seq(lmin, lmax, 0.01)
+}
+
+vdist_xmm <- function(mean, sd) {
+  xmin <- mean - (5 * sd)
+  xmax <- mean + (5 * sd)
+  c(xmin, xmax)
+}
+
+cprob_data_prep <- function(perc, df, method) {
+
+  chim   <- round(df, 3)
+  chisd  <- round(sqrt(2 * df), 3)
+
+  l <- if (perc < 25) {
+    seq(0, 25, 0.01)
+  } else {
+    seq(0, (perc + (3 * chisd)), 0.01)
+  }
+
+  ln <- length(l)
+
+  if (method == "lower") {
+    pp  <- round(pchisq(perc, df), 3)
+    lc  <- c(l[1], perc, l[ln])
+    col <- c("#0000CD", "#6495ED")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  } else {
+    pp  <- round(pchisq(perc, df, lower.tail = F), 3)
+    lc  <- c(l[1], perc, l[ln])
+    col <- c("#6495ED", "#0000CD")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  }
+
+  plot_data  <- data.frame(x = l, y = dchisq(l, df))
+  point_data <- data.frame(x = perc, y = min(dchisq(l, df)))
+
+  list(plot_data  = plot_data,
+       point_data = point_data,
+       chim       = chim,
+       chisd      = chisd,
+       l          = l,
+       ln         = ln,
+       pp         = pp,
+       lc         = lc,
+       l1         = l1,
+       l2         = l2,
+       col        = col)
+
+}
