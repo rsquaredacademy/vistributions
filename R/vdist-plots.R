@@ -536,6 +536,12 @@ nplot_plot_build <- function(data, mean, sd) {
 
 }
 
+vdist_pol_cord <- function(l1, l2, mean, sd) {
+  x <- c(l1, seq(l1, l2, 0.01), l2)
+  y <- c(0, dnorm(seq(l1, l2, 0.01), mean, sd), 0)
+  data.frame(x = x, y = y)
+}
+
 nperc_plot_build <- function(data, probs, mean, sd, method) {
 
   gplot <-
@@ -745,4 +751,310 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
 
   return(gplot)
 
+}
+
+tplot_plot_build <- function(data, df) {
+
+  gplot <-
+    ggplot(data$plot_data) +
+    geom_line(aes(x = x, y = y),
+              color = 'blue') +
+    ggtitle(label    = 't Distribution',
+            subtitle = paste("df =", df)) +
+    xlab('') +
+    ylab('') +
+    geom_polygon(data    = data$poly_data,
+                 mapping = aes(x = y, y = z),
+                 fill    = '#4682B4') +
+    scale_y_continuous(breaks = NULL) +
+    scale_x_continuous(breaks = -4:4) +
+    theme(plot.title    = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))
+
+  return(gplot)
+
+}
+
+tperc_plot_build <- function(data, probs, df, method) {
+
+  gplot <-
+    ggplot(data$plot_data) +
+    geom_line(aes(x = x, y = y),
+              color = 'blue') +
+    xlab(paste("df =", df)) +
+    ylab('') +
+    theme(plot.title    = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))
+
+  if (method == "lower") {
+    gplot <-
+      gplot +
+      ggtitle(label    = "t Distribution",
+              subtitle = paste0("P(X < ", data$pp, ") = ", probs * 100, "%")) +
+      annotate("text",
+               label = paste0(probs * 100, "%"),
+               x     = data$pp - 0.3,
+               y     = max(dt(data$l, df)) + 0.025,
+               color = "#0000CD",
+               size  = 3) +
+      annotate("text",
+               label = paste0((1 - probs) * 100, "%"),
+               x     = data$pp + 0.3,
+               y     = max(dt(data$l, df)) + 0.025,
+               color = "#6495ED",
+               size  = 3)
+
+  } else if (method == "upper") {
+    gplot <-
+      gplot +
+      ggtitle(label    = "t Distribution",
+              subtitle = paste0("P(X > ", data$pp, ") = ", probs * 100, "%")) +
+      annotate("text",
+               label = paste0((1 - probs) * 100, "%"),
+               x     = data$pp - 0.3,
+               y     = max(dt(data$l, df)) + 0.025,
+               color = "#6495ED",
+               size  = 3) +
+      annotate("text",
+               label = paste0(probs * 100, "%"),
+               x     = data$pp + 0.3,
+               y     = max(dt(data$l, df)) + 0.025,
+               color = "#0000CD",
+               size  = 3)
+  } else {
+    gplot <-
+      gplot +
+      ggtitle(label    = "t Distribution",
+              subtitle = paste0("P(", data$pp[1], " < X < ", data$pp[2], ") = ", probs * 100, "%")) +
+      annotate("text",
+               label = paste0(probs * 100, "%"),
+               x     = mean(data$l),
+               y     = max(dt(data$l, df)) + 0.025,
+               color = "#0000CD",
+               size  = 3) +
+      annotate("text",
+               label = paste0(data$alpha * 100, "%"),
+               x     = data$pp[1] - 0.3,
+               y     = max(dt(data$l, df)) + 0.025,
+               color = "#6495ED",
+               size  = 3) +
+      annotate("text",
+               label = paste0(data$alpha * 100, "%"),
+               x     = data$pp[2] + 0.3,
+               y     = max(dt(data$l, df)) + 0.025,
+               color = "#6495ED",
+               size  = 3)
+  }
+
+  for (i in seq_len(length(data$l1))) {
+    poly_data <- vdist_pol_t(data$lc[data$l1[i]], data$lc[data$l2[i]], df)
+    gplot <-
+      gplot +
+      geom_polygon(data    = poly_data,
+                   mapping = aes(x = x, y = y),
+                   fill    = data$col[i])
+  }
+
+  pln <- length(data$pp)
+
+  for (i in seq_len(pln)) {
+
+    point_data <- data.frame(x = data$pp[i], y = 0)
+
+    gplot <-
+      gplot +
+      geom_vline(xintercept = data$pp[i],
+                 linetype   = 2,
+                 size       = 1) +
+      geom_point(data    = point_data,
+                 mapping = aes(x = x, y = y),
+                 shape   = 4,
+                 color   = 'red',
+                 size    = 3)
+  }
+
+  gplot <-
+    gplot +
+    scale_y_continuous(breaks = NULL) +
+    scale_x_continuous(breaks = -5:5)
+
+  return(gplot)
+}
+
+tprob_plot_build <- function(data, perc, df, method) {
+
+  gplot <-
+    ggplot(data$plot_data) +
+    geom_line(aes(x = x, y = y),
+              color = 'blue') +
+    xlab(paste("df =", df)) +
+    ylab('') +
+    theme(plot.title    = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5)) +
+    scale_x_continuous(breaks = min(data$l):max(data$l)) +
+    scale_y_continuous(breaks = NULL)
+
+  for (i in seq_len(length(data$l1))) {
+    poly_data <- vdist_pol_t(data$lc[data$l1[i]], data$lc[data$l2[i]], df)
+    gplot <-
+      gplot +
+      geom_polygon(data    = poly_data,
+                   mapping = aes(x = x, y = y),
+                   fill    = data$col[i])
+  }
+
+
+  if (method == "lower") {
+
+    point_data <- data.frame(x = perc, y = 0)
+
+    gplot <-
+      gplot +
+      ggtitle(label    = "t Distribution",
+              subtitle = paste0("P(X < ", perc, ") = ", data$pp * 100, "%")) +
+      annotate("text",
+               label = paste0(data$pp * 100, "%"),
+               x     = perc - 1,
+               y     = max(dt(data$l, df)) + 0.07,
+               color = "#0000CD",
+               size  = 3) +
+      annotate("text",
+               label = paste0((1 - data$pp) * 100, "%"),
+               x     = perc + 1,
+               y     = max(dt(data$l, df)) + 0.07,
+               color = "#6495ED",
+               size  = 3) +
+      geom_vline(xintercept = perc,
+                 linetype   = 2,
+                 size       = 1) +
+      geom_point(data    = point_data,
+                 mapping = aes(x = x, y = y),
+                 shape   = 4,
+                 color   = 'red',
+                 size    = 3)
+
+  } else if (method == "upper") {
+
+    point_data <- data.frame(x = perc, y = 0)
+
+    gplot <-
+      gplot +
+      ggtitle(label    = "t Distribution",
+              subtitle = paste0("P(X > ", perc, ") = ", data$pp * 100, "%")) +
+      annotate("text",
+               label = paste0((1 - data$pp) * 100, "%"),
+               x     = perc - 1,
+               y     = max(dt(data$l, df)) + 0.07,
+               color = "#0000CD",
+               size  = 3) +
+      annotate("text",
+               label = paste0(data$pp * 100, "%"),
+               x     = perc + 1,
+               y     = max(dt(data$l, df)) + 0.07,
+               color = "#6495ED",
+               size  = 3) +
+      geom_vline(xintercept = perc,
+                 linetype   = 2,
+                 size       = 1) +
+      geom_point(data    = point_data,
+                 mapping = aes(x = x, y = y),
+                 shape   = 4,
+                 color   = 'red',
+                 size    = 3)
+
+  } else if (method == "interval") {
+
+    point_data <- data.frame(x1 = perc, x2 = -perc, y = 0)
+
+    gplot <-
+      gplot +
+      ggtitle(label    = "t Distribution",
+              subtitle = paste0("P(", -perc, " < X < ", perc, ") = ", (1 - (data$pp1 + data$pp2)) * 100, "%")) +
+      annotate("text",
+               label = paste0((1 - (data$pp1 + data$pp2)) * 100, "%"),
+               x     = 0,
+               y     = max(dt(data$l, df)) + 0.07,
+               color = "#0000CD",
+               size  = 3) +
+      annotate("text",
+               label = paste0(data$pp[1] * 100, "%"),
+               x     = perc + 1,
+               y     = max(dt(data$l, df)) + 0.07,
+               color = "#6495ED",
+               size  = 3) +
+      annotate("text",
+               label = paste0(data$pp[2] * 100, "%"),
+               x     = -perc - 1,
+               y     = max(dt(data$l, df)) + 0.07,
+               color = "#6495ED",
+               size  = 3) +
+      geom_vline(xintercept = perc,
+                 linetype   = 2,
+                 size       = 1) +
+      geom_vline(xintercept = -perc,
+                 linetype   = 2,
+                 size       = 1) +
+      geom_point(data    = point_data,
+                 mapping = aes(x = x1, y = y),
+                 shape   = 4,
+                 color   = 'red',
+                 size    = 3) +
+      geom_point(data    = point_data,
+                 mapping = aes(x = x2, y = y),
+                 shape   = 4,
+                 color   = 'red',
+                 size    = 3)
+  } else {
+
+    point_data <- data.frame(x1 = perc, x2 = -perc, y = 0)
+
+    gplot <-
+      gplot +
+      ggtitle(label    = "t Distribution",
+              subtitle = paste0("P(|X| > ", perc, ") = ", (data$pp1 + data$pp2) * 100, "%")) +
+      annotate("text",
+               label = paste0((1 - (data$pp1 + data$pp2)) * 100, "%"),
+               x     = 0,
+               y     = max(dt(data$l, df)) + 0.07,
+               color = "#0000CD",
+               size  = 3) +
+      annotate("text",
+               label = paste0(data$pp[1] * 100, "%"),
+               x     = perc + 1,
+               y     = max(dt(data$l, df)) + 0.07,
+               color = "#6495ED",
+               size  = 3) +
+      annotate("text",
+               label = paste0(data$pp[2] * 100, "%"),
+               x     = -perc - 1,
+               y     = max(dt(data$l, df)) + 0.07,
+               color = "#6495ED",
+               size  = 3) +
+      geom_vline(xintercept = perc,
+                 linetype   = 2,
+                 size       = 1) +
+      geom_vline(xintercept = -perc,
+                 linetype   = 2,
+                 size       = 1) +
+      geom_point(data    = point_data,
+                 mapping = aes(x = x1, y = y),
+                 shape   = 4,
+                 color   = 'red',
+                 size    = 3) +
+      geom_point(data    = point_data,
+                 mapping = aes(x = x2, y = y),
+                 shape   = 4,
+                 color   = 'red',
+                 size    = 3)
+  }
+
+  return(gplot)
+
+}
+
+
+vdist_pol_t <- function(l1, l2, df) {
+  x    <- c(l1, seq(l1, l2, 0.01), l2)
+  y    <- c(0, dt(seq(l1, l2, 0.01), df), 0)
+  data.frame(x = x, y = y)
 }

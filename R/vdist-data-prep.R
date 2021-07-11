@@ -420,3 +420,160 @@ nprob_data_prep <- function(perc, mean, sd, method) {
        l2        = l2,
        col       = col)
 }
+
+vdist_xaxp <- function(mean, el) {
+  xl <- mean - el
+  xu <- mean + el
+  seq(xl, xu, 0.01)
+}
+
+vdist_seqlp <- function(mean, sd, el) {
+  if (el > 4) {
+    lmin <- mean - (el * sd)
+    lmax <- mean + (el * sd)
+  } else {
+    lmin <- mean - (4 * sd)
+    lmax <- mean + (4 * sd)
+  }
+
+  seq(lmin, lmax, sd)
+}
+
+vdist_xmmp <- function(mean, sd, el) {
+  if (el > 4) {
+    xmin <- mean - (el * sd)
+    xmax <- mean + (el * sd)
+  } else {
+    xmin <- mean - (4 * sd)
+    xmax <- mean + (4 * sd)
+  }
+
+  c(xmin, xmax)
+}
+
+tplot_data_prep <- function(df) {
+
+  df <- as.integer(df)
+  x  <- seq(-4, 4, 0.01)
+
+  plot_data <- data.frame(x = x, y = dt(x, df))
+  poly_data <- data.frame(y = c(-4, seq(-4, 4, 0.01), 4),
+                          z = c(0, dt(seq(-4, 4, 0.01), df), 0))
+
+  list(plot_data = plot_data,
+       poly_data = poly_data)
+}
+
+tperc_data_prep <- function(probs, df, method) {
+
+  df      <- as.integer(df)
+  l       <- seq(-5, 5, 0.01)
+  ln      <- length(l)
+
+  if (method == "lower") {
+    pp1   <- NULL
+    pp2   <- NULL
+    pp    <- round(qt(probs, df), 3)
+    lc    <- c(l[1], pp, l[ln])
+    col   <- c("#0000CD", "#6495ED")
+    l1    <- c(1, 2)
+    l2    <- c(2, 3)
+  } else if (method == "upper") {
+    pp1   <- NULL
+    pp2   <- NULL
+    pp    <- round(qt(probs, df, lower.tail = F), 3)
+    lc    <- c(l[1], pp, l[ln])
+    col   <- c("#6495ED", "#0000CD")
+    l1    <- c(1, 2)
+    l2    <- c(2, 3)
+  } else {
+    alpha <- (1 - probs) / 2
+    pp1   <- round(qt(alpha, df), 3)
+    pp2   <- round(qt(alpha, df, lower.tail = F), 3)
+    pp    <- c(pp1, pp2)
+    lc    <- c(l[1], pp1, pp2, l[ln])
+    col   <- c("#6495ED", "#0000CD", "#6495ED")
+    l1    <- c(1, 2, 3)
+    l2    <- c(2, 3, 4)
+  }
+
+  plot_data <- data.frame(x = l, y = dt(l, df))
+
+  list(plot_data = plot_data,
+       l         = l,
+       alpha     = alpha,
+       pp        = pp,
+       lc        = lc,
+       l1        = l1,
+       l2        = l2,
+       col       = col)
+
+}
+
+tprob_data_prep <- function(perc, df, method) {
+
+  df <- as.integer(df)
+
+  l <- if (abs(perc) < 5) {
+    seq(-5, 5, 0.01)
+  } else {
+    seq(-(perc + 1), (perc + 1), 0.01)
+  }
+
+  ln <- length(l)
+
+  if (method == "lower") {
+    pp1 <- NULL
+    pp2 <- NULL
+    pp  <- round(pt(perc, df), 3)
+    lc  <- c(l[1], perc, l[ln])
+    col <- c("#0000CD", "#6495ED")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  } else if (method == "upper") {
+    pp1 <- NULL
+    pp2 <- NULL
+    pp  <- round(pt(perc, df, lower.tail = F), 3)
+    lc  <- c(l[1], perc, l[ln])
+    col <- c("#6495ED", "#0000CD")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  } else if (method == "interval") {
+    if (perc < 0) {
+      perc <- -perc
+    }
+
+    pp1 <- round(pt(-perc, df), 3)
+    pp2 <- round(pt(perc, df, lower.tail = F), 3)
+    pp  <- c(pp1, pp2)
+    lc  <- c(l[1], -perc, perc, l[ln])
+    col <- c("#6495ED", "#0000CD", "#6495ED")
+    l1  <- c(1, 2, 3)
+    l2  <- c(2, 3, 4)
+  } else {
+    if (perc < 0) {
+      perc <- -perc
+    }
+
+    pp1 <- round(pt(-perc, df), 3)
+    pp2 <- round(pt(perc, df, lower.tail = F), 3)
+    pp  <- c(pp1, pp2)
+    lc  <- c(l[1], -perc, perc, l[ln])
+    col <- c("#0000CD", "#6495ED", "#0000CD")
+    l1  <- c(1, 2, 3)
+    l2  <- c(2, 3, 4)
+  }
+
+  plot_data <- data.frame(x = l, y = dt(l, df))
+
+  list(plot_data = plot_data,
+       l         = l,
+       l1        = l1,
+       l2        = l2,
+       lc        = lc,
+       col       = col,
+       pp        =  pp,
+       pp1       = pp1,
+       pp2       = pp2)
+
+}
