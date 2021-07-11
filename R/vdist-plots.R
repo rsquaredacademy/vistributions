@@ -510,3 +510,239 @@ vdist_pol_f <- function(l1, l2, num_df, den_df) {
   y    <- c(0, df(seq(l1, l2, 0.01), num_df, den_df), 0)
   data.frame(x = x, y = y)
 }
+
+nplot_plot_build <- function(data, mean, sd) {
+
+  gplot <-
+    ggplot(data$plot_data) +
+    geom_line(aes(x = x, y = y)) +
+    xlab('') +
+    ylab('') +
+    ggtitle(label    = "Normal Distribution",
+            subtitle = paste("Mean:", mean, "     Standard Deviation:", sd)) +
+    theme(plot.title    = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))
+
+  for (i in seq_len(length(data$l1))) {
+    poly_data <- vdist_pol_cord(data$ll[data$l1[i]], data$ll[data$l2[i]], mean, sd)
+    gplot <-
+      gplot +
+      geom_polygon(data    = poly_data,
+                   mapping = aes(x = x, y = y),
+                   fill    = data$col[i])
+  }
+
+  return(gplot)
+
+}
+
+nperc_plot_build <- function(data, probs, mean, sd, method) {
+
+  gplot <-
+    ggplot(data$plot_data) +
+    geom_line(aes(x = x, y = y)) +
+    xlab(paste("Mean:", mean, " Standard Deviation:", sd)) +
+    ylab('') +
+    theme(plot.title    = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))
+
+  if (method == "lower") {
+    gplot <-
+      gplot +
+      ggtitle(label    = "Normal Distribution",
+              subtitle = paste0("P(X < ", data$pp, ") = ", probs * 100, "%")) +
+      annotate("text",
+               label = paste0(probs * 100, "%"),
+               x     = data$pp - sd,
+               y     = max(dnorm(data$x, mean, sd)) + 0.025,
+               color = "#0000CD",
+               size  = 3) +
+      annotate("text",
+               label = paste0((1 - probs) * 100, "%"),
+               x     = data$pp + sd,
+               y     = max(dnorm(data$x, mean, sd)) + 0.025,
+               color = "#6495ED",
+               size  = 3)
+
+  } else if (method == "upper") {
+    gplot <-
+      gplot +
+      ggtitle(label    = "Normal Distribution",
+              subtitle = paste0("P(X > ", data$pp, ") = ", probs * 100, "%")) +
+      annotate("text",
+               label = paste0((1 - probs) * 100, "%"),
+               x     = data$pp - sd,
+               y     = max(dnorm(data$x, mean, sd)) + 0.025,
+               color = "#6495ED",
+               size  = 3) +
+      annotate("text",
+               label = paste0(probs * 100, "%"),
+               x     = data$pp + sd,
+               y     = max(dnorm(data$x, mean, sd)) + 0.025,
+               color = "#0000CD",
+               size  = 3)
+  } else {
+    gplot <-
+      gplot +
+      ggtitle(label    = "Normal Distribution",
+              subtitle = paste0("P(", data$pp[1], " < X < ", data$pp[2], ") = ", probs * 100, "%")) +
+      annotate("text",
+               label = paste0(probs * 100, "%"),
+               x     = mean,
+               y     = max(dnorm(data$x, mean, sd)) + 0.025,
+               color = "#0000CD",
+               size  = 3) +
+      annotate("text",
+               label = paste0(data$alpha * 100, "%"),
+               x     = data$pp[1] - sd,
+               y     = max(dnorm(data$x, mean, sd)) + 0.025,
+               color = "#6495ED",
+               size  = 3) +
+      annotate("text",
+               label = paste0(data$alpha * 100, "%"),
+               x     = data$pp[2] + sd,
+               y     = max(dnorm(data$x, mean, sd)) + 0.025,
+               color = "#6495ED",
+               size  = 3)
+  }
+
+  for (i in seq_len(length(data$l1))) {
+    poly_data <- vdist_pol_cord(data$lc[data$l1[i]], data$lc[data$l2[i]], mean, sd)
+    gplot <-
+      gplot +
+      geom_polygon(data    = poly_data,
+                   mapping = aes(x = x, y = y),
+                   fill    = data$col[i])
+  }
+
+  pln <- length(data$pp)
+
+  for (i in seq_len(pln)) {
+
+    point_data <- data.frame(x = data$pp[i], y = 0)
+
+    gplot <-
+      gplot +
+      geom_vline(xintercept = data$pp[i],
+                 linetype   = 2,
+                 size       = 1) +
+      geom_point(data    = point_data,
+                 mapping = aes(x = x, y = y),
+                 shape   = 4,
+                 color   = 'red',
+                 size    = 3)
+  }
+
+  gplot <-
+    gplot +
+    scale_y_continuous(breaks = NULL) +
+    scale_x_continuous(breaks = data$l)
+
+  return(gplot)
+}
+
+nprob_plot_build <- function(data, perc, mean, sd, method) {
+
+  gplot <-
+    ggplot(data$plot_data) +
+    geom_line(aes(x = x, y = y)) +
+    xlab(paste("Mean:", mean, " Standard Deviation:", sd)) +
+    ylab('') +
+    theme(plot.title    = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))
+
+  if (method == "lower") {
+    gplot <-
+      gplot +
+      ggtitle(label    = "Normal Distribution",
+              subtitle = paste0("P(X < ", perc, ") = ", data$pp * 100, "%")) +
+      annotate("text",
+               label = paste0(data$pp * 100, "%"),
+               x     = perc - sd,
+               y     = max(dnorm(data$x, mean, sd)) + 0.07,
+               color = "#0000CD",
+               size  = 3) +
+      annotate("text",
+               label = paste0((1 - data$pp) * 100, "%"),
+               x     = perc + sd,
+               y     = max(dnorm(data$x, mean, sd)) + 0.07,
+               color = "#6495ED",
+               size  = 3)
+
+  } else if (method == "upper") {
+    gplot <-
+      gplot +
+      ggtitle(label    = "Normal Distribution",
+              subtitle = paste0("P(X > ", perc, ") = ", data$pp * 100, "%")) +
+      annotate("text",
+               label = paste0((1 - data$pp) * 100, "%"),
+               x     = perc - sd,
+               y     = max(dnorm(data$x, mean, sd)) + 0.07,
+               color = "#6495ED",
+               size  = 3) +
+      annotate("text",
+               label = paste0(data$pp * 100, "%"),
+               x     = perc + sd,
+               y     = max(dnorm(data$x, mean, sd)) + 0.07,
+               color = "#0000CD",
+               size  = 3)
+  } else {
+    gplot <-
+      gplot +
+      ggtitle(label    = "Normal Distribution",
+              subtitle = paste0("P(", perc[1], " < X < ", perc[2], ") = ", (1 - (data$pp1 + data$pp2)) * 100, "%")) +
+      annotate("text",
+               label = paste0((1 - (data$pp1 + data$pp2)) * 100, "%"),
+               x     = mean(perc),
+               y     = max(dnorm(data$x, mean, sd)) + 0.07,
+               color = "#0000CD",
+               size  = 3) +
+      annotate("text",
+               label = paste0(data$pp[1] * 100, "%"),
+               x     = perc[1] - sd,
+               y     = max(dnorm(data$x, mean, sd)) + 0.07,
+               color = "#6495ED",
+               size  = 3) +
+      annotate("text",
+               label = paste0(data$pp[2] * 100, "%"),
+               x     = perc[2] + sd,
+               y     = max(dnorm(data$x, mean, sd)) + 0.07,
+               color = "#6495ED",
+               size  = 3)
+  }
+
+  for (i in seq_len(length(data$l1))) {
+    poly_data <- vdist_pol_cord(data$lc[data$l1[i]], data$lc[data$l2[i]], mean, sd)
+    gplot <-
+      gplot +
+      geom_polygon(data    = poly_data,
+                   mapping = aes(x = x, y = y),
+                   fill    = data$col[i])
+  }
+
+  pln <- length(data$pp)
+
+  for (i in seq_len(pln)) {
+
+    point_data <- data.frame(x = perc[i], y = 0)
+
+    gplot <-
+      gplot +
+      geom_vline(xintercept = perc[i],
+                 linetype   = 2,
+                 size       = 1) +
+      geom_point(data    = point_data,
+                 mapping = aes(x = x, y = y),
+                 shape   = 4,
+                 color   = 'red',
+                 size    = 3)
+  }
+
+  gplot <-
+    gplot +
+    scale_y_continuous(breaks = NULL) +
+    scale_x_continuous(breaks = data$l)
+
+  return(gplot)
+
+}

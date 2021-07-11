@@ -297,3 +297,126 @@ fprob_data_prep <- function(perc, num_df, den_df, method) {
        l2        = l2,
        col       = col)
 }
+
+nplot_data_prep <- function(mean, sd) {
+
+  x   <- vdist_xax(mean)
+  l   <- vdist_seql(mean, sd)
+  col <- c("#0000CD", "#4682B4", "#6495ED", "#4682B4", "#6495ED")
+  l1  <- c(3, 2, 1, 5, 6)
+  l2  <- c(5, 3, 2, 6, 7)
+  ll <- l[3:9]
+
+  plot_data <- data.frame(x = x, y = dnorm(x, mean, sd))
+
+  list(plot_data = plot_data,
+       l         = l,
+       col       = col,
+       l1        = l1,
+       l2        = l2,
+       ll        = ll)
+}
+
+vdist_xax <- function(mean) {
+  xl <- mean - 3
+  xu <- mean + 3
+  seq(xl, xu, 0.01)
+}
+
+vdist_seql <- function(mean, sd) {
+  lmin <- mean - (5 * sd)
+  lmax <- mean + (5 * sd)
+  seq(lmin, lmax, sd)
+}
+
+nperc_data_prep <- function(probs, mean, sd, method) {
+
+  x      <- vdist_xax(mean)
+  l      <- vdist_seql(mean, sd)
+  ln     <- length(l)
+
+  if (method == "lower") {
+    pp  <- round(qnorm(probs, mean, sd), 3)
+    lc  <- c(l[1], pp, l[ln])
+    col <- c("#0000CD", "#6495ED")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  } else if (method == "upper") {
+    pp  <- round(qnorm(probs, mean, sd, lower.tail = F), 3)
+    lc  <- c(l[1], pp, l[ln])
+    col <- c("#6495ED", "#0000CD")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  } else {
+    alpha <- (1 - probs) / 2
+    pp1 <- round(qnorm(alpha, mean, sd), 3)
+    pp2 <- round(qnorm(alpha, mean, sd, lower.tail = F), 3)
+    pp  <- c(pp1, pp2)
+    lc  <- c(l[1], pp1, pp2, l[ln])
+    col <- c("#6495ED", "#0000CD", "#6495ED")
+    l1  <- c(1, 2, 3)
+    l2  <- c(2, 3, 4)
+  }
+
+  xm <- vdist_xmm(mean, sd)
+  plot_data <- data.frame(x = x, y = dnorm(x, mean, sd))
+
+  list(plot_data = plot_data,
+       pp        = pp,
+       l         = l,
+       x         = x,
+       alpha     = alpha,
+       l1        = l1,
+       l2        = l2,
+       lc        = lc,
+       col       = col)
+
+}
+
+nprob_data_prep <- function(perc, mean, sd, method) {
+
+  el <- max(abs(perc - mean)) / sd + 1
+  x  <- vdist_xaxp(mean, el)
+  l  <- vdist_seqlp(mean, sd, el)
+  ln <- length(l)
+
+  if (method == "lower") {
+    pp1 <- NULL
+    pp2 <- NULL
+    pp  <- round(pnorm(perc, mean, sd), 3)
+    lc  <- c(l[1], perc, l[ln])
+    col <- c("#0000CD", "#6495ED")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  } else if (method == "upper") {
+    pp1 <- NULL
+    pp2 <- NULL
+    pp  <- round(pnorm(perc, mean, sd, lower.tail = F), 3)
+    lc  <- c(l[1], perc, l[ln])
+    col <- c("#6495ED", "#0000CD")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  } else {
+    pp1 <- round(pnorm(perc[1], mean, sd), 3)
+    pp2 <- round(pnorm(perc[2], mean, sd, lower.tail = F), 3)
+    pp  <- c(pp1, pp2)
+    lc  <- c(l[1], perc[1], perc[2], l[ln])
+    col <- c("#6495ED", "#0000CD", "#6495ED")
+    l1  <- c(1, 2, 3)
+    l2  <- c(2, 3, 4)
+  }
+
+  xm <- vdist_xmmp(mean, sd, el)
+  plot_data <- data.frame(x = x, y = dnorm(x, mean, sd))
+
+  list(plot_data = plot_data,
+       pp        = pp,
+       x         = x,
+       l         = l,
+       pp1       = pp1,
+       pp2       = pp2,
+       lc        = lc,
+       l1        = l1,
+       l2        = l2,
+       col       = col)
+}
