@@ -190,3 +190,110 @@ cprob_data_prep <- function(perc, df, method) {
        col        = col)
 
 }
+
+fplot_data_prep <- function(num_df, den_df) {
+
+  num_df <- as.integer(num_df)
+  den_df <- as.integer(den_df)
+  fm     <- round(den_df / (den_df - 2), 3)
+  fsd    <- round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3)
+  x      <- seq(0, 4, 0.01)
+  nx     <- seq(-2, 4, 0.01)
+
+  plot_data  <- data.frame(x = x, y = df(x, num_df, den_df))
+  point_data <- data.frame(x = fm, y = 0)
+  nline_data <- data.frame(x = nx, y = dnorm(nx, fm, fsd))
+
+  poly_data  <- data.frame(y = c(0, seq(0, 4, 0.01), 4),
+                           z = c(0,
+                                 df(seq(0, 4, 0.01),
+                                    num_df,
+                                    den_df),
+                                 0))
+
+  list(plot_data  = plot_data,
+       poly_data  = poly_data,
+       point_data = point_data,
+       nline_data = nline_data,
+       fm         = fm,
+       fsd        = fsd)
+
+}
+
+fperc_data_prep <- function(probs, num_df, den_df, method) {
+
+  num_df <- as.integer(num_df)
+  den_df <- as.integer(den_df)
+  fm     <- round(den_df / (den_df - 2), 3)
+  fsd    <- round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3)
+  l      <- seq(0, 4, 0.01)
+  ln     <- length(l)
+
+  if (method == "lower") {
+    pp  <- round(qf(probs, num_df, den_df), 3)
+    lc  <- c(l[1], pp, l[ln])
+    col <- c("#0000CD", "#6495ED")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  } else {
+    pp  <- round(qf(probs, num_df, den_df, lower.tail = F), 3)
+    lc  <- c(l[1], pp, l[ln])
+    col <- c("#6495ED", "#0000CD")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  }
+
+  plot_data <- data.frame(x = l, y = df(l, num_df, den_df))
+
+  list(plot_data = plot_data,
+       fm        = fm,
+       fsd       = fsd,
+       l         = l,
+       pp        = pp,
+       lc        = lc,
+       l1        = l1,
+       l2        = l2,
+       col       = col)
+
+}
+
+fprob_data_prep <- function(perc, num_df, den_df, method) {
+
+  num_df <- as.integer(num_df)
+  den_df <- as.integer(den_df)
+  fm     <- round(den_df / (den_df - 2), 3)
+  fsd    <- round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3)
+
+  l <- if (perc < 4) {
+    seq(0, 4, 0.01)
+  } else {
+    seq(0, (perc * 1.25), 0.01)
+  }
+  ln <- length(l)
+
+  if (method == "lower") {
+    pp  <- round(pf(perc, num_df, den_df), 3)
+    lc  <- c(l[1], perc, l[ln])
+    col <- c("#0000CD", "#6495ED")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  } else {
+    pp  <- round(pf(perc, num_df, den_df, lower.tail = F), 3)
+    lc  <- c(l[1], perc, l[ln])
+    col <- c("#6495ED", "#0000CD")
+    l1  <- c(1, 2)
+    l2  <- c(2, 3)
+  }
+
+  plot_data <- data.frame(x = l, y = df(l, num_df, den_df))
+
+  list(plot_data = plot_data,
+       fm        = fm,
+       fsd       = fsd,
+       l         = l,
+       pp        = pp,
+       lc        = lc,
+       l1        = l1,
+       l2        = l2,
+       col       = col)
+}
