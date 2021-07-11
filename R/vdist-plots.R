@@ -25,9 +25,9 @@ bplot_plot_build <- function(data, n, p) {
 
 }
 
-bprob_plot_build <- function(data, n) {
+bprob_plot_build <- function(data, method, n, p, s) {
 
-  p <-
+  plot <-
     ggplot(data$plot_data) +
     geom_col(aes(x = n, y = df),
              fill = data$cols) +
@@ -36,12 +36,6 @@ bprob_plot_build <- function(data, n) {
     scale_x_continuous(breaks = seq(0, n)) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
-
-  return(p)
-}
-
-
-bprob_plot_modify <- function(plot, method, n, p, s, data) {
 
   if (method == "lower") {
     plot <-
@@ -66,12 +60,11 @@ bprob_plot_modify <- function(plot, method, n, p, s, data) {
   }
 
   return(plot)
-
 }
 
-bperc_plot_build <- function(data, n) {
+bperc_plot_build <- function(data, method, n, p, tp) {
 
-  pp <-
+  plot <-
     ggplot(data$plot_data) +
     geom_col(aes(x = n, y = df),
              fill = data$cols) +
@@ -80,11 +73,6 @@ bperc_plot_build <- function(data, n) {
     scale_x_continuous(breaks = seq(0, n)) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
-
-  return(pp)
-}
-
-bperc_plot_modify <- function(plot, method, n, p, tp, data) {
 
   if (method == "lower") {
     plot <-
@@ -101,9 +89,10 @@ bperc_plot_modify <- function(plot, method, n, p, tp, data) {
   }
 
   return(plot)
+  
 }
 
-cplot_plot_build <- function(data, df, range) {
+cplot_plot_build <- function(data, df, range, normal) {
 
   pp <-
     ggplot(data$plot_data) +
@@ -126,23 +115,23 @@ cplot_plot_build <- function(data, df, range) {
                color   = 'red',
                size    = 3)
 
-}
+  if (normal) {
 
-cplot_plot_modify <- function(plot, data) {
-
-  plot <-
-    plot +
-    geom_line(data    = data$nline_data,
+    pp <-
+      pp +
+      geom_line(data    = data$nline_data,
               mapping = aes(x = x, y = y),
               color   = '#FF4500')
 
-  return(plot)
+  }
+
+  return(pp)
 
 }
 
-cperc_plot_build <- function(data) {
+cperc_plot_build <- function(data, method, probs, df) {
 
-  p <-
+  plot <-
     ggplot(data$plot_data) +
     geom_line(aes(x = x, y = y),
               color = "blue") +
@@ -150,12 +139,6 @@ cperc_plot_build <- function(data) {
     ylab('') +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
-
-  return(p)
-
-}
-
-cperc_plot_modify <- function(plot, data, method, probs, df) {
 
   if (method == "lower") {
     plot <-
@@ -218,6 +201,7 @@ cperc_plot_modify <- function(plot, data, method, probs, df) {
     scale_x_continuous(breaks = seq(0, data$xm[2], by = 5))
 
   return(plot)
+
 }
 
 cprob_plot_build <- function(data, method, perc, df) {

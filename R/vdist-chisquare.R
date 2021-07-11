@@ -36,17 +36,13 @@ vdist_chisquare_plot <- function(df = 3, normal = FALSE, xaxis_range = 25, print
   check_numeric(df, "df")
   check_logical(normal)
 
-  cplot_data <- cplot_data_prep(df, xaxis_range)
-  plot_base  <- cplot_plot_build(cplot_data, df, xaxis_range)
-
-	if (normal) {
-	  plot_base <- cplot_plot_modify(plot_base, cplot_data)
-	}
+  data <- cplot_data_prep(df, xaxis_range)
+  plot <- cplot_plot_build(data, df, xaxis_range, normal)
 
 	if (print_plot) {
-	  print(plot_base)
+	  print(plot)
 	} else {
-	  return(plot_base)
+	  return(plot)
 	}
 
 }
@@ -60,15 +56,14 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3, type = c("lower", "upper"
   check_numeric(df, "df")
   check_range(probs, 0, 1, "probs")
 
-  method     <- match.arg(type)
-  cperc_data <- cperc_data_prep(probs, df, method)
-  gplot      <- cperc_plot_build(cperc_data)
-  gplot      <- cperc_plot_modify(gplot, cperc_data, method, probs, df)
+  method <- match.arg(type)
+  data   <- cperc_data_prep(probs, df, method)
+  plot   <- cperc_plot_build(data, method, probs, df)
 
 	if (print_plot) {
-	  print(gplot)
+	  print(plot)
 	} else {
-	  return(gplot)
+	  return(plot)
 	}
 
 }
@@ -81,14 +76,14 @@ vdist_chisquare_prob <- function(perc = 13, df = 11, type = c("lower", "upper"),
   check_numeric(df, "df")
   check_numeric(perc, "perc")
 
-  method     <- match.arg(type)
-  cprob_data <- cprob_data_prep(perc, df, method)
-  gplot      <- cprob_plot_build(cprob_data, method, perc, df)
+  method <- match.arg(type)
+  data   <- cprob_data_prep(perc, df, method)
+  plot   <- cprob_plot_build(data, method, perc, df)
 
 	if (print_plot) {
-	  print(gplot)
+	  print(plot)
 	} else {
-	  return(gplot)
+	  return(plot)
 	}
 
 }

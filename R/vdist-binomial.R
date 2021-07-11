@@ -37,13 +37,13 @@ vdist_binom_plot <- function(n = 10, p = 0.3, print_plot = TRUE) {
 	check_numeric(p, "p")
 	check_range(p)
 
-	bplot_data <- bplot_data_prep(n, p)
-	pp         <- bplot_plot_build(bplot_data, n, p)
+	data <- bplot_data_prep(n, p)
+	plot <- bplot_plot_build(data, n, p)
 
 	if (print_plot) {
-		print(pp)
+		print(plot)
 	} else {
-		return(pp)
+		return(plot)
 	}
 
 }
@@ -70,15 +70,13 @@ vdist_binom_prob <- function(n = 10, p = 0.3, s = 4, type = c("lower", "upper", 
 		stop("s must be less than or equal to n.", call. = FALSE)
 	}
 
-	bprob_data <- bprob_data_prep(n, p, s, method)
-	plot_base  <- bprob_plot_build(bprob_data, n)
-	plot_final <- bprob_plot_modify(plot_base, method, n, p, s, bprob_data)
-
+	data <- bprob_data_prep(n, p, s, method)
+	plot <- bprob_plot_build(data, method, n, p, s)
 
 	if (print_plot) {
-		print(plot_final)
+		print(plot)
 	} else {
-		return(plot_final)
+		return(plot)
 	}
 
 }
@@ -95,15 +93,12 @@ vdist_binom_perc <- function(n = 10, p = 0.5, tp = 0.05, type = c("lower", "uppe
 	check_range(tp, 0, 0.5, "tp")
 
 	method <- match.arg(type)
-
-	bperc_data <- bperc_data_prep(n, p, tp, method)
-	plot_base  <- bperc_plot_build(bperc_data, n)
-  plot_final <- bperc_plot_modify(plot_base, method, n, p, tp, bperc_data)
-
-
+	data   <- bperc_data_prep(n, p, tp, method)
+	plot   <- bperc_plot_build(data, method, n, p, tp)
+ 
 	if (print_plot) {
-		print(plot_final)
+		print(plot)
 	} else {
-		return(plot_final)
+		return(plot)
 	}
 }
