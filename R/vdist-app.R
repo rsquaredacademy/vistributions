@@ -8,6 +8,6 @@
 #'
 vdist_launch_app  <- function() {
 	
-	xplorerr::app_descriptive()
+	xplorerr::app_vistributions()
 }
  
