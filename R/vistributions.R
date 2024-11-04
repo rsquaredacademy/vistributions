@@ -3,7 +3,10 @@
 #' Visualize probability distributions.
 #'
 #' @docType package
+#' @keywords internal
 #' @name vistributions
+#' @aliases vistributions-package
+"_PACKAGE"
 NULL
 
 ## quiets concerns of R CMD check re: the .'s that appear in pipelines

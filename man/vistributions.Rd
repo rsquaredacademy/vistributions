@@ -3,7 +3,22 @@
 \docType{package}
 \name{vistributions}
 \alias{vistributions}
+\alias{vistributions-package}
 \title{\code{vistributions} package}
 \description{
 Visualize probability distributions.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/rsquaredacademy/vistributions}
+  \item \url{https://vistributions.rsquaredacademy.com}
+  \item Report bugs at \url{https://github.com/rsquaredacademy/vistributions/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Aravind Hebbali \email{hebbali.aravind@gmail.com}
+
+}
+\keyword{internal}
