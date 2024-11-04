@@ -7,17 +7,10 @@
 
 <!-- badges: start -->
 
-[![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/vistributions)](https://cran.r-project.org/package=vistributions)
-[![cran
-checks](https://cranchecks.info/badges/summary/vistributions)](https://cran.r-project.org/web/checks/check_results_vistributions.html)
-[![R build
-status](https://github.com/rsquaredacademy/vistributions/workflows/R-CMD-check/badge.svg)](https://github.com/rsquaredacademy/vistributions/actions)
+[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/vistributions)](https://cran.r-project.org/package=vistributions)
+[![R-CMD-check](https://github.com/rsquaredacademy/vistributions/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/rsquaredacademy/vistributions/actions/workflows/R-CMD-check.yaml)
 [![Coverage
-Status](https://img.shields.io/codecov/c/github/rsquaredacademy/vistributions/master.svg)](https://codecov.io/github/rsquaredacademy/vistributions?branch=master)
-[![status](https://tinyverse.netlify.com/badge/vistributions)](https://CRAN.R-project.org/package=vistributions)
-[![Lifecycle:
-stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html)
-[![](https://cranlogs.r-pkg.org/badges/grand-total/vistributions)](https://cran.r-project.org/package=vistributions)
+Status](https://img.shields.io/codecov/c/github/rsquaredacademy/vistributions/master.svg)](https://codecov.io/github/rsquaredacademy/vistributions?branch=master)  
 <!-- badges: end -->
 
 ## Installation
@@ -33,8 +26,8 @@ devtools::install_github("rsquaredacademy/vistributions")
 
 ## Articles
 
--   [Explore
-    Distributions](https://vistributions.rsquaredacademy.com/articles/introduction-to-vistributions.html)
+- [Explore
+  Distributions](https://vistributions.rsquaredacademy.com/articles/introduction-to-vistributions.html)
 
 ## Usage
 
@@ -48,6 +41,7 @@ vdist_normal_plot()
 <img src="man/figures/README-normal-1.png" width="100%" />
 
 ``` r
+
 # visualize quantiles out of given probability
 vdist_normal_perc(0.95, mean = 2, sd = 1.36, type = 'both')
 ```
@@ -55,6 +49,7 @@ vdist_normal_perc(0.95, mean = 2, sd = 1.36, type = 'both')
 <img src="man/figures/README-normal-2.png" width="100%" />
 
 ``` r
+
 # visualize probability from a given quantile
 vdist_normal_prob(c(-1.74, 1.83), type = 'both')
 ```
