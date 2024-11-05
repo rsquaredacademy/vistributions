@@ -89,7 +89,7 @@ bperc_plot_build <- function(data, method, n, p, tp) {
   }
 
   return(plot)
-  
+
 }
 
 cplot_plot_build <- function(data, df, range, normal) {
@@ -98,7 +98,7 @@ cplot_plot_build <- function(data, df, range, normal) {
     ggplot(data$plot_data) +
     geom_line(aes(x, chi),
               color = '#4682B4',
-              size  = 2) +
+              linewidth  = 2) +
     ggtitle(label    = "Chi Square Distribution",
             subtitle = paste("df =", df)) +
     ylab('') +
