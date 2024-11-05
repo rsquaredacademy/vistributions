@@ -305,7 +305,7 @@ nplot_data_prep <- function(mean, sd) {
   col <- c("#0000CD", "#4682B4", "#6495ED", "#4682B4", "#6495ED")
   l1  <- c(3, 2, 1, 5, 6)
   l2  <- c(5, 3, 2, 6, 7)
-  ll <- l[3:9]
+  ll  <- l[3:9]
 
   plot_data <- data.frame(x = x, y = dnorm(x, mean, sd))
 
