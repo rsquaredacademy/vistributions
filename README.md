@@ -10,7 +10,7 @@
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/vistributions)](https://cran.r-project.org/package=vistributions)
 [![R-CMD-check](https://github.com/rsquaredacademy/vistributions/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/rsquaredacademy/vistributions/actions/workflows/R-CMD-check.yaml)
 [![Coverage
-Status](https://img.shields.io/codecov/c/github/rsquaredacademy/vistributions/master.svg)](https://codecov.io/github/rsquaredacademy/vistributions?branch=master)  
+Status](https://img.shields.io/codecov/c/github/rsquaredacademy/vistributions/master.svg)](https://app.codecov.io/github/rsquaredacademy/vistributions?branch=master)  
 <!-- badges: end -->
 
 ## Installation
