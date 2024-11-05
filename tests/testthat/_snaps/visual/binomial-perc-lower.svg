@@ -61,17 +61,17 @@
 <polyline points='546.06,545.11 546.06,38.12 ' style='stroke-width: 1.07; stroke: #FFFFFF; stroke-linecap: butt;' />
 <polyline points='602.31,545.11 602.31,38.12 ' style='stroke-width: 1.07; stroke: #FFFFFF; stroke-linecap: butt;' />
 <polyline points='658.56,545.11 658.56,38.12 ' style='stroke-width: 1.07; stroke: #FFFFFF; stroke-linecap: butt;' />
-<rect x='70.79' y='520.24' width='50.62' height='1.83' style='stroke-width: 1.07; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #0000CD;' />
-<rect x='127.03' y='503.78' width='50.62' height='18.29' style='stroke-width: 1.07; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #0000CD;' />
-<rect x='183.28' y='439.76' width='50.62' height='82.30' style='stroke-width: 1.07; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #0000CD;' />
-<rect x='239.52' y='302.59' width='50.62' height='219.48' style='stroke-width: 1.07; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #6495ED;' />
-<rect x='295.77' y='137.98' width='50.62' height='384.09' style='stroke-width: 1.07; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #6495ED;' />
-<rect x='352.02' y='61.16' width='50.62' height='460.91' style='stroke-width: 1.07; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #6495ED;' />
-<rect x='408.26' y='137.98' width='50.62' height='384.09' style='stroke-width: 1.07; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #6495ED;' />
-<rect x='464.51' y='302.59' width='50.62' height='219.48' style='stroke-width: 1.07; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #6495ED;' />
-<rect x='520.75' y='439.76' width='50.62' height='82.30' style='stroke-width: 1.07; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #6495ED;' />
-<rect x='577.00' y='503.78' width='50.62' height='18.29' style='stroke-width: 1.07; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #6495ED;' />
-<rect x='633.25' y='520.24' width='50.62' height='1.83' style='stroke-width: 1.07; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #6495ED;' />
+<rect x='70.79' y='520.24' width='50.62' height='1.83' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #0000CD;' />
+<rect x='127.03' y='503.78' width='50.62' height='18.29' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #0000CD;' />
+<rect x='183.28' y='439.76' width='50.62' height='82.30' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #0000CD;' />
+<rect x='239.52' y='302.59' width='50.62' height='219.48' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #6495ED;' />
+<rect x='295.77' y='137.98' width='50.62' height='384.09' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #6495ED;' />
+<rect x='352.02' y='61.16' width='50.62' height='460.91' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #6495ED;' />
+<rect x='408.26' y='137.98' width='50.62' height='384.09' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #6495ED;' />
+<rect x='464.51' y='302.59' width='50.62' height='219.48' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #6495ED;' />
+<rect x='520.75' y='439.76' width='50.62' height='82.30' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #6495ED;' />
+<rect x='577.00' y='503.78' width='50.62' height='18.29' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #6495ED;' />
+<rect x='633.25' y='520.24' width='50.62' height='1.83' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #6495ED;' />
 </g>
 <g clip-path='url(#cpMC4wMHw3MjAuMDB8MC4wMHw1NzYuMDA=)'>
 <text x='35.20' y='525.10' text-anchor='end' style='font-size: 8.80px; fill: #4D4D4D; font-family: sans;' textLength='17.13px' lengthAdjust='spacingAndGlyphs'>0.00</text>
