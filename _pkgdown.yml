@@ -1,4 +1,6 @@
 url: https://vistributions.rsquaredacademy.com
+template:
+  bootstrap: 5
 
 authors:
   Aravind Hebbali:
@@ -6,14 +8,14 @@ authors:
 
 templates:
   params:
-    bootswatch: cosmo
+    bootswatch: cerulean
     ganalytics: UA-57270671-33
     docsearch:
       api_key:
-      index_name: vistributions
+      index_name: vistribution
 
 navbar:
-  title: "rbin"
+  title: "vistributions"
   type: inverse
   left:
     - text: "Home"
@@ -28,20 +30,21 @@ navbar:
           href: reference/index.html
         - text: "News"
           href: news/index.html
-        - text: "Blog"
-          href: https://blog.rsquaredacademy.com
-        - text: "Online Courses"
-          href: https://rsquared-academy.thinkific.com
+    
   right:
    - icon: fa-github
      href: https://github.com/rsquaredacademy/vistributions
 
 home:
   links:
-  - text: Learn more
-    href: https://www.rsquaredacademy.com
-  - text: Try shiny app
-    href: https://www.rsquaredcomputing.com/shiny/vistributions/
+    - text: Our R packages
+      href: https://pkgs.rsquaredacademy.com
+    - text: Read our blog
+      href: https://blog.rsquaredacademy.com
+    - text: Our ebooks
+      href: https://ebooks.rsquaredacademy.com
+    - text: Online courses
+      href: https://www.rsquaredacademy.com
 
 reference:
 - title: Shiny App 
