@@ -1,10 +1,9 @@
-pandoc: 2.11.2
-pkgdown: 1.6.1
+pandoc: '3.2'
+pkgdown: 2.1.0
 pkgdown_sha: ~
 articles:
   introduction-to-vistributions: introduction-to-vistributions.html
-last_built: 2021-05-20T13:43Z
+last_built: 2024-11-07T11:30Z
 urls:
   reference: https://vistributions.rsquaredacademy.com/reference
   article: https://vistributions.rsquaredacademy.com/articles
-

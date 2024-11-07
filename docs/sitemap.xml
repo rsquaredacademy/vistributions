@@ -1,30 +1,22 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://vistributions.rsquaredacademy.com/index.html</loc>
-  </url>
-  <url>
-    <loc>https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.html</loc>
-  </url>
-  <url>
-    <loc>https://vistributions.rsquaredacademy.com/reference/vdist_chisquare_plot.html</loc>
-  </url>
-  <url>
-    <loc>https://vistributions.rsquaredacademy.com/reference/vdist_f_plot.html</loc>
-  </url>
-  <url>
-    <loc>https://vistributions.rsquaredacademy.com/reference/vdist_launch_app.html</loc>
-  </url>
-  <url>
-    <loc>https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.html</loc>
-  </url>
-  <url>
-    <loc>https://vistributions.rsquaredacademy.com/reference/vdist_t.html</loc>
-  </url>
-  <url>
-    <loc>https://vistributions.rsquaredacademy.com/reference/vistributions.html</loc>
-  </url>
-  <url>
-    <loc>https://vistributions.rsquaredacademy.com/articles/introduction-to-vistributions.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://vistributions.rsquaredacademy.com/404.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/articles/index.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/articles/introduction-to-vistributions.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/authors.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/CODE_OF_CONDUCT.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/google02e424888b5e2def.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/index.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/LICENSE-text.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/LICENSE.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/news/index.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/reference/index.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/reference/vdist_chisquare_plot.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/reference/vdist_f_plot.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/reference/vdist_launch_app.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/reference/vdist_norm_plot.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/reference/vdist_t.html</loc></url>
+<url><loc>https://vistributions.rsquaredacademy.com/reference/vistributions.html</loc></url>
 </urlset>
+
