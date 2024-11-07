@@ -1,7 +1,7 @@
 Package: vistributions
 Type: Package
 Title: Visualize Probability Distributions
-Version: 0.1.2.9000
+Version: 0.2.0
 Authors@R: person("Aravind", "Hebbali", email = "hebbali.aravind@gmail.com", role = c("aut", "cre"))
 Description: Visualize and compute percentiles/probabilities of normal, t, f, chi square 
     and binomial distributions.

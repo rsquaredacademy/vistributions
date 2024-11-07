@@ -89,7 +89,7 @@ bperc_plot_build <- function(data, method, n, p, tp) {
   }
 
   return(plot)
-  
+
 }
 
 cplot_plot_build <- function(data, df, range, normal) {
@@ -98,7 +98,7 @@ cplot_plot_build <- function(data, df, range, normal) {
     ggplot(data$plot_data) +
     geom_line(aes(x, chi),
               color = '#4682B4',
-              size  = 2) +
+              linewidth  = 2) +
     ggtitle(label    = "Chi Square Distribution",
             subtitle = paste("df =", df)) +
     ylab('') +
@@ -191,7 +191,7 @@ cperc_plot_build <- function(data, method, probs, df) {
     plot +
     geom_vline(xintercept = data$pp,
                linetype   = 2,
-               size       = 1) +
+               linewidth  = 1) +
     geom_point(data       = data$point_data,
                mapping    = aes(x = x, y = y),
                shape      = 4,
@@ -267,7 +267,7 @@ cprob_plot_build <- function(data, method, perc, df) {
     gplot +
     geom_vline(xintercept = perc,
                linetype   = 2,
-               size       = 1) +
+               linewidth = 1) +
     geom_point(data       = data$point_data,
                mapping    = aes(x = x, y = y),
                shape      = 4,
@@ -388,7 +388,7 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
       gplot +
       geom_vline(xintercept = data$pp[i],
                  linetype   = 2,
-                 size       = 1) +
+                 linewidth  = 1) +
       geom_point(data    = point_data,
                  mapping = aes(x = x, y = y),
                  shape   = 4,
@@ -472,7 +472,7 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
       gplot +
       geom_vline(xintercept = perc[i],
                  linetype   = 2,
-                 size       = 1) +
+                 linewidth  = 1) +
       geom_point(data    = point_data,
                  mapping = aes(x = x, y = y),
                  shape   = 4,
@@ -615,7 +615,7 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
       gplot +
       geom_vline(xintercept = data$pp[i],
                  linetype   = 2,
-                 size       = 1) +
+                 linewidth  = 1) +
       geom_point(data    = point_data,
                  mapping = aes(x = x, y = y),
                  shape   = 4,
@@ -720,7 +720,7 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
       gplot +
       geom_vline(xintercept = perc[i],
                  linetype   = 2,
-                 size       = 1) +
+                 linewidth  = 1) +
       geom_point(data    = point_data,
                  mapping = aes(x = x, y = y),
                  shape   = 4,
@@ -849,7 +849,7 @@ tperc_plot_build <- function(data, probs, df, method) {
       gplot +
       geom_vline(xintercept = data$pp[i],
                  linetype   = 2,
-                 size       = 1) +
+                 linewidth  = 1) +
       geom_point(data    = point_data,
                  mapping = aes(x = x, y = y),
                  shape   = 4,
@@ -910,7 +910,7 @@ tprob_plot_build <- function(data, perc, df, method) {
                size  = 3) +
       geom_vline(xintercept = perc,
                  linetype   = 2,
-                 size       = 1) +
+                 linewidth  = 1) +
       geom_point(data    = point_data,
                  mapping = aes(x = x, y = y),
                  shape   = 4,
@@ -939,7 +939,7 @@ tprob_plot_build <- function(data, perc, df, method) {
                size  = 3) +
       geom_vline(xintercept = perc,
                  linetype   = 2,
-                 size       = 1) +
+                 linewidth  = 1) +
       geom_point(data    = point_data,
                  mapping = aes(x = x, y = y),
                  shape   = 4,
@@ -974,10 +974,10 @@ tprob_plot_build <- function(data, perc, df, method) {
                size  = 3) +
       geom_vline(xintercept = perc,
                  linetype   = 2,
-                 size       = 1) +
+                 linewidth  = 1) +
       geom_vline(xintercept = -perc,
                  linetype   = 2,
-                 size       = 1) +
+                 linewidth  = 1) +
       geom_point(data    = point_data,
                  mapping = aes(x = x1, y = y),
                  shape   = 4,
@@ -1016,10 +1016,10 @@ tprob_plot_build <- function(data, perc, df, method) {
                size  = 3) +
       geom_vline(xintercept = perc,
                  linetype   = 2,
-                 size       = 1) +
+                 linewidth  = 1) +
       geom_vline(xintercept = -perc,
                  linetype   = 2,
-                 size       = 1) +
+                 linewidth  = 1) +
       geom_point(data    = point_data,
                  mapping = aes(x = x1, y = y),
                  shape   = 4,
