@@ -13,5 +13,8 @@
 ^LICENSE\.md$
 ^revdep$
 ^hex_vistributions\.png$
+^roadmap$
+^daily-log\.md$
+^AGENTS\.md$
 
 ^\.github$
