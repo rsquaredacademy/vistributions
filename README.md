@@ -1,19 +1,22 @@
+---
+output: github_document
+---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+
 
 # vistributions
 
 > Visualize probability distributions
 
 <!-- badges: start -->
-
-[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/vistributions)](https://cran.r-project.org/package=vistributions)
-[![R-CMD-check](https://github.com/rsquaredacademy/vistributions/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/rsquaredacademy/vistributions/actions/workflows/R-CMD-check.yaml)
-[![Coverage
-Status](https://img.shields.io/codecov/c/github/rsquaredacademy/vistributions/master.svg)](https://app.codecov.io/github/rsquaredacademy/vistributions?branch=master)  
+[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/vistributions)](https://cran.r-project.org/package=vistributions) 
+[![R-CMD-check](https://github.com/rsquaredacademy/vistributions/actions/workflows/R-CMD-check.yaml/badge.svg?branch=develop)](https://github.com/rsquaredacademy/vistributions/actions/workflows/R-CMD-check.yaml)
+[![Coverage Status](https://img.shields.io/codecov/c/github/rsquaredacademy/vistributions/develop.svg)](https://app.codecov.io/github/rsquaredacademy/vistributions?branch=develop)  
 <!-- badges: end -->
 
 ## Installation
+
 
 ``` r
 # Install release version from CRAN
@@ -26,19 +29,24 @@ devtools::install_github("rsquaredacademy/vistributions")
 
 ## Articles
 
-- [Explore
-  Distributions](https://vistributions.rsquaredacademy.com/articles/introduction-to-vistributions.html)
+- [Explore Distributions](https://vistributions.rsquaredacademy.com/articles/introduction-to-vistributions.html)
 
 ## Usage
 
+
+
 ### Normal Distribution
+
 
 ``` r
 # visualize normal distribution
 vdist_normal_plot()
 ```
 
-<img src="man/figures/README-normal-1.png" width="100%" />
+<div class="figure">
+<img src="man/figures/README-normal-1.png" alt="plot of chunk normal" width="100%" />
+<p class="caption">plot of chunk normal</p>
+</div>
 
 ``` r
 
@@ -46,7 +54,10 @@ vdist_normal_plot()
 vdist_normal_perc(0.95, mean = 2, sd = 1.36, type = 'both')
 ```
 
-<img src="man/figures/README-normal-2.png" width="100%" />
+<div class="figure">
+<img src="man/figures/README-normal-2.png" alt="plot of chunk normal" width="100%" />
+<p class="caption">plot of chunk normal</p>
+</div>
 
 ``` r
 
@@ -54,11 +65,13 @@ vdist_normal_perc(0.95, mean = 2, sd = 1.36, type = 'both')
 vdist_normal_prob(c(-1.74, 1.83), type = 'both')
 ```
 
-<img src="man/figures/README-normal-3.png" width="100%" />
+<div class="figure">
+<img src="man/figures/README-normal-3.png" alt="plot of chunk normal" width="100%" />
+<p class="caption">plot of chunk normal</p>
+</div>
 
 ## Getting Help
 
-If you encounter a bug, please file a minimal reproducible example using
-[reprex](https://reprex.tidyverse.org/index.html) on github. For
-questions and clarifications, use
-[StackOverflow](https://stackoverflow.com/).
+If you encounter a bug, please file a minimal reproducible example using 
+[reprex](https://reprex.tidyverse.org/index.html) on github. For questions 
+and clarifications, use [StackOverflow](https://stackoverflow.com/).

@@ -37,6 +37,9 @@ vdist_normal_prob(
 
 \item{perc}{Quantile value.}
 }
+\value{
+An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
+}
 \description{
 Visualize how changes in mean and standard deviation affect the
 shape of the normal distribution. Compute & visualize quantiles out of given

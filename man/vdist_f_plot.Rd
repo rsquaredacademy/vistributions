@@ -40,6 +40,9 @@ vdist_f_prob(
 
 \item{perc}{Quantile value.}
 }
+\value{
+An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
+}
 \description{
 Visualize how changes in degrees of freedom affect the
 shape of the F distribution. Compute & visualize quantiles out of given
@@ -50,11 +53,11 @@ probability and probability from a given quantile.
 vdist_f_plot()
 vdist_f_plot(6, 10, normal = TRUE)
 
-# visualize probability from a given quantile
+# visualize quantiles out of given probability
 vdist_f_perc(0.95, 3, 30, 'lower')
 vdist_f_perc(0.125, 9, 35, 'upper')
 
-# visualize quantiles out of given probability
+# visualize probability from a given quantile
 vdist_f_prob(2.35, 5, 32)
 vdist_f_prob(1.5222, 9, 35, type = "upper")
 
