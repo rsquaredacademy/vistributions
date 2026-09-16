@@ -1,11 +1,9 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^\.travis\.yml$
-^appveyor\.yml$
 ^cran-comments\.md$
 ^README\.Rmd$
 ^codecov\.yml$
-^NEWS$
+^NEWS\.md$
 ^_pkgdown\.yml$
 ^docs$
 ^README-.*\.png$
@@ -16,5 +14,7 @@
 ^roadmap$
 ^daily-log\.md$
 ^AGENTS\.md$
-
 ^\.github$
+^\.RData$
+^\.Rhistory$
+^netlify\.toml$
