@@ -308,7 +308,7 @@ fplot_plot_build <- function(data, num_df, den_df, normal) {
     scale_x_continuous(breaks = c(-2:4)) +
     scale_y_continuous(breaks = NULL)
 
-  if (normal) {
+  if (normal && nrow(data$nline_data) > 0) {
     gplot <-
       gplot +
       geom_line(data    = data$nline_data,
@@ -416,6 +416,8 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
+  fsd_offset <- if (!is.na(data$fsd)) data$fsd else 0.5
+
   if (method == "lower") {
     gplot <-
       gplot +
@@ -423,13 +425,13 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
               subtitle = paste0("P(X < ", perc, ") = ", data$pp * 100, "%")) +
       annotate("text",
                label = paste0(data$pp * 100, "%"),
-               x     = perc - data$fsd,
+               x     = perc - fsd_offset,
                y     = max(df(data$l, num_df, den_df)) + 0.04,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
                label = paste0(round((1 - data$pp) * 100, 2), "%"),
-               x     = perc + data$fsd,
+               x     = perc + fsd_offset,
                y     = max(df(data$l, num_df, den_df)) + 0.02,
                color = "#6495ED",
                size  = 3)
@@ -441,13 +443,13 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
               subtitle = paste0("P(X > ", perc, ") = ", data$pp * 100, "%")) +
       annotate("text",
                label = paste0(round((1 - data$pp) * 100, 2), "%"),
-               x     = perc - data$fsd,
+               x     = perc - fsd_offset,
                y     = max(df(data$l, num_df, den_df)) + 0.04,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(data$pp * 100, "%"),
-               x     = perc + data$fsd,
+               x     = perc + fsd_offset,
                y     = max(df(data$l, num_df, den_df)) + 0.04,
                color = "#0000CD",
                size  = 3)
@@ -929,13 +931,13 @@ tprob_plot_build <- function(data, perc, df, method) {
                label = paste0((1 - data$pp) * 100, "%"),
                x     = perc - 1,
                y     = max(dt(data$l, df)) + 0.07,
-               color = "#0000CD",
+               color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(data$pp * 100, "%"),
                x     = perc + 1,
                y     = max(dt(data$l, df)) + 0.07,
-               color = "#6495ED",
+               color = "#0000CD",
                size  = 3) +
       geom_vline(xintercept = perc,
                  linetype   = 2,
@@ -962,13 +964,13 @@ tprob_plot_build <- function(data, perc, df, method) {
                size  = 3) +
       annotate("text",
                label = paste0(data$pp[1] * 100, "%"),
-               x     = perc + 1,
+               x     = -perc - 1,
                y     = max(dt(data$l, df)) + 0.07,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(data$pp[2] * 100, "%"),
-               x     = -perc - 1,
+               x     = perc + 1,
                y     = max(dt(data$l, df)) + 0.07,
                color = "#6495ED",
                size  = 3) +
@@ -1000,19 +1002,19 @@ tprob_plot_build <- function(data, perc, df, method) {
                label = paste0((1 - (data$pp1 + data$pp2)) * 100, "%"),
                x     = 0,
                y     = max(dt(data$l, df)) + 0.07,
-               color = "#0000CD",
+               color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(data$pp[1] * 100, "%"),
-               x     = perc + 1,
+               x     = -perc - 1,
                y     = max(dt(data$l, df)) + 0.07,
-               color = "#6495ED",
+               color = "#0000CD",
                size  = 3) +
       annotate("text",
                label = paste0(data$pp[2] * 100, "%"),
-               x     = -perc - 1,
+               x     = perc + 1,
                y     = max(dt(data$l, df)) + 0.07,
-               color = "#6495ED",
+               color = "#0000CD",
                size  = 3) +
       geom_vline(xintercept = perc,
                  linetype   = 2,

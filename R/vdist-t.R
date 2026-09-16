@@ -10,6 +10,8 @@
 #' @param type Lower tail, upper tail, interval or both.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
+#' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
+#'
 #' @examples
 #' # visualize t distribution
 #' vdist_t_plot()
@@ -29,15 +31,12 @@
 #'
 #' @seealso \code{\link[stats]{TDist}}
 #'
-#' @name vdist_t
-NULL
-
 #' @export
-#' @rdname vdist_t
 #'
 vdist_t_plot <- function(df = 3, print_plot = TRUE) {
 
   check_numeric(df, "df")
+  check_positive(df, "df")
 
   data <- tplot_data_prep(df)
   plot <- tplot_plot_build(data, df)
@@ -50,13 +49,14 @@ vdist_t_plot <- function(df = 3, print_plot = TRUE) {
 
 }
 
-#' @rdname vdist_t
+#' @rdname vdist_t_plot
 #' @export
 #'
 vdist_t_perc <- function(probs = 0.95, df = 4, type = c("lower", "upper", "both"), print_plot = TRUE) {
 
   check_numeric(probs, "probs")
   check_numeric(df, "df")
+  check_positive(df, "df")
   check_range(probs, 0, 1, "probs")
 
   method  <- match.arg(type)
@@ -71,13 +71,14 @@ vdist_t_perc <- function(probs = 0.95, df = 4, type = c("lower", "upper", "both"
 
 }
 
-#' @rdname vdist_t
+#' @rdname vdist_t_plot
 #' @export
 #'
 vdist_t_prob <- function(perc = 1.6, df = 7, type = c("lower", "upper", "interval", "both"), print_plot = TRUE) {
 
   check_numeric(perc, "perc")
   check_numeric(df, "df")
+  check_positive(df, "df")
   method <- match.arg(type)
 
   data <- tprob_data_prep(perc, df, method)
@@ -90,4 +91,3 @@ vdist_t_prob <- function(perc = 1.6, df = 7, type = c("lower", "upper", "interva
   }
 
 }
-

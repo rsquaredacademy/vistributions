@@ -11,6 +11,8 @@
 #' @param type Lower tail, upper tail or both.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
+#' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
+#'
 #' @examples
 #' # visualize normal distribution
 #' vdist_normal_plot()
@@ -90,7 +92,7 @@ vdist_normal_prob <- function(perc = 3, mean = 0, sd = 1, type = c("lower", "upp
     stop("Please do not specify more than 2 percentile values.", call. = FALSE)
   }
 
-  if ((method == "both") & (length(perc) != 2)) {
+  if ((method == "both") && (length(perc) != 2)) {
     stop("Specify two percentile values.", call. = FALSE)
   }
 

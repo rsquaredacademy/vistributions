@@ -5,11 +5,13 @@
 #' probability from a given quantile and quantiles out of given probability.
 #'
 #' @param n Number of trials.
-#' @param p Aggregate probability.
+#' @param p Probability of success in a trial.
 #' @param s Number of success.
 #' @param type Lower/upper/exact/interval.
-#' @param tp Probability of success in a trial.
+#' @param tp Aggregate probability.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
+#'
+#' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 #'
 #' @examples
 #' # visualize binomial distribution
@@ -53,9 +55,9 @@ vdist_binom_plot <- function(n = 10, p = 0.3, print_plot = TRUE) {
 #'
 vdist_binom_prob <- function(n = 10, p = 0.3, s = 4, type = c("lower", "upper", "exact", "interval"), print_plot = TRUE) {
 
-	check_range(p)
 	check_numeric(n)
 	check_numeric(p, "p")
+	check_range(p)
 	check_numeric(s, "s")
 
 	method  <- match.arg(type)
@@ -90,7 +92,7 @@ vdist_binom_perc <- function(n = 10, p = 0.5, tp = 0.05, type = c("lower", "uppe
 	check_numeric(p, "p")
 	check_numeric(tp, "tp")
 	check_range(p)
-	check_range(tp, 0, 0.5, "tp")
+	check_range(tp, 0, 1, "tp")
 
 	method <- match.arg(type)
 	data   <- bperc_data_prep(n, p, tp, method)
