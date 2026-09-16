@@ -1,5 +1,3 @@
-context("test-binomial")
-
 test_that("vdist_binom_plot throws the appropriate errors", {
   expect_error(vdist_binom_plot(10, -0.5), "p must be between 0 and 1 only.")
   expect_error(vdist_binom_plot(10, 1.5), "p must be between 0 and 1 only.")
@@ -24,8 +22,8 @@ test_that("vdist_binom_prob throws the appropriate errors", {
 test_that("vdist_binom_perc throws the appropriate errors", {
   expect_error(vdist_binom_perc(10, -0.5, 0.05), "p must be between 0 and 1 only.")
   expect_error(vdist_binom_perc(10, 1.5, 0.05), "p must be between 0 and 1 only.")
-  expect_error(vdist_binom_perc(10, 0.5, -0.05), "tp must be between 0 and 0.5 only.")
-  expect_error(vdist_binom_perc(10, 0.5, 0.51), "tp must be between 0 and 0.5 only.")
+  expect_error(vdist_binom_perc(10, 0.5, -0.05), "tp must be between 0 and 1 only.")
+  expect_error(vdist_binom_perc(10, 0.5, 1.05), "tp must be between 0 and 1 only.")
   expect_error(vdist_binom_perc("10", 0.5, 0.05), "n must be numeric.")
   expect_error(vdist_binom_perc(as.factor(10), 0.5, 0.05), "n must be numeric.")
   expect_error(vdist_binom_perc(10, "0.5", 0.05), "p must be numeric.")

@@ -1,5 +1,3 @@
-context("test-normal")
-
 test_that("vdist_normal_plot throws the appropriate errors", {
   expect_error(vdist_normal_plot("10", 0.5), "mean must be numeric.")
   expect_error(vdist_normal_plot(as.factor(10), 0.5), "mean must be numeric.")

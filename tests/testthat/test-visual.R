@@ -1,5 +1,3 @@
-context("test-visual")
-
 test_that("output from vdist_binom_plot is as expected", {
   skip_on_cran()
   p <- vdist_binom_plot(10, 0.3)
@@ -171,10 +169,10 @@ test_that("output from vdist_t_prob is as expected", {
   vdiffr::expect_doppelganger("t prob upper", p35)
 
   p36 <- vdist_t_prob(1.445, 7, 'interval')
-  vdiffr::expect_doppelganger("t prob both", p36)
+  vdiffr::expect_doppelganger("t prob interval", p36)
 
   p37 <- vdist_t_prob(1.6, 7, 'both')
-  vdiffr::expect_doppelganger("t prob interval", p37)
+  vdiffr::expect_doppelganger("t prob both", p37)
 })
 
 
