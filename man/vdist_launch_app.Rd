@@ -6,6 +6,9 @@
 \usage{
 vdist_launch_app()
 }
+\value{
+Called for its side effect of launching the app; returns the app object invisibly.
+}
 \description{
 Launches shiny app for visualizing distributions.
 }
@@ -14,3 +17,4 @@ Launches shiny app for visualizing distributions.
 vdist_launch_app ()
 }
 }
+\concept{shiny app}
