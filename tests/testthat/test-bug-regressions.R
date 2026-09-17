@@ -69,7 +69,17 @@ test_that("TC-BUG-10: check_range handles scalar check without length > 1 warnin
 })
 
 test_that("TC-BUG-11: Snapshot names in test-visual.R are correctly matched (BUG-11)", {
-  expect_true(TRUE)
+  visual_file <- testthat::test_path("test-visual.R")
+  skip_if_not(file.exists(visual_file), "test-visual.R not found")
+  lines <- readLines(visual_file)
+  interval_block <- any(grepl("vdist_t_prob\\(1\\.445.*interval", lines))
+  both_block <- any(grepl("vdist_t_prob\\(1\\.6.*both", lines))
+  interval_snap <- any(grepl('"t prob interval"', lines))
+  both_snap <- any(grepl('"t prob both"', lines))
+  expect_true(interval_block && interval_snap)
+  expect_true(both_block && both_snap)
+  expect_true(file.exists(testthat::test_path("_snaps", "visual", "t-prob-interval.svg")))
+  expect_true(file.exists(testthat::test_path("_snaps", "visual", "t-prob-both.svg")))
 })
 
 test_that("TC-BUG-12: .onAttach runs without network access (BUG-12)", {
