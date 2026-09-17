@@ -12,6 +12,8 @@
 #'
 #' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 #'
+#' @family t visualization
+#'
 #' @examples
 #' # visualize t distribution
 #' vdist_t_plot()

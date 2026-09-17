@@ -69,3 +69,4 @@ vdist_chisquare_prob(15.72, 13, 'upper')
 \seealso{
 \code{\link[stats]{Chisquare}}
 }
+\concept{chisquare visualization}

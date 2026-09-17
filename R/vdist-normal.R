@@ -13,6 +13,8 @@
 #'
 #' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 #'
+#' @family normal visualization
+#'
 #' @examples
 #' # visualize normal distribution
 #' vdist_normal_plot()

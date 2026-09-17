@@ -64,3 +64,4 @@ vdist_normal_prob(c(-1.74, 1.83), type = 'both')
 \seealso{
 \code{\link[stats]{Normal}}
 }
+\concept{normal visualization}

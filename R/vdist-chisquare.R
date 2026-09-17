@@ -15,6 +15,8 @@
 #'
 #' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 #'
+#' @family chisquare visualization
+#'
 #' @examples
 #' # visualize chi square distribution
 #' vdist_chisquare_plot()

@@ -5,13 +5,15 @@
 #' probability from a given quantile and quantiles out of given probability.
 #'
 #' @param n Number of trials.
-#' @param p Probability of success in a trial.
-#' @param s Number of success.
+#' @param p Probability of success in each trial.
+#' @param s Number of successes (quantile value).
 #' @param type Lower/upper/exact/interval.
-#' @param tp Aggregate probability.
+#' @param tp Tail probability for quantile calculation.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
 #' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
+#'
+#' @family binomial visualization
 #'
 #' @examples
 #' # visualize binomial distribution

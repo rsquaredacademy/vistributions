@@ -15,6 +15,8 @@
 #'
 #' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 #'
+#' @family f visualization
+#'
 #' @examples
 #' # visualize F distribution
 #' vdist_f_plot()

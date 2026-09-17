@@ -65,3 +65,4 @@ vdist_f_prob(1.5222, 9, 35, type = "upper")
 \seealso{
 \code{\link[stats]{FDist}}
 }
+\concept{f visualization}

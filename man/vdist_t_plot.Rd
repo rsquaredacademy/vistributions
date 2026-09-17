@@ -62,3 +62,4 @@ vdist_t_prob(1.6, 7, 'both')
 \seealso{
 \code{\link[stats]{TDist}}
 }
+\concept{t visualization}
