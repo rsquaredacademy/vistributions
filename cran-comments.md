@@ -4,11 +4,11 @@
 
 ## R CMD check results
 
-0 errors | 0 warnings | 1 note
+0 errors | 0 warnings | 0 notes
 
-* checking for future file timestamps ... NOTE
-  unable to verify current time
-  (Platform specific artifact on local Windows check)
+* Local `devtools::check(cran = TRUE)`: 0 errors, 0 warnings, 0 notes
+  (Windows 10 x64, R 4.5.2 ucrt).
+* Win-builder / rhub verification to be attached by maintainer before submission.
 
 ## Resubmission / Patch Release Summary (v0.2.1)
 This is a patch release fixing 19 identified correctness and edge-case bugs:
