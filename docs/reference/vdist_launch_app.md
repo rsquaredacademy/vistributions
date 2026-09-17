@@ -8,6 +8,11 @@ Launches shiny app for visualizing distributions.
 vdist_launch_app()
 ```
 
+## Value
+
+Called for its side effect of launching the app; returns the app object
+invisibly.
+
 ## Examples
 
 ``` r

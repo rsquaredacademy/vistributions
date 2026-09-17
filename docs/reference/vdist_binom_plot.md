@@ -35,7 +35,7 @@ vdist_binom_perc(
 
 - p:
 
-  Probability of success in a trial.
+  Probability of success in each trial.
 
 - print_plot:
 
@@ -43,7 +43,7 @@ vdist_binom_perc(
 
 - s:
 
-  Number of success.
+  Number of successes (quantile value).
 
 - type:
 
@@ -51,7 +51,7 @@ vdist_binom_perc(
 
 - tp:
 
-  Aggregate probability.
+  Tail probability for quantile calculation.
 
 ## Value
 
