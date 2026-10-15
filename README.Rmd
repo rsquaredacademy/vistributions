@@ -153,4 +153,4 @@ p + theme_minimal() + labs(title = "Normal(60, 3)")
 If you encounter a bug, please file a minimal reproducible example using
 [reprex](https://reprex.tidyverse.org/index.html) on
 [GitHub](https://github.com/rsquaredacademy/vistributions/issues). For
-questions and clarifications, use [StackOverflow](https://stackoverflow.com/).
+questions and clarifications, please use Stack Overflow (tagged `vistributions` or `r`).
