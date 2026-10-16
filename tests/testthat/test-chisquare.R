@@ -1,5 +1,3 @@
-context("test-chisquare")
-
 test_that("vdist_chi_plot returns appropriate error messages", {
   expect_error(vdist_chisquare_plot("3"), "df must be numeric.")
 

@@ -34,6 +34,7 @@ navbar:
   right:
    - icon: fa-github
      href: https://github.com/rsquaredacademy/vistributions
+     aria-label: GitHub
 
 home:
   links:

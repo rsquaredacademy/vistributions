@@ -13,6 +13,10 @@
 #' @param xaxis_range The upper range of the X axis.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
+#' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
+#'
+#' @family chisquare visualization
+#'
 #' @examples
 #' # visualize chi square distribution
 #' vdist_chisquare_plot()
@@ -34,6 +38,9 @@
 vdist_chisquare_plot <- function(df = 3, normal = FALSE, xaxis_range = 25, print_plot = TRUE) {
 
   check_numeric(df, "df")
+  check_positive(df, "df")
+  check_numeric(xaxis_range, "xaxis_range")
+  check_positive(xaxis_range, "xaxis_range")
   check_logical(normal)
 
   data <- cplot_data_prep(df, xaxis_range)
@@ -54,6 +61,7 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3, type = c("lower", "upper"
 
   check_numeric(probs, "probs")
   check_numeric(df, "df")
+  check_positive(df, "df")
   check_range(probs, 0, 1, "probs")
 
   method <- match.arg(type)
@@ -74,6 +82,7 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3, type = c("lower", "upper"
 vdist_chisquare_prob <- function(perc = 13, df = 11, type = c("lower", "upper"), print_plot = TRUE) {
 
   check_numeric(df, "df")
+  check_positive(df, "df")
   check_numeric(perc, "perc")
 
   method <- match.arg(type)
@@ -87,6 +96,3 @@ vdist_chisquare_prob <- function(perc = 13, df = 11, type = c("lower", "upper"),
 	}
 
 }
-
-
-

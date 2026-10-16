@@ -30,19 +30,16 @@ bprob_data_prep <- function(n, p, s, method) {
 
   if (method == "lower") {
     k    <- round(pbinom(s, n, p), 3)
-    cols <- ifelse(cumsum(round(dbinom(x, n, p), 3)) <= k, "#0000CD", "#6495ED")
+    cols <- ifelse(x <= s, "#0000CD", "#6495ED")
   } else if (method == "upper") {
     k    <- round(1 - pbinom((s - 1), n, p), 3)
-    cols <- ifelse(cumsum(round(dbinom(x, n, p), 3)) >= k, "#0000CD", "#6495ED")
+    cols <- ifelse(x >= s, "#0000CD", "#6495ED")
   } else if (method == "exact") {
-    k    <- pbinom(s, n, p) - pbinom((s - 1), n, p)
-    cols <- ifelse(round(dbinom(x, n, p), 5) == round(k, 5), "#0000CD", "#6495ED")
+    k    <- round(dbinom(s, n, p), 5)
+    cols <- ifelse(x == s, "#0000CD", "#6495ED")
   } else {
-    k1   <- pbinom((s[1] - 1), n, p)
-    k2   <- pbinom(s[2], n, p)
-    k    <- pbinom(s[2], n, p) - pbinom((s[1] - 1), n, p)
-    cols <- ifelse((round(cumsum(dbinom(x, n, p)), 6) > round(k1, 6) &
-                      round(cumsum(dbinom(x, n, p)), 6) <= round(k2, 6)), "#0000CD", "#6495ED")
+    k    <- round(pbinom(s[2], n, p) - pbinom((s[1] - 1), n, p), 5)
+    cols <- ifelse(x >= s[1] & x <= s[2], "#0000CD", "#6495ED")
   }
 
   data      <- dbinom(x, n, p)
@@ -60,10 +57,10 @@ bperc_data_prep <- function(n, p, tp, method) {
 
   if (method == "lower") {
     k    <- round(qbinom(tp, n, p), 3)
-    cols <- ifelse(cumsum(dbinom(x, n, p)) <= pbinom(k, n, p), "#0000CD", "#6495ED")
+    cols <- ifelse(x <= k, "#0000CD", "#6495ED")
   } else {
     k    <- round(qbinom(tp, n, p, lower.tail = F), 3)
-    cols <- ifelse(cumsum(dbinom(x, n, p)) > pbinom((k + 1), n, p), "#0000CD", "#6495ED")
+    cols <- ifelse(x >= k, "#0000CD", "#6495ED")
   }
 
   data      <- dbinom(x, n, p)
@@ -82,8 +79,8 @@ cplot_data_prep <- function(df, range) {
   data  <- dchisq(x, df)
 
   plot_data  <- data.frame(x = x, chi = data)
-  poly_data  <- data.frame(y = c(0, seq(0, 25, 0.01), 25),
-                           z = c(0, dchisq(seq(0, 25, 0.01), df), 0))
+  poly_data  <- data.frame(y = c(0, seq(0, range, 0.01), range),
+                           z = c(0, dchisq(seq(0, range, 0.01), df), 0))
   point_data <- data.frame(x = chim, y = min(data))
   nline_data <- data.frame(x = x, y = dnorm(x, chim, chisd))
 
@@ -195,14 +192,14 @@ fplot_data_prep <- function(num_df, den_df) {
 
   num_df <- as.integer(num_df)
   den_df <- as.integer(den_df)
-  fm     <- round(den_df / (den_df - 2), 3)
-  fsd    <- round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3)
+  fm     <- if (den_df > 2) round(den_df / (den_df - 2), 3) else NA_real_
+  fsd    <- if (den_df > 4) round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3) else NA_real_
   x      <- seq(0, 4, 0.01)
-  nx     <- seq(-2, 4, 0.01)
+  nx     <- seq(0, 4, 0.01)
 
   plot_data  <- data.frame(x = x, y = df(x, num_df, den_df))
-  point_data <- data.frame(x = fm, y = 0)
-  nline_data <- data.frame(x = nx, y = dnorm(nx, fm, fsd))
+  point_data <- if (!is.na(fm)) data.frame(x = fm, y = 0) else data.frame(x = numeric(0), y = numeric(0))
+  nline_data <- if (!is.na(fsd)) data.frame(x = nx, y = dnorm(nx, fm, fsd)) else data.frame(x = numeric(0), y = numeric(0))
 
   poly_data  <- data.frame(y = c(0, seq(0, 4, 0.01), 4),
                            z = c(0,
@@ -224,24 +221,25 @@ fperc_data_prep <- function(probs, num_df, den_df, method) {
 
   num_df <- as.integer(num_df)
   den_df <- as.integer(den_df)
-  fm     <- round(den_df / (den_df - 2), 3)
-  fsd    <- round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3)
-  l      <- seq(0, 4, 0.01)
-  ln     <- length(l)
+  fm     <- if (den_df > 2) round(den_df / (den_df - 2), 3) else NA_real_
+  fsd    <- if (den_df > 4) round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3) else NA_real_
 
   if (method == "lower") {
     pp  <- round(qf(probs, num_df, den_df), 3)
-    lc  <- c(l[1], pp, l[ln])
     col <- c("#0000CD", "#6495ED")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
   } else {
-    pp  <- round(qf(probs, num_df, den_df, lower.tail = F), 3)
-    lc  <- c(l[1], pp, l[ln])
+    pp  <- round(qf(probs, num_df, den_df, lower.tail = FALSE), 3)
     col <- c("#6495ED", "#0000CD")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
   }
+
+  xu <- if (pp < 4) 4 else pp * 1.25
+  l  <- seq(0, xu, 0.01)
+  ln <- length(l)
+  lc <- c(l[1], pp, l[ln])
 
   plot_data <- data.frame(x = l, y = df(l, num_df, den_df))
 
@@ -261,8 +259,8 @@ fprob_data_prep <- function(perc, num_df, den_df, method) {
 
   num_df <- as.integer(num_df)
   den_df <- as.integer(den_df)
-  fm     <- round(den_df / (den_df - 2), 3)
-  fsd    <- round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3)
+  fm     <- if (den_df > 2) round(den_df / (den_df - 2), 3) else NA_real_
+  fsd    <- if (den_df > 4) round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3) else NA_real_
 
   l <- if (perc < 4) {
     seq(0, 4, 0.01)
@@ -278,7 +276,7 @@ fprob_data_prep <- function(perc, num_df, den_df, method) {
     l1  <- c(1, 2)
     l2  <- c(2, 3)
   } else {
-    pp  <- round(pf(perc, num_df, den_df, lower.tail = F), 3)
+    pp  <- round(pf(perc, num_df, den_df, lower.tail = FALSE), 3)
     lc  <- c(l[1], perc, l[ln])
     col <- c("#6495ED", "#0000CD")
     l1  <- c(1, 2)
@@ -300,7 +298,7 @@ fprob_data_prep <- function(perc, num_df, den_df, method) {
 
 nplot_data_prep <- function(mean, sd) {
 
-  x   <- vdist_xax(mean)
+  x   <- vdist_xax(mean, sd)
   l   <- vdist_seql(mean, sd)
   col <- c("#0000CD", "#4682B4", "#6495ED", "#4682B4", "#6495ED")
   l1  <- c(3, 2, 1, 5, 6)
@@ -317,10 +315,10 @@ nplot_data_prep <- function(mean, sd) {
        ll        = ll)
 }
 
-vdist_xax <- function(mean) {
-  xl <- mean - 3
-  xu <- mean + 3
-  seq(xl, xu, 0.01)
+vdist_xax <- function(mean, sd) {
+  xl <- mean - (4 * sd)
+  xu <- mean + (4 * sd)
+  seq(xl, xu, length.out = 1000)
 }
 
 vdist_seql <- function(mean, sd) {
@@ -331,7 +329,7 @@ vdist_seql <- function(mean, sd) {
 
 nperc_data_prep <- function(probs, mean, sd, method) {
 
-  x      <- vdist_xax(mean)
+  x      <- vdist_xax(mean, sd)
   l      <- vdist_seql(mean, sd)
   ln     <- length(l)
 
@@ -376,7 +374,7 @@ nperc_data_prep <- function(probs, mean, sd, method) {
 nprob_data_prep <- function(perc, mean, sd, method) {
 
   el <- max(abs(perc - mean)) / sd + 1
-  x  <- vdist_xaxp(mean, el)
+  x  <- vdist_xaxp(mean, sd, el)
   l  <- vdist_seqlp(mean, sd, el)
   ln <- length(l)
 
@@ -421,10 +419,11 @@ nprob_data_prep <- function(perc, mean, sd, method) {
        col       = col)
 }
 
-vdist_xaxp <- function(mean, el) {
-  xl <- mean - el
-  xu <- mean + el
-  seq(xl, xu, 0.01)
+vdist_xaxp <- function(mean, sd, el) {
+  span <- if (el > 4) el * sd else 4 * sd
+  xl <- mean - span
+  xu <- mean + span
+  seq(xl, xu, length.out = 1000)
 }
 
 vdist_seqlp <- function(mean, sd, el) {
@@ -514,11 +513,8 @@ tprob_data_prep <- function(perc, df, method) {
 
   df <- as.integer(df)
 
-  l <- if (abs(perc) < 5) {
-    seq(-5, 5, 0.01)
-  } else {
-    seq(-(perc + 1), (perc + 1), 0.01)
-  }
+  bound <- max(5, abs(perc) + 1)
+  l     <- seq(-bound, bound, 0.01)
 
   ln <- length(l)
 

@@ -40,7 +40,7 @@ normal distribution.
 ##### Output
 - Normal distribution plot
 
-```{r norm_plot, fig.width=7, fig.height=7, fig.align='centre'}
+```{r norm_plot, fig.width=7, fig.height=7, fig.align='center'}
 vdist_normal_plot(mean = 2, sd = 0.6)
 ```
 
@@ -58,21 +58,21 @@ Suppose X, the grade on a exam, is normally distributed with mean 60
 and standard deviation 3. The teacher wants to give 10% of the class an A. 
 What should be the cutoff to determine who gets an A?
 
-```{r norm_per1, fig.width=7, fig.height=7, fig.align='centre'}
+```{r norm_per1, fig.width=7, fig.height=7, fig.align='center'}
 vdist_normal_perc(0.10, 60, 3, 'upper')
 ```
 
 The teacher wants to give lower 15% of the class a D. What cutoff should the 
-teacher use to determine who gets an D?
+teacher use to determine who gets a D?
 
-```{r norm_per2, fig.width=7, fig.height=7, fig.align='centre'}
-vdist_normal_perc(0.85, 60, 3, 'lower')
+```{r norm_per2, fig.width=7, fig.height=7, fig.align='center'}
+vdist_normal_perc(0.15, 60, 3, 'lower')
 ```
 
 The teacher wants to give middle 50% of the class a B. What cutoff should the 
 teacher use to determine who gets an B?
 
-```{r norm_per3, fig.width=7, fig.height=7, fig.align='centre'}
+```{r norm_per3, fig.width=7, fig.height=7, fig.align='center'}
 vdist_normal_perc(0.5, 60, 3, 'both')
 ```
 
@@ -89,20 +89,20 @@ vdist_normal_perc(0.5, 60, 3, 'both')
 Let X be the IQ of a randomly selected student of a school. Assume X ~ N(90, 4). 
 What is the probability that a randomly selected student has an IQ below 80?
 
-```{r norm_prob1, fig.width=7, fig.height=7, fig.align='centre'}
+```{r norm_prob1, fig.width=7, fig.height=7, fig.align='center'}
 vdist_normal_prob(80, mean = 90, sd = 4)
 ```
 
 What is the probability that a randomly selected student has an IQ above 100?
 
-```{r norm_prob2, fig.width=7, fig.height=7, fig.align='centre'}
+```{r norm_prob2, fig.width=7, fig.height=7, fig.align='center'}
 vdist_normal_prob(100, mean = 90, sd = 4, type = 'upper')
 ```
 
 What is the probability that a randomly selected student has an IQ 
 between 85 and 100?
 
-```{r norm_prob3, fig.width=7, fig.height=7, fig.align='centre'}
+```{r norm_prob3, fig.width=7, fig.height=7, fig.align='center'}
 vdist_normal_prob(c(85, 100), mean = 90, sd = 4, type = 'both')
 ```
 
@@ -113,7 +113,7 @@ vdist_normal_prob(c(85, 100), mean = 90, sd = 4, type = 'both')
 Visualize how changes in number of trials and the probability of success affect
 the shape of the binomial distribution.
 
-```{r binom_plot, fig.width=7, fig.height=7, fig.align='centre'}
+```{r binom_plot, fig.width=7, fig.height=7, fig.align='center'}
 vdist_binom_plot(10, 0.3)
 ```
 
@@ -128,11 +128,11 @@ vdist_binom_plot(10, 0.3)
 - type: lower/upper tail
 
 
-```{r binom_per1, fig.width=7, fig.height=7, fig.align='centre'}
+```{r binom_per1, fig.width=7, fig.height=7, fig.align='center'}
 vdist_binom_perc(10, 0.5, 0.05)
 ```
 
-```{r binom_per2, fig.width=7, fig.height=7, fig.align='centre'}
+```{r binom_per2, fig.width=7, fig.height=7, fig.align='center'}
 vdist_binom_perc(10, 0.5, 0.05, 'upper')
 ```
 
@@ -149,29 +149,29 @@ vdist_binom_perc(10, 0.5, 0.05, 'upper')
 
 Assume twenty-percent (20%) of Magemill have no health insurance. Randomly 
 sample n = 12 Magemillians. Let X denote the number in the sample with no 
-health insurance. What is the probability that exactly 4 of the 15 sampled 
+health insurance. What is the probability that exactly 4 of the 12 sampled 
 have no health insurance?
 
-```{r binom_prob1, fig.width=7, fig.height=7, fig.align='centre'}
+```{r binom_prob1, fig.width=7, fig.height=7, fig.align='center'}
 vdist_binom_prob(12, 0.2, 4, type = 'exact')
 ```
 
 What is the probability that at most one of those sampled has no health 
 insurance?
 
-```{r binom_prob2, fig.width=7, fig.height=7, fig.align='centre'}
+```{r binom_prob2, fig.width=7, fig.height=7, fig.align='center'}
 vdist_binom_prob(12, 0.2, 1, 'lower')
 ```
 
 What is the probability that more than seven have no health insurance?
 
-```{r binom_prob3, fig.width=7, fig.height=7, fig.align='centre'}
+```{r binom_prob3, fig.width=7, fig.height=7, fig.align='center'}
 vdist_binom_prob(12, 0.2, 8, 'upper')
 ```
 
 What is the probability that fewer than 5 have no health insurance?
 
-```{r binom_prob4, fig.width=7, fig.height=7, fig.align='centre'}
+```{r binom_prob4, fig.width=7, fig.height=7, fig.align='center'}
 vdist_binom_prob(12, 0.2, c(0, 4), 'interval')
 ```
 
@@ -183,7 +183,7 @@ vdist_binom_prob(12, 0.2, c(0, 4), 'interval')
 Visualize how changes in degrees of freedom affect the shape of the chi square 
 distribution.
 
-```{r chi_plot, fig.width=7, fig.height=7, fig.align='centre'}
+```{r chi_plot, fig.width=7, fig.height=7, fig.align='center'}
 vdist_chisquare_plot(df = 5)
 vdist_chisquare_plot(df = 5, normal = TRUE)
 ```
@@ -200,13 +200,13 @@ vdist_chisquare_plot(df = 5, normal = TRUE)
 Let X be a chi-square random variable with 8 degrees of freedom. What is the 
 upper fifth percentile? 
 
-```{r chi_per1, fig.width=7, fig.height=7, fig.align='centre'}
+```{r chi_per1, fig.width=7, fig.height=7, fig.align='center'}
 vdist_chisquare_perc(0.05, 8, 'upper')
 ```
 
 What is the tenth percentile?
 
-```{r chi_per2, fig.width=7, fig.height=7, fig.align='centre'}
+```{r chi_per2, fig.width=7, fig.height=7, fig.align='center'}
 vdist_chisquare_perc(0.10, 8, 'lower')
 ```
 
@@ -223,14 +223,14 @@ vdist_chisquare_perc(0.10, 8, 'lower')
 What is the probability that a chi-square random variable with 12 degrees of 
 freedom is greater than 8.79?
 
-```{r chi_prob1, fig.width=7, fig.height=7, fig.align='centre'}
+```{r chi_prob1, fig.width=7, fig.height=7, fig.align='center'}
 vdist_chisquare_prob(8.79, 12, 'upper')
 ```
 
 What is the probability that a chi-square random variable with 12 degrees of 
-freedom is greater than 8.62?
+freedom is less than 8.62?
 
-```{r chi_prob2, fig.width=7, fig.height=7, fig.align='centre'}
+```{r chi_prob2, fig.width=7, fig.height=7, fig.align='center'}
 vdist_chisquare_prob(8.62, 12, 'lower')
 ```
 
@@ -241,7 +241,7 @@ vdist_chisquare_prob(8.62, 12, 'lower')
 Visualize how changes in degrees of freedom affect the shape of the F 
 distribution.
 
-```{r f_plot, fig.width=7, fig.height=7, fig.align='centre'}
+```{r f_plot, fig.width=7, fig.height=7, fig.align='center'}
 vdist_f_plot()
 vdist_f_plot(6, 10, normal = TRUE)
 ```
@@ -252,21 +252,21 @@ vdist_f_plot(6, 10, normal = TRUE)
 
 ##### Input
 - probs: a probability value
-- num_df: nmerator degrees of freedom
+- num_df: numerator degrees of freedom
 - den_df: denominator degrees of freedom
 - type: lower/upper tail
 
 
 Let X be an F random variable with 4 numerator degrees of freedom and 5 
-denominator degrees of freedom. What is the upper twenth percentile?
+denominator degrees of freedom. What is the upper twentieth percentile?
 
-```{r f_per1, fig.width=7, fig.height=7, fig.align='centre'}
+```{r f_per1, fig.width=7, fig.height=7, fig.align='center'}
 vdist_f_perc(0.20, 4, 5, 'upper')
 ```
 
 What is the 35th percentile?
 
-```{r f_per2, fig.width=7, fig.height=7, fig.align='centre'}
+```{r f_per2, fig.width=7, fig.height=7, fig.align='center'}
 vdist_f_perc(0.35, 4, 5, 'lower')
 ```
 
@@ -276,7 +276,7 @@ vdist_f_perc(0.35, 4, 5, 'lower')
 
 ##### Input
 - perc: a quantile value
-- num_df: nmerator degrees of freedom
+- num_df: numerator degrees of freedom
 - den_df: denominator degrees of freedom
 - type: lower/upper tail
 
@@ -284,14 +284,14 @@ vdist_f_perc(0.35, 4, 5, 'lower')
 What is the probability that an F random variable with 4 numerator degrees of 
 freedom and 5 denominator degrees of freedom is greater than 3.89?
 
-```{r f_prob1, fig.width=7, fig.height=7, fig.align='centre'}
+```{r f_prob1, fig.width=7, fig.height=7, fig.align='center'}
 vdist_f_prob(3.89, 4, 5, 'upper')
 ```
 
 What is the probability that an F random variable with 4 numerator degrees of 
 freedom and 5 denominator degrees of freedom is less than 2.63?
 
-```{r f_prob2, fig.width=7, fig.height=7, fig.align='centre'}
+```{r f_prob2, fig.width=7, fig.height=7, fig.align='center'}
 vdist_f_prob(2.63, 4, 5, 'lower')
 ```
 
@@ -302,7 +302,7 @@ vdist_f_prob(2.63, 4, 5, 'lower')
 
 Visualize how degrees of freedom affect the shape of t distribution.
 
-```{r t_plot, fig.width=7, fig.height=7, fig.align='centre'}
+```{r t_plot, fig.width=7, fig.height=7, fig.align='center'}
 vdist_t_plot(df = 8)
 ```
 
@@ -318,20 +318,20 @@ vdist_t_plot(df = 8)
 
 What is the upper fifteenth percentile? 
 
-```{r t_per1, fig.width=7, fig.height=7, fig.align='centre'}
+```{r t_per1, fig.width=7, fig.height=7, fig.align='center'}
 vdist_t_perc(0.15, 8, 'upper')
 ```
 
 What is the eleventh percentile? 
 
-```{r t_per2, fig.width=7, fig.height=7, fig.align='centre'}
+```{r t_per2, fig.width=7, fig.height=7, fig.align='center'}
 vdist_t_perc(0.11, 8, 'lower')
 ```
 
 What is the area of the curve that has 95% of the t values? 
 
-```{r t_per3, fig.width=7, fig.height=7, fig.align='centre'}
-vdist_t_perc(0.8, 8, 'both')
+```{r t_per3, fig.width=7, fig.height=7, fig.align='center'}
+vdist_t_perc(0.95, 8, 'both')
 ```
 
 
@@ -349,24 +349,24 @@ Let T follow a t-distribution with r = 6 df.
 
 What is the probability that the value of T is less than 2?
  
-```{r t_prob1, fig.width=7, fig.height=7, fig.align='centre'}
+```{r t_prob1, fig.width=7, fig.height=7, fig.align='center'}
 vdist_t_prob(2, 6, 'lower')
 ```
 
 What is the probability that the value of T is greater than 2?
  
-```{r t_prob2, fig.width=7, fig.height=7, fig.align='centre'}
+```{r t_prob2, fig.width=7, fig.height=7, fig.align='center'}
 vdist_t_prob(2, 6, 'upper')
 ```
 
 What is the probability that the value of T is between -2 and 2?
  
-```{r t_prob3, fig.width=7, fig.height=7, fig.align='centre'}
-vdist_t_prob(2, 6, 'both')
+```{r t_prob3, fig.width=7, fig.height=7, fig.align='center'}
+vdist_t_prob(2, 6, 'interval')
 ```
 
 What is the probability that the absolute value of T is greater than 2?
 
-```{r t_prob4, fig.width=7, fig.height=7, fig.align='centre'}
-vdist_t_prob(2, 6, 'interval')
+```{r t_prob4, fig.width=7, fig.height=7, fig.align='center'}
+vdist_t_prob(2, 6, 'both')
 ```

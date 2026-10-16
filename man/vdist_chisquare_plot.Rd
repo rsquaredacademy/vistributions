@@ -43,6 +43,9 @@ vdist_chisquare_prob(
 
 \item{perc}{Quantile value.}
 }
+\value{
+An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
+}
 \description{
 Visualize how changes in degrees of freedom affect the shape of
 the chi square distribution. Compute & visualize quantiles out of given
@@ -66,3 +69,4 @@ vdist_chisquare_prob(15.72, 13, 'upper')
 \seealso{
 \code{\link[stats]{Chisquare}}
 }
+\concept{chisquare visualization}

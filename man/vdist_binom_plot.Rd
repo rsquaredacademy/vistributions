@@ -27,15 +27,18 @@ vdist_binom_perc(
 \arguments{
 \item{n}{Number of trials.}
 
-\item{p}{Aggregate probability.}
+\item{p}{Probability of success in each trial.}
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{s}{Number of success.}
+\item{s}{Number of successes (quantile value).}
 
 \item{type}{Lower/upper/exact/interval.}
 
-\item{tp}{Probability of success in a trial.}
+\item{tp}{Tail probability for quantile calculation.}
+}
+\value{
+An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 }
 \description{
 Visualize how changes in number of trials and the probability of
@@ -61,3 +64,4 @@ vdist_binom_perc(10, 0.5, 0.05, "upper")
 \seealso{
 \code{\link[stats]{Binomial}}
 }
+\concept{binomial visualization}

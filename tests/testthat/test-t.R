@@ -1,5 +1,3 @@
-context("test-t")
-
 test_that("vdist_t_plot throws the appropriate errors", {
   expect_error(vdist_t_plot("10"), "df must be numeric.")
   expect_error(vdist_t_plot(TRUE), "df must be numeric.")

@@ -1,4 +1,4 @@
-#' @import utils 
+#' @importFrom utils menu install.packages packageVersion
 #' @import ggplot2
 check_suggests <- function(pkg) {
 
@@ -6,17 +6,17 @@ check_suggests <- function(pkg) {
 
   if (is.na(pkg_flag)) {
 
-    msg <- message(paste0('\n', pkg, ' must be installed for this functionality.'))
+    msg_text <- paste0('\n', pkg, ' must be installed for this functionality.')
 
     if (interactive()) {
-      message(msg, "\nWould you like to install it?")
+      message(msg_text, "\nWould you like to install it?")
       if (menu(c("Yes", "No")) == 1) {
         install.packages(pkg)
       } else {
-        stop(msg, call. = FALSE)
+        stop(msg_text, call. = FALSE)
       }
     } else {
-      stop(msg, call. = FALSE)
+      stop(msg_text, call. = FALSE)
     }
   }
 
@@ -35,13 +35,13 @@ check_logical <- function(val, var = "normal") {
 }
 
 check_positive <- function(val, var = "sd") {
-  if (val < 0) {
+  if (val <= 0) {
     stop(paste(var, "must be a positive value."), call. = FALSE)
   }
 }
 
 check_range <- function(val, min = 0, max = 1, var = "p") {
-  if ((val < min) | (val > max)) {
+  if ((val < min) || (val > max)) {
     stop(paste(var, "must be between", min, "and", max, "only."), call. = FALSE)
   }
 }

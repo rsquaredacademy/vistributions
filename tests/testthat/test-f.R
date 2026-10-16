@@ -1,5 +1,3 @@
-context("test-f")
-
 test_that("vdist_f_plot returns appropriate error messages", {
   expect_error(vdist_f_plot("3"), "num_df must be numeric.")
 
