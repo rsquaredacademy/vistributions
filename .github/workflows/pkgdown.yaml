@@ -35,7 +35,7 @@ jobs:
 
       - name: Deploy to Netlify
         if: github.event_name == 'push' && github.ref == 'refs/heads/master' && env.NETLIFY_AUTH_TOKEN != ''
-        uses: nwtgck/actions-netlify@v3
+        uses: nwtgck/actions-netlify@v4
         with:
           publish-dir: './docs'
           production-branch: master
