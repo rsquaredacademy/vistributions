@@ -3,8 +3,8 @@
 ^cran-comments\.md$
 ^README\.Rmd$
 ^codecov\.yml$
-^NEWS\.md$
 ^_pkgdown\.yml$
+^pkgdown$
 ^docs$
 ^README-.*\.png$
 ^CODE_OF_CONDUCT\.md$
@@ -15,6 +15,7 @@
 ^daily-log\.md$
 ^AGENTS\.md$
 ^\.github$
+^\.git$
 ^\.RData$
 ^\.Rhistory$
 ^netlify\.toml$
