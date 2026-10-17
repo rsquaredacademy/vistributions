@@ -2,6 +2,8 @@
 
 ## vistributions 0.2.1
 
+CRAN release: 2026-10-16
+
 ### Bug Fixes
 
 - [`vdist_normal_plot()`](https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.md)

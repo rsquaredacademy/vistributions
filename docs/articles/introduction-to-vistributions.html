@@ -12,10 +12,12 @@
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Exploring Distributions">
+<!-- Rsquared site-kit v1.0.1: GA4 + region-based consent. Kit files are vendored in pkgdown/assets/site-kit/. --><link rel="stylesheet" href="/site-kit/rsa-consent.css">
+<script src="/site-kit/rsa-analytics.js" data-ga-id="G-2QSPEL5WM6" async></script>
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -50,6 +52,7 @@
 </li>
       </ul>
 <ul class="navbar-nav">
+<li class="nav-item"><a class="external-link nav-link" href="https://www.rsquaredacademy.com">Rsquared Academy</a></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/rsquaredacademy/vistributions" aria-label="GitHub"><span class="fa fa-github"></span></a></li>
       </ul>
 </div>
@@ -112,7 +115,7 @@ of the normal distribution.</p>
 </ul>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_normal_plot.html">vdist_normal_plot</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fl">2</span>, sd <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/norm_plot-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/norm_plot-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 </div>
 <div class="section level3">
@@ -135,17 +138,17 @@ and standard deviation 3. The teacher wants to give 10% of the class an
 A. What should be the cutoff to determine who gets an A?</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_normal_plot.html">vdist_normal_perc</a></span><span class="op">(</span><span class="fl">0.10</span>, <span class="fl">60</span>, <span class="fl">3</span>, <span class="st">'upper'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/norm_per1-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/norm_per1-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>The teacher wants to give lower 15% of the class a D. What cutoff
 should the teacher use to determine who gets a D?</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_normal_plot.html">vdist_normal_perc</a></span><span class="op">(</span><span class="fl">0.15</span>, <span class="fl">60</span>, <span class="fl">3</span>, <span class="st">'lower'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/norm_per2-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/norm_per2-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>The teacher wants to give middle 50% of the class a B. What cutoff
 should the teacher use to determine who gets an B?</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_normal_plot.html">vdist_normal_perc</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">60</span>, <span class="fl">3</span>, <span class="st">'both'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/norm_per3-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/norm_per3-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 </div>
 </div>
@@ -169,17 +172,17 @@ should the teacher use to determine who gets an B?</p>
 an IQ below 80?</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_normal_plot.html">vdist_normal_prob</a></span><span class="op">(</span><span class="fl">80</span>, mean <span class="op">=</span> <span class="fl">90</span>, sd <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/norm_prob1-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/norm_prob1-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>What is the probability that a randomly selected student has an IQ
 above 100?</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_normal_plot.html">vdist_normal_prob</a></span><span class="op">(</span><span class="fl">100</span>, mean <span class="op">=</span> <span class="fl">90</span>, sd <span class="op">=</span> <span class="fl">4</span>, type <span class="op">=</span> <span class="st">'upper'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/norm_prob2-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/norm_prob2-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>What is the probability that a randomly selected student has an IQ
 between 85 and 100?</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_normal_plot.html">vdist_normal_prob</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">85</span>, <span class="fl">100</span><span class="op">)</span>, mean <span class="op">=</span> <span class="fl">90</span>, sd <span class="op">=</span> <span class="fl">4</span>, type <span class="op">=</span> <span class="st">'both'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/norm_prob3-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/norm_prob3-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 </div>
 </div>
@@ -194,7 +197,7 @@ between 85 and 100?</p>
 success affect the shape of the binomial distribution.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_binom_plot.html">vdist_binom_plot</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">0.3</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/binom_plot-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/binom_plot-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="percentiles-1">Percentiles<a class="anchor" aria-label="anchor" href="#percentiles-1"></a>
@@ -213,10 +216,10 @@ success affect the shape of the binomial distribution.</p>
 </ul>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_binom_plot.html">vdist_binom_perc</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">0.5</span>, <span class="fl">0.05</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/binom_per1-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/binom_per1-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_binom_plot.html">vdist_binom_perc</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">0.5</span>, <span class="fl">0.05</span>, <span class="st">'upper'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/binom_per2-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/binom_per2-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 </div>
 </div>
@@ -241,22 +244,22 @@ sample with no health insurance. What is the probability that exactly 4
 of the 12 sampled have no health insurance?</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_binom_plot.html">vdist_binom_prob</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">0.2</span>, <span class="fl">4</span>, type <span class="op">=</span> <span class="st">'exact'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/binom_prob1-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/binom_prob1-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>What is the probability that at most one of those sampled has no
 health insurance?</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_binom_plot.html">vdist_binom_prob</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">0.2</span>, <span class="fl">1</span>, <span class="st">'lower'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/binom_prob2-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/binom_prob2-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>What is the probability that more than seven have no health
 insurance?</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_binom_plot.html">vdist_binom_prob</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">0.2</span>, <span class="fl">8</span>, <span class="st">'upper'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/binom_prob3-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/binom_prob3-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>What is the probability that fewer than 5 have no health
 insurance?</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_binom_plot.html">vdist_binom_prob</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">0.2</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">'interval'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/binom_prob4-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/binom_prob4-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 </div>
 </div>
@@ -271,10 +274,10 @@ insurance?</p>
 chi square distribution.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_chisquare_plot.html">vdist_chisquare_plot</a></span><span class="op">(</span>df <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/chi_plot-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/chi_plot-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_chisquare_plot.html">vdist_chisquare_plot</a></span><span class="op">(</span>df <span class="op">=</span> <span class="fl">5</span>, normal <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/chi_plot-2.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/chi_plot-2.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="percentiles-2">Percentiles<a class="anchor" aria-label="anchor" href="#percentiles-2"></a>
@@ -294,11 +297,11 @@ chi square distribution.</p>
 is the upper fifth percentile?</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_chisquare_plot.html">vdist_chisquare_perc</a></span><span class="op">(</span><span class="fl">0.05</span>, <span class="fl">8</span>, <span class="st">'upper'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/chi_per1-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/chi_per1-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>What is the tenth percentile?</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_chisquare_plot.html">vdist_chisquare_perc</a></span><span class="op">(</span><span class="fl">0.10</span>, <span class="fl">8</span>, <span class="st">'lower'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/chi_per2-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/chi_per2-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 </div>
 </div>
@@ -320,12 +323,12 @@ is the upper fifth percentile?</p>
 degrees of freedom is greater than 8.79?</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_chisquare_plot.html">vdist_chisquare_prob</a></span><span class="op">(</span><span class="fl">8.79</span>, <span class="fl">12</span>, <span class="st">'upper'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/chi_prob1-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/chi_prob1-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>What is the probability that a chi-square random variable with 12
 degrees of freedom is less than 8.62?</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_chisquare_plot.html">vdist_chisquare_prob</a></span><span class="op">(</span><span class="fl">8.62</span>, <span class="fl">12</span>, <span class="st">'lower'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/chi_prob2-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/chi_prob2-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 </div>
 </div>
@@ -340,10 +343,10 @@ degrees of freedom is less than 8.62?</p>
 distribution.</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_f_plot.html">vdist_f_plot</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/f_plot-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/f_plot-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_f_plot.html">vdist_f_plot</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fl">10</span>, normal <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/f_plot-2.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/f_plot-2.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="percentiles-3">Percentiles<a class="anchor" aria-label="anchor" href="#percentiles-3"></a>
@@ -365,11 +368,11 @@ distribution.</p>
 percentile?</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_f_plot.html">vdist_f_perc</a></span><span class="op">(</span><span class="fl">0.20</span>, <span class="fl">4</span>, <span class="fl">5</span>, <span class="st">'upper'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/f_per1-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/f_per1-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>What is the 35th percentile?</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_f_plot.html">vdist_f_perc</a></span><span class="op">(</span><span class="fl">0.35</span>, <span class="fl">4</span>, <span class="fl">5</span>, <span class="st">'lower'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/f_per2-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/f_per2-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 </div>
 </div>
@@ -393,13 +396,13 @@ degrees of freedom and 5 denominator degrees of freedom is greater than
 3.89?</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_f_plot.html">vdist_f_prob</a></span><span class="op">(</span><span class="fl">3.89</span>, <span class="fl">4</span>, <span class="fl">5</span>, <span class="st">'upper'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/f_prob1-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/f_prob1-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>What is the probability that an F random variable with 4 numerator
 degrees of freedom and 5 denominator degrees of freedom is less than
 2.63?</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_f_plot.html">vdist_f_prob</a></span><span class="op">(</span><span class="fl">2.63</span>, <span class="fl">4</span>, <span class="fl">5</span>, <span class="st">'lower'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/f_prob2-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/f_prob2-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 </div>
 </div>
@@ -414,7 +417,7 @@ degrees of freedom and 5 denominator degrees of freedom is less than
 distribution.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_t_plot.html">vdist_t_plot</a></span><span class="op">(</span>df <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/t_plot-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/t_plot-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="percentiles-4">Percentiles<a class="anchor" aria-label="anchor" href="#percentiles-4"></a>
@@ -433,15 +436,15 @@ distribution.</p>
 <p>What is the upper fifteenth percentile?</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_t_plot.html">vdist_t_perc</a></span><span class="op">(</span><span class="fl">0.15</span>, <span class="fl">8</span>, <span class="st">'upper'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/t_per1-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/t_per1-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>What is the eleventh percentile?</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_t_plot.html">vdist_t_perc</a></span><span class="op">(</span><span class="fl">0.11</span>, <span class="fl">8</span>, <span class="st">'lower'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/t_per2-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/t_per2-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>What is the area of the curve that has 95% of the t values?</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_t_plot.html">vdist_t_perc</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">8</span>, <span class="st">'both'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/t_per3-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/t_per3-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 </div>
 </div>
@@ -463,20 +466,20 @@ distribution.</p>
 <p>What is the probability that the value of T is less than 2?</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_t_plot.html">vdist_t_prob</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">6</span>, <span class="st">'lower'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/t_prob1-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/t_prob1-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>What is the probability that the value of T is greater than 2?</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_t_plot.html">vdist_t_prob</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">6</span>, <span class="st">'upper'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/t_prob2-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/t_prob2-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>What is the probability that the value of T is between -2 and 2?</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_t_plot.html">vdist_t_prob</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">6</span>, <span class="st">'interval'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/t_prob3-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/t_prob3-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>What is the probability that the absolute value of T is greater than
 2?</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/vdist_t_plot.html">vdist_t_prob</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">6</span>, <span class="st">'both'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="introduction-to-vistributions_files/figure-html/t_prob4-1.png" class="r-plt" width="672" style="display: block; margin: auto;"></p>
+<p><img src="introduction-to-vistributions_files/figure-html/t_prob4-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 </div>
 </div>
@@ -492,7 +495,7 @@ distribution.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0. <a href="https://www.rsquaredacademy.com/privacy-policy.html" class="external-link">Privacy</a> · <a href="#" data-rsa-analytics-optout>Turn off analytics</a></p>
 </div>
 
     </footer>
