@@ -203,3 +203,5 @@ If you encounter a bug, please file a minimal reproducible example using
 [GitHub](https://github.com/rsquaredacademy/vistributions/issues). For
 questions and clarifications, please use Stack Overflow (tagged
 `vistributions` or `r`).
+
+<div data-rsa-signup data-site="vistributions.rsquaredacademy.com" data-privacy-url="https://www.rsquaredacademy.com/privacy-policy.html"></div>
