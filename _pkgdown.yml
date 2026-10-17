@@ -9,7 +9,6 @@ authors:
 templates:
   params:
     bootswatch: cerulean
-    ganalytics: UA-57270671-33
     docsearch:
       api_key:
       index_name: vistribution
@@ -32,6 +31,8 @@ navbar:
           href: news/index.html
     
   right:
+   - text: "Rsquared Academy"
+     href: https://www.rsquaredacademy.com
    - icon: fa-github
      href: https://github.com/rsquaredacademy/vistributions
      aria-label: GitHub
@@ -88,3 +89,10 @@ reference:
   - vdist_t_plot
   - vdist_t_perc
   - vdist_t_prob
+
+footer:
+  structure:
+    left: developed_by
+    right: [built_with, privacy]
+  components:
+    privacy: '[Privacy](https://www.rsquaredacademy.com/privacy-policy.html) · <a href="#" data-rsa-analytics-optout>Turn off analytics</a>'
