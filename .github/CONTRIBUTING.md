@@ -1,57 +1,41 @@
 # Contributing to vistributions
 
-Thank you for your interest in contributing to `vistributions`! This document provides guidelines for contributing code, documentation, and bug reports.
+Thanks for helping improve vistributions. This guide covers bug reports, fixes, and
+pull requests.
 
-## Code of Conduct
+## Reporting a bug
 
-Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
+- Search [existing issues](https://github.com/rsquaredacademy/vistributions/issues)
+  before opening a new one.
+- Every issue must include a reproducible example (a "reprex"). Use the bug
+  report form and keep the example minimal. Build it with
+  [reprex](https://reprex.tidyverse.org): `library(vistributions)`, a small inline data
+  frame or a built-in dataset, the call, and its output.
+- Include the full error or warning text, your `sessionInfo()` output, and the
+  package version and install source (CRAN or a GitHub commit).
+- Confirm the example fails in a fresh R session.
 
-## Reporting Bugs & Requesting Features
+## How fixes are verified
 
-- Check existing [issues](https://github.com/rsquaredacademy/vistributions/issues) before opening a new one.
-- For bug reports, include a minimal reproducible example (reprex) using the `reprex` package whenever possible.
-- Include your R session information via `sessionInfo()`.
+Every fixing pull request adds a test built from the issue's example. Before
+the issue is closed, the maintainer re-runs that example on the fix and posts
+the output in the closing comment, together with the commit or pull request.
 
-## Development Setup
+## Proposing a change
 
-1. Clone the repository and checkout the `develop` branch:
-   ```sh
-   git clone https://github.com/rsquaredacademy/vistributions.git
-   cd vistributions
-   git checkout develop
-   ```
+Open an issue first for anything beyond a typo or a small documentation fix.
+Explain the problem and, for a new feature, show the proposed interface with an
+example call and the alternatives you considered.
 
-2. Open the project in R / RStudio and install required dependencies:
-   ```r
-   install.packages(c("devtools", "testthat", "vdiffr", "ggplot2", "pkgdown"))
-   ```
+## Pull requests
 
-3. Load the package interactively:
-   ```r
-   devtools::load_all()
-   ```
+- Branch from `develop`. `master` is only for releases.
+- Add a bullet to `NEWS.md` describing the change.
+- Add tests with [testthat](https://testthat.r-lib.org).
+- Run `devtools::check()`; it should finish with no errors or warnings.
+- Follow the [tidyverse style guide](https://style.tidyverse.org).
 
-## Development Workflow
+## Code of conduct
 
-- Default working branch is `develop`. Please submit pull requests targeting `develop`, not `master`.
-- Run tests regularly:
-  ```r
-  devtools::test()
-  ```
-- Regenerate documentation and `NAMESPACE` from roxygen tags:
-  ```r
-  devtools::document()
-  ```
-  *Do not edit `NAMESPACE` or `man/*.Rd` files by hand.*
-- Run full `R CMD check` before submitting:
-  ```r
-  devtools::check()
-  ```
-- Update `NEWS.md` with a concise description of your changes and reference issue numbers if applicable.
-
-## Coding Standards
-
-- Input validation: Use existing `check_*` helpers in `R/vdist-utils.R` (`check_numeric`, `check_positive`, `check_range`).
-- Base R conventions: Use `call. = FALSE` for user-facing errors (`stop("message", call. = FALSE)`).
-- Never introduce unprompted network calls in package code or startup hooks.
-- Plotting functions: Support `print_plot = TRUE` by default, and return the `ggplot` object cleanly when `print_plot = FALSE`.
+This project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md).
+By participating, you agree to abide by its terms.
