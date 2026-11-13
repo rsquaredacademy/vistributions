@@ -25,17 +25,22 @@ vdist_binom_perc(
 )
 }
 \arguments{
-\item{n}{Number of trials.}
+\item{n}{Number of trials (a single non-negative whole number).}
 
 \item{p}{Probability of success in each trial.}
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{s}{Number of successes (quantile value).}
+\item{s}{Number of successes (quantile value): whole numbers only. For
+\code{type = "interval"}, two values in increasing order.}
 
 \item{type}{Lower/upper/exact/interval.}
 
-\item{tp}{Tail probability for quantile calculation.}
+\item{tp}{Tail probability for quantile calculation, strictly between 0 and
+1. For \code{type = "lower"} the cutoff is the smallest \code{k} with
+\code{P(X <= k) >= tp} (as \code{qbinom()}); for \code{type = "upper"} it
+is the smallest \code{k} with \code{P(X > k) <= tp}, and the bars with
+\code{x > k} are shaded.}
 }
 \value{
 An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).

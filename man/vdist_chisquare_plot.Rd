@@ -28,7 +28,7 @@ vdist_chisquare_prob(
 )
 }
 \arguments{
-\item{df}{Degrees of freedom.}
+\item{df}{Degrees of freedom (positive; need not be a whole number).}
 
 \item{normal}{If \code{TRUE}, normal curve with same \code{mean} and
 \code{sd} as the chi square distribution is drawn.}
@@ -37,7 +37,7 @@ vdist_chisquare_prob(
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{probs}{Probability value.}
+\item{probs}{Probability value, strictly between 0 and 1.}
 
 \item{type}{Lower tail or upper tail.}
 

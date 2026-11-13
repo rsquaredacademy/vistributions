@@ -4,11 +4,13 @@
 #' shape of the F distribution. Compute & visualize quantiles out of given
 #' probability and probability from a given quantile.
 #'
-#' @param num_df Degrees of freedom associated with the numerator of f statistic.
-#' @param den_df Degrees of freedom associated with the denominator of f statistic.
+#' @param num_df Degrees of freedom associated with the numerator of f statistic
+#'   (positive; need not be a whole number).
+#' @param den_df Degrees of freedom associated with the denominator of f statistic
+#'   (positive; need not be a whole number).
 #' @param normal If \code{TRUE}, normal curve with same \code{mean} and
 #' \code{sd} as the F distribution is drawn.
-#' @param probs Probability value.
+#' @param probs Probability value, strictly between 0 and 1.
 #' @param perc Quantile value.
 #' @param type Lower tail or upper tail.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
@@ -37,7 +39,9 @@
 vdist_f_plot <- function(num_df = 4, den_df = 30, normal = FALSE, print_plot = TRUE) {
 
   check_numeric(num_df, "num_df")
+  check_scalar(num_df, "num_df")
   check_numeric(den_df, "den_df")
+  check_scalar(den_df, "den_df")
   check_positive(num_df, "num_df")
   check_positive(den_df, "den_df")
   check_logical(normal)
@@ -59,11 +63,15 @@ vdist_f_plot <- function(num_df = 4, den_df = 30, normal = FALSE, print_plot = T
 vdist_f_perc <- function(probs = 0.95, num_df = 3, den_df = 30, type = c("lower", "upper"), print_plot = TRUE) {
 
   check_numeric(num_df, "num_df")
+  check_scalar(num_df, "num_df")
   check_numeric(den_df, "den_df")
+  check_scalar(den_df, "den_df")
   check_positive(num_df, "num_df")
   check_positive(den_df, "den_df")
   check_numeric(probs, "probs")
+  check_scalar(probs, "probs")
   check_range(probs, 0, 1, "probs")
+  check_open_range(probs, "probs")
 
   method <- match.arg(type)
   data   <- fperc_data_prep(probs, num_df, den_df, method)
@@ -83,8 +91,11 @@ vdist_f_perc <- function(probs = 0.95, num_df = 3, den_df = 30, type = c("lower"
 vdist_f_prob <- function(perc = 2.35, num_df = 5, den_df = 32, type = c("lower", "upper"), print_plot = TRUE) {
 
   check_numeric(perc, "perc")
+  check_scalar(perc, "perc")
   check_numeric(num_df, "num_df")
+  check_scalar(num_df, "num_df")
   check_numeric(den_df, "den_df")
+  check_scalar(den_df, "den_df")
   check_positive(num_df, "num_df")
   check_positive(den_df, "den_df")
 

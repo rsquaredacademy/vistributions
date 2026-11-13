@@ -7,7 +7,7 @@
 #' @param mean Mean of the normal distribution.
 #' @param perc Quantile value.
 #' @param sd Standard deviation of the normal distribution.
-#' @param probs Probability value.
+#' @param probs Probability value, strictly between 0 and 1.
 #' @param type Lower tail, upper tail or both.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
@@ -37,7 +37,9 @@
 vdist_normal_plot <- function(mean = 0, sd = 1, print_plot = TRUE) {
 
   check_numeric(mean, "mean")
+  check_scalar(mean, "mean")
   check_numeric(sd, "sd")
+  check_scalar(sd, "sd")
   check_positive(sd)
 
   data <- nplot_data_prep(mean, sd)
@@ -57,10 +59,14 @@ vdist_normal_plot <- function(mean = 0, sd = 1, print_plot = TRUE) {
 vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", "upper", "both"), print_plot = TRUE) {
 
   check_numeric(mean, "mean")
+  check_scalar(mean, "mean")
   check_numeric(sd, "sd")
+  check_scalar(sd, "sd")
   check_positive(sd)
   check_numeric(probs, "probs")
+  check_scalar(probs, "probs")
   check_range(probs, 0, 1, "probs")
+  check_open_range(probs, "probs")
 
   method <- match.arg(type)
   data   <- nperc_data_prep(probs, mean, sd, method)
@@ -86,8 +92,13 @@ vdist_normal_prob <- function(perc = 3, mean = 0, sd = 1, type = c("lower", "upp
   }
 
   check_numeric(mean, "mean")
+  check_scalar(mean, "mean")
   check_numeric(sd, "sd")
+  check_scalar(sd, "sd")
   check_numeric(perc, "perc")
+  if (any(!is.finite(perc))) {
+    stop("perc must be finite numbers.", call. = FALSE)
+  }
   check_positive(sd)
 
   if (length(perc) > 2) {
@@ -96,6 +107,10 @@ vdist_normal_prob <- function(perc = 3, mean = 0, sd = 1, type = c("lower", "upp
 
   if ((method == "both") && (length(perc) != 2)) {
     stop("Specify two percentile values.", call. = FALSE)
+  }
+
+  if ((length(perc) == 2) && (perc[1] > perc[2])) {
+    stop("perc[1] must be less than or equal to perc[2].", call. = FALSE)
   }
 
   data <- nprob_data_prep(perc, mean, sd, method)

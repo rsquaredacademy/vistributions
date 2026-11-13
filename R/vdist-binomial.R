@@ -4,11 +4,16 @@
 #' success affect the shape of the binomial distribution. Compute & visualize
 #' probability from a given quantile and quantiles out of given probability.
 #'
-#' @param n Number of trials.
+#' @param n Number of trials (a single non-negative whole number).
 #' @param p Probability of success in each trial.
-#' @param s Number of successes (quantile value).
+#' @param s Number of successes (quantile value): whole numbers only. For
+#'   \code{type = "interval"}, two values in increasing order.
 #' @param type Lower/upper/exact/interval.
-#' @param tp Tail probability for quantile calculation.
+#' @param tp Tail probability for quantile calculation, strictly between 0 and
+#'   1. For \code{type = "lower"} the cutoff is the smallest \code{k} with
+#'   \code{P(X <= k) >= tp} (as \code{qbinom()}); for \code{type = "upper"} it
+#'   is the smallest \code{k} with \code{P(X > k) <= tp}, and the bars with
+#'   \code{x > k} are shaded.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
 #' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
@@ -38,7 +43,9 @@
 vdist_binom_plot <- function(n = 10, p = 0.3, print_plot = TRUE) {
 
 	check_numeric(n)
+	check_count(n)
 	check_numeric(p, "p")
+	check_scalar(p, "p")
 	check_range(p)
 
 	data <- bplot_data_prep(n, p)
@@ -58,7 +65,9 @@ vdist_binom_plot <- function(n = 10, p = 0.3, print_plot = TRUE) {
 vdist_binom_prob <- function(n = 10, p = 0.3, s = 4, type = c("lower", "upper", "exact", "interval"), print_plot = TRUE) {
 
 	check_numeric(n)
+	check_count(n)
 	check_numeric(p, "p")
+	check_scalar(p, "p")
 	check_range(p)
 	check_numeric(s, "s")
 
@@ -68,10 +77,22 @@ vdist_binom_prob <- function(n = 10, p = 0.3, s = 4, type = c("lower", "upper", 
 		if (length(s) != 2) {
 			stop("Please specify an interval for s.", call. = FALSE)
 		}
+	} else if (length(s) != 1) {
+		stop("s must be a single value unless type = \"interval\".", call. = FALSE)
 	}
+
+	if (any(is.na(s)) || any(!is.finite(s)) || any(abs(s - round(s)) > 1e-8)) {
+		stop("s must be whole numbers (counts of successes).", call. = FALSE)
+	}
+
+	s <- round(s)
 
 	if (any(s > n)) {
 		stop("s must be less than or equal to n.", call. = FALSE)
+	}
+
+	if (method == "interval" && s[1] > s[2]) {
+		stop("The interval for s must be given in increasing order.", call. = FALSE)
 	}
 
 	data <- bprob_data_prep(n, p, s, method)
@@ -91,10 +112,14 @@ vdist_binom_prob <- function(n = 10, p = 0.3, s = 4, type = c("lower", "upper", 
 vdist_binom_perc <- function(n = 10, p = 0.5, tp = 0.05, type = c("lower", "upper"), print_plot = TRUE) {
 
 	check_numeric(n)
+	check_count(n)
 	check_numeric(p, "p")
+	check_scalar(p, "p")
 	check_numeric(tp, "tp")
+	check_scalar(tp, "tp")
 	check_range(p)
 	check_range(tp, 0, 1, "tp")
+	check_open_range(tp, "tp")
 
 	method <- match.arg(type)
 	data   <- bperc_data_prep(n, p, tp, method)

@@ -4,9 +4,11 @@
 #' distribution, visualize quantiles out of given probability and
 #' probability from a given quantile.
 #'
-#' @param df Degrees of freedom.
-#' @param probs Probability value.
-#' @param perc Quantile value.
+#' @param df Degrees of freedom (positive; need not be a whole number).
+#' @param probs Probability value, strictly between 0 and 1.
+#' @param perc Quantile value. For \code{type = "interval"} and
+#'   \code{type = "both"} the event is defined by \code{|perc|}, so a negative
+#'   value gives the same result as its absolute value.
 #' @param type Lower tail, upper tail, interval or both.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
@@ -38,6 +40,7 @@
 vdist_t_plot <- function(df = 3, print_plot = TRUE) {
 
   check_numeric(df, "df")
+  check_scalar(df, "df")
   check_positive(df, "df")
 
   data <- tplot_data_prep(df)
@@ -57,9 +60,12 @@ vdist_t_plot <- function(df = 3, print_plot = TRUE) {
 vdist_t_perc <- function(probs = 0.95, df = 4, type = c("lower", "upper", "both"), print_plot = TRUE) {
 
   check_numeric(probs, "probs")
+  check_scalar(probs, "probs")
   check_numeric(df, "df")
+  check_scalar(df, "df")
   check_positive(df, "df")
   check_range(probs, 0, 1, "probs")
+  check_open_range(probs, "probs")
 
   method  <- match.arg(type)
   data    <- tperc_data_prep(probs, df, method)
@@ -79,9 +85,16 @@ vdist_t_perc <- function(probs = 0.95, df = 4, type = c("lower", "upper", "both"
 vdist_t_prob <- function(perc = 1.6, df = 7, type = c("lower", "upper", "interval", "both"), print_plot = TRUE) {
 
   check_numeric(perc, "perc")
+  check_scalar(perc, "perc")
   check_numeric(df, "df")
+  check_scalar(df, "df")
   check_positive(df, "df")
   method <- match.arg(type)
+
+  # symmetric events (interval, both) are defined by |perc|: use it throughout
+  if (method %in% c("interval", "both")) {
+    perc <- abs(perc)
+  }
 
   data <- tprob_data_prep(perc, df, method)
   plot <- tprob_plot_build(data, perc, df, method)

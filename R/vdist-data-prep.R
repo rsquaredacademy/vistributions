@@ -12,7 +12,7 @@ bplot_data_prep <- function(n, p) {
   n    <- as.integer(n)
   x    <- seq(0, n, 1)
   bm   <- round(n * p, 2)
-  bsd  <- round(sqrt((1 - p) * bm) , 2)
+  bsd  <- round(sqrt(n * p * (1 - p)), 2)
   data <- stats::dbinom(x, n, p)
   plot_data <- data.frame(n = seq(0, n), df = data)
 
@@ -23,10 +23,9 @@ bplot_data_prep <- function(n, p) {
 bprob_data_prep <- function(n, p, s, method) {
 
   n   <- as.integer(n)
-  s   <- as.integer(s)
   x   <- seq(0, n, 1)
   bm  <- round(n * p, 2)
-  bsd <- round(sqrt((1 - p) * bm), 2)
+  bsd <- round(sqrt(n * p * (1 - p)), 2)
 
   if (method == "lower") {
     k    <- round(pbinom(s, n, p), 3)
@@ -56,11 +55,13 @@ bperc_data_prep <- function(n, p, tp, method) {
   x      <- seq(0, n, 1)
 
   if (method == "lower") {
-    k    <- round(qbinom(tp, n, p), 3)
+    # smallest k with P(X <= k) >= tp; shade x <= k
+    k    <- qbinom(tp, n, p)
     cols <- ifelse(x <= k, "#0000CD", "#6495ED")
   } else {
-    k    <- round(qbinom(tp, n, p, lower.tail = F), 3)
-    cols <- ifelse(x >= k, "#0000CD", "#6495ED")
+    # smallest k with P(X > k) <= tp; shade the tail x > k (x >= k + 1)
+    k    <- qbinom(tp, n, p, lower.tail = FALSE)
+    cols <- ifelse(x > k, "#0000CD", "#6495ED")
   }
 
   data      <- dbinom(x, n, p)
@@ -72,15 +73,14 @@ bperc_data_prep <- function(n, p, tp, method) {
 
 cplot_data_prep <- function(df, range) {
 
-  df    <- as.integer(df)
   chim  <- round(df, 3)
   chisd <- round(sqrt(2 * df), 3)
-  x     <- seq(0, range, 0.01)
+  x     <- vdist_seq(0, range)
   data  <- dchisq(x, df)
 
   plot_data  <- data.frame(x = x, chi = data)
-  poly_data  <- data.frame(y = c(0, seq(0, range, 0.01), range),
-                           z = c(0, dchisq(seq(0, range, 0.01), df), 0))
+  poly_data  <- data.frame(y = c(0, x, range),
+                           z = c(0, data, 0))
   point_data <- data.frame(x = chim, y = min(data))
   nline_data <- data.frame(x = x, y = dnorm(x, chim, chisd))
 
@@ -95,27 +95,25 @@ cplot_data_prep <- function(df, range) {
 
 cperc_data_prep <- function(probs, df, method) {
 
-  df     <- as.integer(df)
   chim   <- round(df, 3)
   chisd  <- round(sqrt(2 * df), 3)
-  l      <- vdist_chiseql(chim, chisd)
-  ln     <- length(l)
 
   if (method == "lower") {
-    pp  <- round(qchisq(probs, df), 3)
-    lc  <- c(l[1], pp, l[ln])
+    pp  <- qchisq(probs, df)
     col <- c("#0000CD", "#6495ED")
-    l1  <- c(1, 2)
-    l2  <- c(2, 3)
   } else {
-    pp  <- round(qchisq(probs, df, lower.tail = F), 3)
-    lc  <- c(l[1], pp, l[ln])
+    pp  <- qchisq(probs, df, lower.tail = FALSE)
     col <- c("#6495ED", "#0000CD")
-    l1  <- c(1, 2)
-    l2  <- c(2, 3)
   }
 
-  xm         <- vdist_xmm(chim, chisd)
+  # the grid must cover the cutoff, however far out it is
+  l      <- vdist_chiseql(chim, chisd, pp)
+  ln     <- length(l)
+  lc     <- c(l[1], pp, l[ln])
+  l1     <- c(1, 2)
+  l2     <- c(2, 3)
+
+  xm         <- c(l[1], l[ln])
   plot_data  <- data.frame(x = l, y = dchisq(l, df))
   point_data <- data.frame(x = pp, y = min(dchisq(l, df)))
 
@@ -132,10 +130,13 @@ cperc_data_prep <- function(probs, df, method) {
        col        = col)
 }
 
-vdist_chiseql <- function(mean, sd) {
+vdist_chiseql <- function(mean, sd, cutoff = NULL) {
   lmin <- mean - (5 * sd)
   lmax <- mean + (5 * sd)
-  seq(lmin, lmax, 0.01)
+  if (!is.null(cutoff)) {
+    lmax <- max(lmax, max(cutoff) + sd)
+  }
+  vdist_seq(lmin, lmax)
 }
 
 vdist_xmm <- function(mean, sd) {
@@ -150,29 +151,31 @@ cprob_data_prep <- function(perc, df, method) {
   chisd  <- round(sqrt(2 * df), 3)
 
   l <- if (perc < 25) {
-    seq(0, 25, 0.01)
+    vdist_seq(0, 25)
   } else {
-    seq(0, (perc + (3 * chisd)), 0.01)
+    vdist_seq(0, (perc + (3 * chisd)))
   }
 
   ln <- length(l)
+  # the support starts at 0: clamp the cutoff used for the shaded regions
+  pc <- min(max(perc, l[1]), l[ln])
 
   if (method == "lower") {
     pp  <- round(pchisq(perc, df), 3)
-    lc  <- c(l[1], perc, l[ln])
+    lc  <- c(l[1], pc, l[ln])
     col <- c("#0000CD", "#6495ED")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
   } else {
     pp  <- round(pchisq(perc, df, lower.tail = F), 3)
-    lc  <- c(l[1], perc, l[ln])
+    lc  <- c(l[1], pc, l[ln])
     col <- c("#6495ED", "#0000CD")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
   }
 
   plot_data  <- data.frame(x = l, y = dchisq(l, df))
-  point_data <- data.frame(x = perc, y = min(dchisq(l, df)))
+  point_data <- data.frame(x = pc, y = min(dchisq(l, df)))
 
   list(plot_data  = plot_data,
        point_data = point_data,
@@ -190,8 +193,6 @@ cprob_data_prep <- function(perc, df, method) {
 
 fplot_data_prep <- function(num_df, den_df) {
 
-  num_df <- as.integer(num_df)
-  den_df <- as.integer(den_df)
   fm     <- if (den_df > 2) round(den_df / (den_df - 2), 3) else NA_real_
   fsd    <- if (den_df > 4) round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3) else NA_real_
   x      <- seq(0, 4, 0.01)
@@ -219,25 +220,23 @@ fplot_data_prep <- function(num_df, den_df) {
 
 fperc_data_prep <- function(probs, num_df, den_df, method) {
 
-  num_df <- as.integer(num_df)
-  den_df <- as.integer(den_df)
   fm     <- if (den_df > 2) round(den_df / (den_df - 2), 3) else NA_real_
   fsd    <- if (den_df > 4) round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3) else NA_real_
 
   if (method == "lower") {
-    pp  <- round(qf(probs, num_df, den_df), 3)
+    pp  <- qf(probs, num_df, den_df)
     col <- c("#0000CD", "#6495ED")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
   } else {
-    pp  <- round(qf(probs, num_df, den_df, lower.tail = FALSE), 3)
+    pp  <- qf(probs, num_df, den_df, lower.tail = FALSE)
     col <- c("#6495ED", "#0000CD")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
   }
 
   xu <- if (pp < 4) 4 else pp * 1.25
-  l  <- seq(0, xu, 0.01)
+  l  <- vdist_seq(0, xu)
   ln <- length(l)
   lc <- c(l[1], pp, l[ln])
 
@@ -257,27 +256,27 @@ fperc_data_prep <- function(probs, num_df, den_df, method) {
 
 fprob_data_prep <- function(perc, num_df, den_df, method) {
 
-  num_df <- as.integer(num_df)
-  den_df <- as.integer(den_df)
   fm     <- if (den_df > 2) round(den_df / (den_df - 2), 3) else NA_real_
   fsd    <- if (den_df > 4) round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3) else NA_real_
 
   l <- if (perc < 4) {
-    seq(0, 4, 0.01)
+    vdist_seq(0, 4)
   } else {
-    seq(0, (perc * 1.25), 0.01)
+    vdist_seq(0, (perc * 1.25))
   }
   ln <- length(l)
+  # the support starts at 0: clamp the cutoff used for the shaded regions
+  pc <- min(max(perc, l[1]), l[ln])
 
   if (method == "lower") {
     pp  <- round(pf(perc, num_df, den_df), 3)
-    lc  <- c(l[1], perc, l[ln])
+    lc  <- c(l[1], pc, l[ln])
     col <- c("#0000CD", "#6495ED")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
   } else {
     pp  <- round(pf(perc, num_df, den_df, lower.tail = FALSE), 3)
-    lc  <- c(l[1], perc, l[ln])
+    lc  <- c(l[1], pc, l[ln])
     col <- c("#6495ED", "#0000CD")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
@@ -315,48 +314,58 @@ nplot_data_prep <- function(mean, sd) {
        ll        = ll)
 }
 
-vdist_xax <- function(mean, sd) {
-  xl <- mean - (4 * sd)
-  xu <- mean + (4 * sd)
+vdist_xax <- function(mean, sd, k = 4) {
+  k  <- max(k, 4)
+  xl <- mean - (k * sd)
+  xu <- mean + (k * sd)
   seq(xl, xu, length.out = 1000)
 }
 
-vdist_seql <- function(mean, sd) {
-  lmin <- mean - (5 * sd)
-  lmax <- mean + (5 * sd)
-  seq(lmin, lmax, sd)
+# axis grid: mean +/- k sd in steps of sd (coarser when k is very large)
+vdist_seql <- function(mean, sd, k = 5) {
+  lmin <- mean - (k * sd)
+  lmax <- mean + (k * sd)
+  if (k > 50) {
+    seq(lmin, lmax, length.out = 11)
+  } else {
+    seq(lmin, lmax, sd)
+  }
+}
+
+# half-width (in sd units) needed to show every cutoff with a margin
+vdist_halfwidth <- function(cutoff, mean, sd, min_k) {
+  max(min_k, max(abs(cutoff - mean)) / sd + 1)
 }
 
 nperc_data_prep <- function(probs, mean, sd, method) {
 
-  x      <- vdist_xax(mean, sd)
-  l      <- vdist_seql(mean, sd)
-  ln     <- length(l)
-
+  # cutoffs keep full precision; only the displayed text is formatted
   if (method == "lower") {
-    pp  <- round(qnorm(probs, mean, sd), 3)
-    lc  <- c(l[1], pp, l[ln])
+    pp  <- qnorm(probs, mean, sd)
     col <- c("#0000CD", "#6495ED")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
   } else if (method == "upper") {
-    pp  <- round(qnorm(probs, mean, sd, lower.tail = F), 3)
-    lc  <- c(l[1], pp, l[ln])
+    pp  <- qnorm(probs, mean, sd, lower.tail = F)
     col <- c("#6495ED", "#0000CD")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
   } else {
     alpha <- (1 - probs) / 2
-    pp1 <- round(qnorm(alpha, mean, sd), 3)
-    pp2 <- round(qnorm(alpha, mean, sd, lower.tail = F), 3)
+    pp1 <- qnorm(alpha, mean, sd)
+    pp2 <- qnorm(alpha, mean, sd, lower.tail = F)
     pp  <- c(pp1, pp2)
-    lc  <- c(l[1], pp1, pp2, l[ln])
     col <- c("#6495ED", "#0000CD", "#6495ED")
     l1  <- c(1, 2, 3)
     l2  <- c(2, 3, 4)
   }
 
-  xm <- vdist_xmm(mean, sd)
+  # the grid must cover every cutoff
+  x      <- vdist_xax(mean, sd, vdist_halfwidth(pp, mean, sd, 4))
+  l      <- vdist_seql(mean, sd, vdist_halfwidth(pp, mean, sd, 5))
+  ln     <- length(l)
+  lc     <- if (method == "both") c(l[1], pp1, pp2, l[ln]) else c(l[1], pp, l[ln])
+
   plot_data <- data.frame(x = x, y = dnorm(x, mean, sd))
 
   list(plot_data = plot_data,
@@ -427,15 +436,7 @@ vdist_xaxp <- function(mean, sd, el) {
 }
 
 vdist_seqlp <- function(mean, sd, el) {
-  if (el > 4) {
-    lmin <- mean - (el * sd)
-    lmax <- mean + (el * sd)
-  } else {
-    lmin <- mean - (4 * sd)
-    lmax <- mean + (4 * sd)
-  }
-
-  seq(lmin, lmax, sd)
+  vdist_seql(mean, sd, if (el > 4) el else 4)
 }
 
 vdist_xmmp <- function(mean, sd, el) {
@@ -452,12 +453,11 @@ vdist_xmmp <- function(mean, sd, el) {
 
 tplot_data_prep <- function(df) {
 
-  df <- as.integer(df)
   x  <- seq(-4, 4, 0.01)
 
   plot_data <- data.frame(x = x, y = dt(x, df))
-  poly_data <- data.frame(y = c(-4, seq(-4, 4, 0.01), 4),
-                          z = c(0, dt(seq(-4, 4, 0.01), df), 0))
+  poly_data <- data.frame(y = c(-4, x, 4),
+                          z = c(0, dt(x, df), 0))
 
   list(plot_data = plot_data,
        poly_data = poly_data)
@@ -465,36 +465,35 @@ tplot_data_prep <- function(df) {
 
 tperc_data_prep <- function(probs, df, method) {
 
-  df      <- as.integer(df)
-  l       <- seq(-5, 5, 0.01)
-  ln      <- length(l)
-
   if (method == "lower") {
     pp1   <- NULL
     pp2   <- NULL
-    pp    <- round(qt(probs, df), 3)
-    lc    <- c(l[1], pp, l[ln])
+    pp    <- qt(probs, df)
     col   <- c("#0000CD", "#6495ED")
     l1    <- c(1, 2)
     l2    <- c(2, 3)
   } else if (method == "upper") {
     pp1   <- NULL
     pp2   <- NULL
-    pp    <- round(qt(probs, df, lower.tail = F), 3)
-    lc    <- c(l[1], pp, l[ln])
+    pp    <- qt(probs, df, lower.tail = F)
     col   <- c("#6495ED", "#0000CD")
     l1    <- c(1, 2)
     l2    <- c(2, 3)
   } else {
     alpha <- (1 - probs) / 2
-    pp1   <- round(qt(alpha, df), 3)
-    pp2   <- round(qt(alpha, df, lower.tail = F), 3)
+    pp1   <- qt(alpha, df)
+    pp2   <- qt(alpha, df, lower.tail = F)
     pp    <- c(pp1, pp2)
-    lc    <- c(l[1], pp1, pp2, l[ln])
     col   <- c("#6495ED", "#0000CD", "#6495ED")
     l1    <- c(1, 2, 3)
     l2    <- c(2, 3, 4)
   }
+
+  # the grid must cover every cutoff
+  bound <- max(5, max(abs(pp)) + 1)
+  l     <- vdist_seq(-bound, bound)
+  ln    <- length(l)
+  lc    <- if (method == "both") c(l[1], pp1, pp2, l[ln]) else c(l[1], pp, l[ln])
 
   plot_data <- data.frame(x = l, y = dt(l, df))
 
@@ -511,10 +510,8 @@ tperc_data_prep <- function(probs, df, method) {
 
 tprob_data_prep <- function(perc, df, method) {
 
-  df <- as.integer(df)
-
   bound <- max(5, abs(perc) + 1)
-  l     <- seq(-bound, bound, 0.01)
+  l     <- vdist_seq(-bound, bound)
 
   ln <- length(l)
 

@@ -4,8 +4,8 @@
 #' the chi square distribution. Compute & visualize quantiles out of given
 #' probability and probability from a given quantile.
 #'
-#' @param df Degrees of freedom.
-#' @param probs Probability value.
+#' @param df Degrees of freedom (positive; need not be a whole number).
+#' @param probs Probability value, strictly between 0 and 1.
 #' @param perc Quantile value.
 #' @param type Lower tail or upper tail.
 #' @param normal If \code{TRUE}, normal curve with same \code{mean} and
@@ -38,8 +38,10 @@
 vdist_chisquare_plot <- function(df = 3, normal = FALSE, xaxis_range = 25, print_plot = TRUE) {
 
   check_numeric(df, "df")
+  check_scalar(df, "df")
   check_positive(df, "df")
   check_numeric(xaxis_range, "xaxis_range")
+  check_scalar(xaxis_range, "xaxis_range")
   check_positive(xaxis_range, "xaxis_range")
   check_logical(normal)
 
@@ -60,9 +62,12 @@ vdist_chisquare_plot <- function(df = 3, normal = FALSE, xaxis_range = 25, print
 vdist_chisquare_perc <- function(probs = 0.95, df = 3, type = c("lower", "upper"), print_plot = TRUE) {
 
   check_numeric(probs, "probs")
+  check_scalar(probs, "probs")
   check_numeric(df, "df")
+  check_scalar(df, "df")
   check_positive(df, "df")
   check_range(probs, 0, 1, "probs")
+  check_open_range(probs, "probs")
 
   method <- match.arg(type)
   data   <- cperc_data_prep(probs, df, method)
@@ -82,8 +87,10 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3, type = c("lower", "upper"
 vdist_chisquare_prob <- function(perc = 13, df = 11, type = c("lower", "upper"), print_plot = TRUE) {
 
   check_numeric(df, "df")
+  check_scalar(df, "df")
   check_positive(df, "df")
   check_numeric(perc, "perc")
+  check_scalar(perc, "perc")
 
   method <- match.arg(type)
   data   <- cprob_data_prep(perc, df, method)

@@ -25,16 +25,18 @@ vdist_f_prob(
 )
 }
 \arguments{
-\item{num_df}{Degrees of freedom associated with the numerator of f statistic.}
+\item{num_df}{Degrees of freedom associated with the numerator of f statistic
+(positive; need not be a whole number).}
 
-\item{den_df}{Degrees of freedom associated with the denominator of f statistic.}
+\item{den_df}{Degrees of freedom associated with the denominator of f statistic
+(positive; need not be a whole number).}
 
 \item{normal}{If \code{TRUE}, normal curve with same \code{mean} and
 \code{sd} as the F distribution is drawn.}
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{probs}{Probability value.}
+\item{probs}{Probability value, strictly between 0 and 1.}
 
 \item{type}{Lower tail or upper tail.}
 

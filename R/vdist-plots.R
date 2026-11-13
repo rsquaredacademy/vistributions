@@ -78,7 +78,7 @@ bperc_plot_build <- function(data, method, n, p, tp) {
     plot <-
       plot +
       ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
-              subtitle = paste0("P(X <= ", data$k, ") <= ", tp, ", but P(X <= ", (data$k + 1), ") > ", tp)
+              subtitle = paste0("P(X <= ", (data$k - 1), ") < ", tp, ", but P(X <= ", data$k, ") >= ", tp)
       )
   } else {
     plot <-
@@ -105,7 +105,7 @@ cplot_plot_build <- function(data, df, range, normal) {
     xlab(paste("Mean =", data$chim, " Std Dev. =", data$chisd)) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5)) +
-    scale_x_continuous(breaks = seq(0, range, 2)) +
+    scale_x_continuous(breaks = if (range <= 100) seq(0, range, 2) else waiver()) +
     geom_polygon(data    = data$poly_data,
                  mapping = aes(x = y, y = z),
                  fill    = '#4682B4') +
@@ -144,7 +144,7 @@ cperc_plot_build <- function(data, method, probs, df) {
     plot <-
       plot +
       ggtitle(label    = paste("Chi Square Distribution: df =", df),
-              subtitle = paste0("P(X < ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X < ", fmt_num(data$pp), ") = ", probs * 100, "%")) +
       annotate("text",
                label   = paste0(probs * 100, "%"),
                x       = data$pp - data$chisd,
@@ -162,7 +162,7 @@ cperc_plot_build <- function(data, method, probs, df) {
     plot <-
       plot +
       ggtitle(label    = paste("Chi Square Distribution: df =", df),
-              subtitle = paste0("P(X > ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X > ", fmt_num(data$pp), ") = ", probs * 100, "%")) +
       annotate("text",
                label   = paste0((1 - probs) * 100, "%"),
                x       = data$pp - data$chisd,
@@ -198,7 +198,7 @@ cperc_plot_build <- function(data, method, probs, df) {
                color      = 'red',
                size       = 3) +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = seq(0, data$xm[2], by = 5))
+    scale_x_continuous(breaks = if (data$xm[2] <= 300) seq(0, data$xm[2], by = 5) else waiver())
 
   return(plot)
 
@@ -274,14 +274,15 @@ cprob_plot_build <- function(data, method, perc, df) {
                color      = 'red',
                size       = 3) +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = seq(0, data$l[data$ln], by = 5))
+    scale_x_continuous(breaks = if (data$l[data$ln] <= 300) seq(0, data$l[data$ln], by = 5) else waiver())
 
   return(gplot)
 }
 
 vdist_pol_chi <- function(l1, l2, df) {
-  x   <- c(l1, seq(l1, l2, 0.01), l2)
-  y   <- c(0, dchisq(seq(l1, l2, 0.01), df), 0)
+  g   <- vdist_seq(l1, l2)
+  x   <- c(l1, g, l2)
+  y   <- c(0, dchisq(g, df), 0)
   data.frame(x = x, y = y)
 }
 
@@ -336,7 +337,7 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
     gplot <-
       gplot +
       ggtitle(label    = 'f Distribution',
-              subtitle = paste0("P(X < ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X < ", fmt_num(data$pp), ") = ", probs * 100, "%")) +
       annotate("text",
                label = paste0(probs * 100, "%"),
                x     = data$pp - 0.2,
@@ -354,7 +355,7 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
     gplot <-
       gplot +
       ggtitle(label    = 'f Distribution',
-              subtitle = paste0("P(X > ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X > ", fmt_num(data$pp), ") = ", probs * 100, "%")) +
       annotate("text",
                label = paste0((1 - probs) * 100, "%"),
                x     = data$pp - 0.2,
@@ -485,15 +486,16 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = 0:max(data$l))
+    scale_x_continuous(breaks = if (max(data$l) <= 60) 0:max(data$l) else waiver())
 
   return(gplot)
 
 }
 
 vdist_pol_f <- function(l1, l2, num_df, den_df) {
-  x    <- c(l1, seq(l1, l2, 0.01), l2)
-  y    <- c(0, df(seq(l1, l2, 0.01), num_df, den_df), 0)
+  g    <- vdist_seq(l1, l2)
+  x    <- c(l1, g, l2)
+  y    <- c(0, df(g, num_df, den_df), 0)
   data.frame(x = x, y = y)
 }
 
@@ -523,8 +525,9 @@ nplot_plot_build <- function(data, mean, sd) {
 }
 
 vdist_pol_cord <- function(l1, l2, mean, sd) {
-  x <- c(l1, seq(l1, l2, 0.01), l2)
-  y <- c(0, dnorm(seq(l1, l2, 0.01), mean, sd), 0)
+  g <- vdist_seq(l1, l2)
+  x <- c(l1, g, l2)
+  y <- c(0, dnorm(g, mean, sd), 0)
   data.frame(x = x, y = y)
 }
 
@@ -542,7 +545,7 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
-              subtitle = paste0("P(X < ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X < ", fmt_num(data$pp, sd), ") = ", probs * 100, "%")) +
       annotate("text",
                label = paste0(probs * 100, "%"),
                x     = data$pp - sd,
@@ -560,7 +563,7 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
-              subtitle = paste0("P(X > ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X > ", fmt_num(data$pp, sd), ") = ", probs * 100, "%")) +
       annotate("text",
                label = paste0((1 - probs) * 100, "%"),
                x     = data$pp - sd,
@@ -577,7 +580,7 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
-              subtitle = paste0("P(", data$pp[1], " < X < ", data$pp[2], ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(", fmt_num(data$pp[1], sd), " < X < ", fmt_num(data$pp[2], sd), ") = ", probs * 100, "%")) +
       annotate("text",
                label = paste0(probs * 100, "%"),
                x     = mean,
@@ -628,7 +631,7 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = data$l)
+    scale_x_continuous(breaks = if (length(data$l) <= 60) data$l else waiver())
 
   return(gplot)
 }
@@ -733,7 +736,7 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = data$l)
+    scale_x_continuous(breaks = if (length(data$l) <= 60) data$l else waiver())
 
   return(gplot)
 
@@ -776,7 +779,7 @@ tperc_plot_build <- function(data, probs, df, method) {
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(X < ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X < ", fmt_num(data$pp), ") = ", probs * 100, "%")) +
       annotate("text",
                label = paste0(probs * 100, "%"),
                x     = data$pp - 0.3,
@@ -794,7 +797,7 @@ tperc_plot_build <- function(data, probs, df, method) {
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(X > ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X > ", fmt_num(data$pp), ") = ", probs * 100, "%")) +
       annotate("text",
                label = paste0((1 - probs) * 100, "%"),
                x     = data$pp - 0.3,
@@ -811,7 +814,7 @@ tperc_plot_build <- function(data, probs, df, method) {
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(", data$pp[1], " < X < ", data$pp[2], ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(", fmt_num(data$pp[1]), " < X < ", fmt_num(data$pp[2]), ") = ", probs * 100, "%")) +
       annotate("text",
                label = paste0(probs * 100, "%"),
                x     = mean(data$l),
@@ -877,7 +880,7 @@ tprob_plot_build <- function(data, perc, df, method) {
     ylab('') +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5)) +
-    scale_x_continuous(breaks = min(data$l):max(data$l)) +
+    scale_x_continuous(breaks = if (max(data$l) <= 30) min(data$l):max(data$l) else waiver()) +
     scale_y_continuous(breaks = NULL)
 
   for (i in seq_len(length(data$l1))) {
@@ -1040,7 +1043,8 @@ tprob_plot_build <- function(data, perc, df, method) {
 
 
 vdist_pol_t <- function(l1, l2, df) {
-  x    <- c(l1, seq(l1, l2, 0.01), l2)
-  y    <- c(0, dt(seq(l1, l2, 0.01), df), 0)
+  g    <- vdist_seq(l1, l2)
+  x    <- c(l1, g, l2)
+  y    <- c(0, dt(g, df), 0)
   data.frame(x = x, y = y)
 }

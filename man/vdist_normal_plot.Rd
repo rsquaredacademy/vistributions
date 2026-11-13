@@ -31,7 +31,7 @@ vdist_normal_prob(
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{probs}{Probability value.}
+\item{probs}{Probability value, strictly between 0 and 1.}
 
 \item{type}{Lower tail, upper tail or both.}
 

@@ -23,15 +23,17 @@ vdist_t_prob(
 )
 }
 \arguments{
-\item{df}{Degrees of freedom.}
+\item{df}{Degrees of freedom (positive; need not be a whole number).}
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{probs}{Probability value.}
+\item{probs}{Probability value, strictly between 0 and 1.}
 
 \item{type}{Lower tail, upper tail, interval or both.}
 
-\item{perc}{Quantile value.}
+\item{perc}{Quantile value. For \code{type = "interval"} and
+\code{type = "both"} the event is defined by \code{|perc|}, so a negative
+value gives the same result as its absolute value.}
 }
 \value{
 An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
