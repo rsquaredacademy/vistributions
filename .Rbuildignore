@@ -19,3 +19,4 @@
 ^\.RData$
 ^\.Rhistory$
 ^netlify\.toml$
+^docs-dev$
