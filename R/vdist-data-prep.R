@@ -75,16 +75,19 @@ cplot_data_prep <- function(df, range) {
 
   chim  <- round(df, 3)
   chisd <- round(sqrt(2 * df), 3)
-  lo    <- vdist_support_start(df, qchisq(1e-6, df))
+  lo    <- vdist_support_start(df, qchisq(1e-6, df), "chi-square", min_df = 0.1)
   x     <- vdist_grid(lo, range,
                       function(v) pchisq(v, df),
                       function(p) qchisq(p, df),
                       quantile = df < 2)
   data  <- dchisq(x, df)
+  vdist_check_density(data, "chi-square density")
 
   plot_data  <- data.frame(x = x, chi = data)
   poly_data  <- data.frame(y = c(0, x, range),
                            z = c(0, data, 0))
+  vdist_check_area(poly_data$y, poly_data$z, pchisq(range, df),
+                   "chi-square plot")
   point_data <- data.frame(x = chim, y = min(data))
   # the overlay uses the df that was supplied: rounding df (or its sd) to three
   # decimals turns a valid positive sd into a point mass for tiny df
@@ -106,9 +109,17 @@ cperc_data_prep <- function(probs, df, method) {
 
   if (method == "lower") {
     pp  <- qchisq(probs, df)
+    vdist_check_quantile(pp, function(v) pchisq(v, df), probs,
+                         "chi-square quantile", "chisquare")
+    pp_text <- vdist_fmt_cutoff(pp, Inf, function(v) pchisq(v, df), probs)
     col <- c("#0000CD", "#6495ED")
   } else {
     pp  <- qchisq(probs, df, lower.tail = FALSE)
+    vdist_check_quantile(pp, function(v) pchisq(v, df, lower.tail = FALSE),
+                         probs, "chi-square quantile", "chisquare")
+    pp_text <- vdist_fmt_cutoff(pp, Inf,
+                                function(v) pchisq(v, df, lower.tail = FALSE),
+                                probs)
     col <- c("#6495ED", "#0000CD")
   }
 
@@ -123,6 +134,7 @@ cperc_data_prep <- function(probs, df, method) {
 
   xm         <- c(l[1], l[ln])
   plot_data  <- data.frame(x = l, y = dchisq(l, df))
+  vdist_check_density(plot_data$y, "chi-square density")
   point_data <- data.frame(x = pc, y = min(dchisq(l, df)))
 
   list(plot_data  = plot_data,
@@ -132,6 +144,7 @@ cperc_data_prep <- function(probs, df, method) {
        xm         = xm,
        l          = l,
        pp         = pp,
+       pp_text    = pp_text,
        pc         = pc,
        lc         = lc,
        l1         = l1,
@@ -140,7 +153,7 @@ cperc_data_prep <- function(probs, df, method) {
 }
 
 vdist_chiseql <- function(mean, sd, cutoff = NULL, df) {
-  lmin <- vdist_support_start(df, qchisq(1e-6, df))
+  lmin <- vdist_support_start(df, qchisq(1e-6, df), "chi-square", min_df = 0.1)
   lmax <- mean + (5 * sd)
   if (!is.null(cutoff)) {
     lmax <- max(lmax, max(cutoff) + sd)
@@ -164,7 +177,7 @@ cprob_data_prep <- function(perc, df, method) {
   chim   <- round(df, 3)
   chisd  <- round(sqrt(2 * df), 3)
 
-  lo <- vdist_support_start(df, qchisq(1e-6, df))
+  lo <- vdist_support_start(df, qchisq(1e-6, df), "chi-square", min_df = 0.1)
   hi <- if (perc < 25) 25 else (perc + (3 * chisd))
   # never plot beyond the central mass: a cutoff further out is drawn clipped
   hi <- max(min(hi, qchisq(1 - 1e-9, df)), lo + 1)
@@ -193,6 +206,7 @@ cprob_data_prep <- function(perc, df, method) {
   }
 
   plot_data  <- data.frame(x = l, y = dchisq(l, df))
+  vdist_check_density(plot_data$y, "chi-square density")
   point_data <- data.frame(x = pc, y = min(dchisq(l, df)))
 
   list(plot_data  = plot_data,
@@ -212,16 +226,32 @@ cprob_data_prep <- function(perc, df, method) {
 
 fplot_data_prep <- function(num_df, den_df) {
 
-  fm     <- if (den_df > 2) round(den_df / (den_df - 2), 3) else NA_real_
-  fsd    <- if (den_df > 4) round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3) else NA_real_
-  lo     <- vdist_support_start(num_df, qf(1e-6, num_df, den_df))
-  x      <- vdist_grid(lo, 4,
-                       function(v) pf(v, num_df, den_df),
-                       function(p) qf(p, num_df, den_df),
-                       quantile = num_df < 2)
+  # moments stay unrounded for the overlay; only the displayed summary is
+  # formatted. den_df <= 4 has no finite F variance.
+  fm     <- if (den_df > 2) den_df / (den_df - 2) else NA_real_
+  fsd    <- if (den_df > 4) sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))) else NA_real_
+  lo     <- vdist_support_start(num_df, qf(1e-6, num_df, den_df), "F", min_df = 1)
+  step   <- if (num_df < 2) NULL else min(0.01, vdist_f_width(num_df, den_df) / 50)
+  target <- pf(4, num_df, den_df)
+
+  for (i in seq_len(12)) {
+    x <- vdist_f_grid(lo, 4, num_df, den_df,
+                      quantile = num_df < 2, step = step)
+    poly <- data.frame(y = c(0, x, 4),
+                       z = c(0, df(x, num_df, den_df), 0))
+    area <- vdist_area(poly$y, poly$z)
+    if (is.finite(area) && abs(area - target) <= 1e-3) {
+      break
+    }
+    if (is.null(step)) {
+      break
+    }
+    step <- step / 2
+  }
   nx     <- x
 
   plot_data  <- data.frame(x = x, y = df(x, num_df, den_df))
+  vdist_check_density(plot_data$y, "F density")
   point_data <- if (!is.na(fm)) data.frame(x = fm, y = 0) else data.frame(x = numeric(0), y = numeric(0))
   nline_data <- if (!is.na(fsd)) data.frame(x = nx, y = dnorm(nx, fm, fsd)) else data.frame(x = numeric(0), y = numeric(0))
 
@@ -229,6 +259,7 @@ fplot_data_prep <- function(num_df, den_df) {
                            z = c(0,
                                  df(x, num_df, den_df),
                                  0))
+  vdist_check_area(poly_data$y, poly_data$z, pf(4, num_df, den_df), "F plot")
 
   list(plot_data  = plot_data,
        poly_data  = poly_data,
@@ -241,16 +272,25 @@ fplot_data_prep <- function(num_df, den_df) {
 
 fperc_data_prep <- function(probs, num_df, den_df, method) {
 
-  fm     <- if (den_df > 2) round(den_df / (den_df - 2), 3) else NA_real_
-  fsd    <- if (den_df > 4) round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3) else NA_real_
+  fm     <- if (den_df > 2) den_df / (den_df - 2) else NA_real_
+  fsd    <- if (den_df > 4) sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))) else NA_real_
 
   if (method == "lower") {
     pp  <- qf(probs, num_df, den_df)
+    vdist_check_quantile(pp, function(v) pf(v, num_df, den_df), probs,
+                         "F quantile", "f")
+    pp_text <- vdist_fmt_cutoff(pp, Inf,
+                                function(v) pf(v, num_df, den_df), probs)
     col <- c("#0000CD", "#6495ED")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
   } else {
     pp  <- qf(probs, num_df, den_df, lower.tail = FALSE)
+    vdist_check_quantile(pp, function(v) pf(v, num_df, den_df, lower.tail = FALSE),
+                         probs, "F quantile", "f")
+    pp_text <- vdist_fmt_cutoff(pp, Inf,
+                                function(v) pf(v, num_df, den_df, lower.tail = FALSE),
+                                probs)
     col <- c("#6495ED", "#0000CD")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
@@ -259,22 +299,21 @@ fperc_data_prep <- function(probs, num_df, den_df, method) {
   xu <- if (pp < 4) 4 else pp * 1.25
   # never plot beyond the central mass: a cutoff further out is drawn clipped
   xu <- max(min(xu, qf(1 - 1e-9, num_df, den_df)), qf(1e-6, num_df, den_df))
-  lo <- vdist_support_start(num_df, qf(1e-6, num_df, den_df))
-  l  <- vdist_grid(lo, xu,
-                   function(x) pf(x, num_df, den_df),
-                   function(p) qf(p, num_df, den_df),
-                   quantile = num_df < 2)
+  lo <- vdist_support_start(num_df, qf(1e-6, num_df, den_df), "F", min_df = 1)
+  l  <- vdist_f_grid(lo, xu, num_df, den_df, quantile = num_df < 2)
   ln <- length(l)
   pc <- min(max(pp, l[1]), l[ln])
   lc <- c(l[1], pc, l[ln])
 
   plot_data <- data.frame(x = l, y = df(l, num_df, den_df))
+  vdist_check_density(plot_data$y, "F density")
 
   list(plot_data = plot_data,
        fm        = fm,
        fsd       = fsd,
        l         = l,
        pp        = pp,
+       pp_text   = pp_text,
        pc        = pc,
        lc        = lc,
        l1        = l1,
@@ -285,18 +324,15 @@ fperc_data_prep <- function(probs, num_df, den_df, method) {
 
 fprob_data_prep <- function(perc, num_df, den_df, method) {
 
-  fm     <- if (den_df > 2) round(den_df / (den_df - 2), 3) else NA_real_
-  fsd    <- if (den_df > 4) round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3) else NA_real_
+  fm     <- if (den_df > 2) den_df / (den_df - 2) else NA_real_
+  fsd    <- if (den_df > 4) sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))) else NA_real_
 
-  lo <- vdist_support_start(num_df, qf(1e-6, num_df, den_df))
+  lo <- vdist_support_start(num_df, qf(1e-6, num_df, den_df), "F", min_df = 1)
   hi <- if (perc < 4) 4 else (perc * 1.25)
   # never plot beyond the central mass: a cutoff further out is drawn clipped
   hi <- max(min(hi, qf(1 - 1e-9, num_df, den_df)), lo + 1)
 
-  l  <- vdist_grid(lo, hi,
-                   function(x) pf(x, num_df, den_df),
-                   function(p) qf(p, num_df, den_df),
-                   quantile = num_df < 2)
+  l  <- vdist_f_grid(lo, hi, num_df, den_df, quantile = num_df < 2)
   ln <- length(l)
   # the support starts at 0 and the view stops at the central mass: clamp the
   # cutoff used for the shaded regions (the caption keeps the true perc)
@@ -317,6 +353,7 @@ fprob_data_prep <- function(perc, num_df, den_df, method) {
   }
 
   plot_data <- data.frame(x = l, y = df(l, num_df, den_df))
+  vdist_check_density(plot_data$y, "F density")
 
   list(plot_data = plot_data,
        fm        = fm,
@@ -340,6 +377,7 @@ nplot_data_prep <- function(mean, sd) {
   ll  <- l[3:9]
 
   plot_data <- data.frame(x = x, y = dnorm(x, mean, sd))
+  vdist_check_density(plot_data$y, "normal density")
 
   list(plot_data = plot_data,
        l         = l,
@@ -363,7 +401,13 @@ vdist_seql <- function(mean, sd, k = 5) {
   if (k > 50) {
     seq(lmin, lmax, length.out = 11)
   } else {
-    seq(lmin, lmax, sd)
+    out <- seq(lmin, lmax, sd)
+    # seq() stops before the upper limit when the span is not a whole number
+    # of sd units; the drawn view (and the cutoff clamp) must reach it
+    if (length(out) > 1 && out[length(out)] < lmax) {
+      out <- c(out, lmax)
+    }
+    out
   }
 }
 
@@ -377,11 +421,19 @@ nperc_data_prep <- function(probs, mean, sd, method) {
   # cutoffs keep full precision; only the displayed text is formatted
   if (method == "lower") {
     pp  <- qnorm(probs, mean, sd)
+    vdist_check_quantile(pp, function(v) pnorm(v, mean, sd), probs,
+                         "normal quantile", "normal")
+    pp_text <- vdist_fmt_cutoff(pp, sd, function(v) pnorm(v, mean, sd), probs)
     col <- c("#0000CD", "#6495ED")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
   } else if (method == "upper") {
     pp  <- qnorm(probs, mean, sd, lower.tail = F)
+    vdist_check_quantile(pp, function(v) pnorm(v, mean, sd, lower.tail = F),
+                         probs, "normal quantile", "normal")
+    pp_text <- vdist_fmt_cutoff(pp, sd,
+                                function(v) pnorm(v, mean, sd, lower.tail = F),
+                                probs)
     col <- c("#6495ED", "#0000CD")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
@@ -389,7 +441,15 @@ nperc_data_prep <- function(probs, mean, sd, method) {
     alpha <- (1 - probs) / 2
     pp1 <- qnorm(alpha, mean, sd)
     pp2 <- qnorm(alpha, mean, sd, lower.tail = F)
+    vdist_check_quantile(pp1, function(v) pnorm(v, mean, sd), alpha,
+                         "normal quantile", "normal")
+    vdist_check_quantile(pp2, function(v) pnorm(v, mean, sd, lower.tail = F),
+                         alpha, "normal quantile", "normal")
     pp  <- c(pp1, pp2)
+    pp_text <- c(
+      vdist_fmt_cutoff(pp1, sd, function(v) pnorm(v, mean, sd), alpha),
+      vdist_fmt_cutoff(pp2, sd, function(v) pnorm(v, mean, sd, lower.tail = F), alpha)
+    )
     col <- c("#6495ED", "#0000CD", "#6495ED")
     l1  <- c(1, 2, 3)
     l2  <- c(2, 3, 4)
@@ -405,9 +465,11 @@ nperc_data_prep <- function(probs, mean, sd, method) {
   lc     <- if (method == "both") c(l[1], pc[1], pc[2], l[ln]) else c(l[1], pc, l[ln])
 
   plot_data <- data.frame(x = x, y = dnorm(x, mean, sd))
+  vdist_check_density(plot_data$y, "normal density")
 
   list(plot_data = plot_data,
        pp        = pp,
+       pp_text   = pp_text,
        pc        = pc,
        l         = l,
        x         = x,
@@ -457,6 +519,7 @@ nprob_data_prep <- function(perc, mean, sd, method) {
 
   xm <- vdist_xmmp(mean, sd, el)
   plot_data <- data.frame(x = x, y = dnorm(x, mean, sd))
+  vdist_check_density(plot_data$y, "normal density")
 
   list(plot_data = plot_data,
        pp        = pp,
@@ -512,6 +575,9 @@ tperc_data_prep <- function(probs, df, method) {
     pp1   <- NULL
     pp2   <- NULL
     pp    <- qt(probs, df)
+    vdist_check_quantile(pp, function(v) pt(v, df), probs,
+                         "t quantile", "t")
+    pp_text <- vdist_fmt_cutoff(pp, Inf, function(v) pt(v, df), probs)
     col   <- c("#0000CD", "#6495ED")
     l1    <- c(1, 2)
     l2    <- c(2, 3)
@@ -519,6 +585,10 @@ tperc_data_prep <- function(probs, df, method) {
     pp1   <- NULL
     pp2   <- NULL
     pp    <- qt(probs, df, lower.tail = F)
+    vdist_check_quantile(pp, function(v) pt(v, df, lower.tail = F), probs,
+                         "t quantile", "t")
+    pp_text <- vdist_fmt_cutoff(pp, Inf,
+                                function(v) pt(v, df, lower.tail = F), probs)
     col   <- c("#6495ED", "#0000CD")
     l1    <- c(1, 2)
     l2    <- c(2, 3)
@@ -526,29 +596,40 @@ tperc_data_prep <- function(probs, df, method) {
     alpha <- (1 - probs) / 2
     pp1   <- qt(alpha, df)
     pp2   <- qt(alpha, df, lower.tail = F)
+    vdist_check_quantile(pp1, function(v) pt(v, df), alpha,
+                         "t quantile", "t")
+    vdist_check_quantile(pp2, function(v) pt(v, df, lower.tail = F), alpha,
+                         "t quantile", "t")
     pp    <- c(pp1, pp2)
+    pp_text <- c(
+      vdist_fmt_cutoff(pp1, Inf, function(v) pt(v, df), alpha),
+      vdist_fmt_cutoff(pp2, Inf, function(v) pt(v, df, lower.tail = F), alpha)
+    )
     col   <- c("#6495ED", "#0000CD", "#6495ED")
     l1    <- c(1, 2, 3)
     l2    <- c(2, 3, 4)
   }
 
   # the grid must cover every cutoff, but never beyond the central mass
-  bound <- max(5, max(abs(pp)) + 1)
+  bound <- vdist_t_bound(max(5, max(abs(pp)) + 1), df)
   bound <- min(bound, qt(1 - 1e-9, df))
   l     <- vdist_grid(-bound, bound,
                       function(x) pt(x, df),
-                      function(p) qt(p, df))
+                      function(p) qt(p, df),
+                      quantile = (2 * bound) / 0.01 > 20000)
   ln    <- length(l)
   # the drawn cutoffs are clipped to the visible range; captions keep pp
   pc    <- pmin(pmax(pp, l[1]), l[ln])
   lc    <- if (method == "both") c(l[1], pc[1], pc[2], l[ln]) else c(l[1], pc, l[ln])
 
   plot_data <- data.frame(x = l, y = dt(l, df))
+  vdist_check_density(plot_data$y, "t density")
 
   list(plot_data = plot_data,
        l         = l,
        alpha     = alpha,
        pp        = pp,
+       pp_text   = pp_text,
        pc        = pc,
        lc        = lc,
        l1        = l1,
@@ -559,11 +640,12 @@ tperc_data_prep <- function(probs, df, method) {
 
 tprob_data_prep <- function(perc, df, method) {
 
-  bound <- max(5, abs(perc) + 1)
+  bound <- vdist_t_bound(max(5, abs(perc) + 1), df)
   bound <- min(bound, qt(1 - 1e-9, df))
   l     <- vdist_grid(-bound, bound,
                       function(x) pt(x, df),
-                      function(p) qt(p, df))
+                      function(p) qt(p, df),
+                      quantile = (2 * bound) / 0.01 > 20000)
 
   ln <- length(l)
   # the drawn cutoff is clipped to the visible range; the caption keeps perc
@@ -612,6 +694,7 @@ tprob_data_prep <- function(perc, df, method) {
   }
 
   plot_data <- data.frame(x = l, y = dt(l, df))
+  vdist_check_density(plot_data$y, "t density")
 
   list(plot_data = plot_data,
        l         = l,

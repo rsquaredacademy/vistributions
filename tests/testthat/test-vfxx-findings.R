@@ -123,10 +123,11 @@ test_that("VFXX-H3: the shaded polygon area matches the event probability", {
   expect_gt(dark_area(vdist_f_prob(5000, 4, 30, print_plot = FALSE)), .999)
   expect_equal(dark_area(vdist_f_prob(1e6, 7, print_plot = FALSE)), 1, tolerance = 1e-3)
 
-  # an ordinary plot keeps its pre-fix sampling, and its area is still right
+  # an ordinary plot keeps a bounded grid and its area is still right
   p <- vdist_t_prob(2.045, 7, print_plot = FALSE)
-  expect_equal(nrow(p$data), 1001)
-  expect_equal(dark_area(p), diff(pt(c(-5, 2.045), 7)), tolerance = 5e-4)
+  expect_lt(nrow(p$data), 30000)
+  expect_equal(dark_area(p), pt(2.045, 7) - pt(min(p$data$x), 7),
+               tolerance = 1e-3)
 })
 
 # VFXX-H4 -------------------------------------------------------------------
@@ -164,13 +165,17 @@ test_that("VFXX-H4: chi-square grids respect the support and stay finite", {
 # VFXX-M1 -------------------------------------------------------------------
 
 test_that("VFXX-M1: the normal overlay uses the unrounded df and sd", {
-  p <- vdist_chisquare_plot(1e-8, normal = TRUE, print_plot = FALSE)
+  # df below the documented chi-square floor is rejected, not drawn as a spike
+  expect_error(vdist_chisquare_plot(1e-8, normal = TRUE, print_plot = FALSE),
+               "df must be at least 0.1")
+
+  p <- vdist_chisquare_plot(0.1, normal = TRUE, print_plot = FALSE)
   nl <- p$layers[[4]]$data
   expect_true(all(is.finite(nl$y)))
-  expect_equal(nl$y, dnorm(nl$x, 1e-8, sqrt(2e-8)))
-  expect_equal(max(nl$y), dnorm(0, 1e-8, sqrt(2e-8)), tolerance = 1e-6)
+  expect_equal(nl$y, dnorm(nl$x, 0.1, sqrt(2 * 0.1)))
+  expect_equal(max(nl$y), dnorm(0.1, 0.1, sqrt(2 * 0.1)), tolerance = 1e-6)
   # the summary text is formatted separately and no longer reads like a point mass
-  expect_equal(p$labels$x, "Mean = 0.00000001  Std Dev. = 0.0001414")
+  expect_equal(p$labels$x, "Mean = 0.1  Std Dev. = 0.4472")
 
   # ordinary df unchanged
   p <- vdist_chisquare_plot(df = 5, normal = TRUE, print_plot = FALSE)

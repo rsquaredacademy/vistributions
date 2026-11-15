@@ -8,8 +8,12 @@
 #' @param perc Quantile value(s): a single value for a lower or upper tail, or
 #'   two values in nondecreasing order for the interval between them. Two
 #'   values select \code{type = "both"} automatically.
-#' @param sd Standard deviation of the normal distribution.
-#' @param probs Probability value, strictly between 0 and 1.
+#' @param sd Standard deviation of the normal distribution. It must be positive
+#'   and large enough, relative to \code{mean}, that the requested cutoff is a
+#'   representable double; otherwise \code{vdist_normal_perc()} stops with a
+#'   numerical-resolution error.
+#' @param probs Probability value, strictly between 0 and 1 and within
+#'   \code{[1e-10, 1 - 1e-10]}.
 #' @param type Lower tail, upper tail or both.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
@@ -68,7 +72,7 @@ vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", 
   check_numeric(probs, "probs")
   check_scalar(probs, "probs")
   check_range(probs, 0, 1, "probs")
-  check_open_range(probs, "probs")
+  check_probability(probs, "probs", "normal")
 
   method <- match.arg(type)
   data   <- nperc_data_prep(probs, mean, sd, method)

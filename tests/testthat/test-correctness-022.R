@@ -29,8 +29,8 @@ test_that("H2: fractional df is kept in t, chi-square and F helpers", {
                paste0("P(X < ", round(qchisq(.95, 1.9), 3), ") = 95%"))
   expect_equal(subtitle(vdist_chisquare_prob(3, df = 2.5, print_plot = FALSE)),
                paste0("P(X < 3) = ", round(pchisq(3, 2.5), 3) * 100, "%"))
-  expect_equal(subtitle(vdist_f_prob(1, num_df = .5, den_df = 3, print_plot = FALSE)),
-               paste0("P(X < 1) = ", round(pf(1, .5, 3), 3) * 100, "%"))
+  expect_equal(subtitle(vdist_f_prob(1, num_df = 1.5, den_df = 3, print_plot = FALSE)),
+               paste0("P(X < 1) = ", round(pf(1, 1.5, 3), 3) * 100, "%"))
   expect_equal(subtitle(vdist_f_perc(.9, num_df = 2.5, den_df = 7.5, print_plot = FALSE)),
                paste0("P(X < ", round(qf(.9, 2.5, 7.5), 3), ") = 90%"))
   expect_equal(subtitle(vdist_t_perc(.9, df = 2.5, print_plot = FALSE)),

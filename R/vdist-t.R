@@ -5,7 +5,8 @@
 #' probability from a given quantile.
 #'
 #' @param df Degrees of freedom (positive; need not be a whole number).
-#' @param probs Probability value, strictly between 0 and 1.
+#' @param probs Probability value, strictly between 0 and 1 and within
+#'   \code{[1e-10, 1 - 1e-10]}.
 #' @param perc Quantile value. For \code{type = "interval"} and
 #'   \code{type = "both"} the event is defined by \code{|perc|}, so a negative
 #'   value gives the same result as its absolute value.
@@ -65,7 +66,7 @@ vdist_t_perc <- function(probs = 0.95, df = 4, type = c("lower", "upper", "both"
   check_scalar(df, "df")
   check_positive(df, "df")
   check_range(probs, 0, 1, "probs")
-  check_open_range(probs, "probs")
+  check_probability(probs, "probs", "t")
 
   method  <- match.arg(type)
   data    <- tperc_data_prep(probs, df, method)

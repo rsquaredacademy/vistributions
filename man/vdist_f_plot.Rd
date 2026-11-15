@@ -26,17 +26,19 @@ vdist_f_prob(
 }
 \arguments{
 \item{num_df}{Degrees of freedom associated with the numerator of f statistic
-(positive; need not be a whole number).}
+(at least 1; need not be a whole number).}
 
 \item{den_df}{Degrees of freedom associated with the denominator of f statistic
 (positive; need not be a whole number).}
 
 \item{normal}{If \code{TRUE}, normal curve with same \code{mean} and
-\code{sd} as the F distribution is drawn.}
+\code{sd} as the F distribution is drawn. The overlay is omitted with a
+message when \code{den_df <= 4} (the variance is undefined).}
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{probs}{Probability value, strictly between 0 and 1.}
+\item{probs}{Probability value, strictly between 0 and 1 and within
+\code{[1e-6, 1 - 1e-6]}.}
 
 \item{type}{Lower tail or upper tail.}
 

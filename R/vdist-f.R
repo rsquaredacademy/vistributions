@@ -5,12 +5,14 @@
 #' probability and probability from a given quantile.
 #'
 #' @param num_df Degrees of freedom associated with the numerator of f statistic
-#'   (positive; need not be a whole number).
+#'   (at least 1; need not be a whole number).
 #' @param den_df Degrees of freedom associated with the denominator of f statistic
 #'   (positive; need not be a whole number).
 #' @param normal If \code{TRUE}, normal curve with same \code{mean} and
-#' \code{sd} as the F distribution is drawn.
-#' @param probs Probability value, strictly between 0 and 1.
+#' \code{sd} as the F distribution is drawn. The overlay is omitted with a
+#' message when \code{den_df <= 4} (the variance is undefined).
+#' @param probs Probability value, strictly between 0 and 1 and within
+#' \code{[1e-6, 1 - 1e-6]}.
 #' @param perc Quantile value.
 #' @param type Lower tail or upper tail.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
@@ -44,6 +46,9 @@ vdist_f_plot <- function(num_df = 4, den_df = 30, normal = FALSE, print_plot = T
   check_scalar(den_df, "den_df")
   check_positive(num_df, "num_df")
   check_positive(den_df, "den_df")
+  if (num_df < 1) {
+    stop("num_df must be at least 1 for guaranteed numerical accuracy.", call. = FALSE)
+  }
   check_logical(normal)
 
   data <- fplot_data_prep(num_df, den_df)
@@ -68,10 +73,13 @@ vdist_f_perc <- function(probs = 0.95, num_df = 3, den_df = 30, type = c("lower"
   check_scalar(den_df, "den_df")
   check_positive(num_df, "num_df")
   check_positive(den_df, "den_df")
+  if (num_df < 1) {
+    stop("num_df must be at least 1 for guaranteed numerical accuracy.", call. = FALSE)
+  }
   check_numeric(probs, "probs")
   check_scalar(probs, "probs")
   check_range(probs, 0, 1, "probs")
-  check_open_range(probs, "probs")
+  check_probability(probs, "probs", "f")
 
   method <- match.arg(type)
   data   <- fperc_data_prep(probs, num_df, den_df, method)
@@ -98,6 +106,9 @@ vdist_f_prob <- function(perc = 2.35, num_df = 5, den_df = 32, type = c("lower",
   check_scalar(den_df, "den_df")
   check_positive(num_df, "num_df")
   check_positive(den_df, "den_df")
+  if (num_df < 1) {
+    stop("num_df must be at least 1 for guaranteed numerical accuracy.", call. = FALSE)
+  }
 
   method <- match.arg(type)
   data   <- fprob_data_prep(perc, num_df, den_df, method)

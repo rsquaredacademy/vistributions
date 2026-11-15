@@ -27,7 +27,8 @@ vdist_t_prob(
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{probs}{Probability value, strictly between 0 and 1.}
+\item{probs}{Probability value, strictly between 0 and 1 and within
+\code{[1e-10, 1 - 1e-10]}.}
 
 \item{type}{Lower tail, upper tail, interval or both.}
 

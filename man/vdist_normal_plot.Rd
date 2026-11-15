@@ -27,11 +27,15 @@ vdist_normal_prob(
 \arguments{
 \item{mean}{Mean of the normal distribution.}
 
-\item{sd}{Standard deviation of the normal distribution.}
+\item{sd}{Standard deviation of the normal distribution. It must be positive
+and large enough, relative to \code{mean}, that the requested cutoff is a
+representable double; otherwise \code{vdist_normal_perc()} stops with a
+numerical-resolution error.}
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{probs}{Probability value, strictly between 0 and 1.}
+\item{probs}{Probability value, strictly between 0 and 1 and within
+\code{[1e-10, 1 - 1e-10]}.}
 
 \item{type}{Lower tail, upper tail or both.}
 
