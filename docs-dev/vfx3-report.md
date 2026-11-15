@@ -1,5 +1,10 @@
 # vistributions 0.2.2 — fix round 3 (pkg-vfx3)
 
+> **Historical note (added in round 4).** This report describes the round-3
+> tree only. Its contract table and sampling description are superseded by
+> `docs-dev/vfx4-report.md`; the snapshot descriptions below have been
+> corrected to the actual round-3 SVG changes.
+
 Worktree: `F:/R/Packages/_worktrees/vist-fix-022` (branch `task/vist-fix-022`,
 head `0e48f1b` at the start, after vfx2). Findings: `docs-dev/vfxx2-reaudit.md`
 (untracked and left in place), **VFXX2-H1–H4, M1, M2, L1**. No push, no GitHub
@@ -146,25 +151,27 @@ that a valid F `sd` cannot round to zero are corrected in place.
 
 All 15 changes are intentional; no snapshot was accepted to hide a failure.
 
-| Snapshot | Why |
+| Snapshot | Actual round-3 change |
 |---|---|
-| `chisquare-perc-lower.svg` | caption cutoff `4.238` → `4.2384` so the printed event is true at printed precision |
-| `f-perc-upper.svg` | caption cutoff `1.705` → `1.7047`, same reason |
-| `f-plot-1.svg` | F plot grid re-sampled/re-stepped to meet the 1e-3 polygon-area guarantee; text unchanged |
-| `f-plot-2.svg` | same grid change plus the unrounded-moment normal overlay (M1); text unchanged |
-| `f-prob-lower.svg` | F shaded polygon/grid re-sampling and clamped annotation position; labels unchanged |
-| `f-prob-upper.svg` | same F polygon/annotation change; labels unchanged |
-| `normal-perc-both.svg` | caption cutoff `4.666` → `4.6656` (true printed event) |
-| `normal-perc-upper.svg` | caption cutoff `2.713` → `2.7132` (true printed event) |
-| `t-perc-lower.svg` | view extends to the 1e-4 tail quantile so the shaded area is correct; axis breaks/caption follow |
-| `t-perc-upper.svg` | same tail-aware t view/area change |
-| `t-perc-both.svg` | same tail-aware t view; caption cutoff `1.094` → `1.0944` |
-| `t-prob-lower.svg` | tail-aware t view; axis breaks and shading extent change |
-| `t-prob-upper.svg` | same |
-| `t-prob-interval.svg` | same; interval mass now comes from the full drawn view |
-| `t-prob-both.svg` | same; both-tail view/axis breaks |
+| `chisquare-perc-lower.svg` | caption cutoff `4.238` → `4.2384` only |
+| `f-perc-upper.svg` | caption cutoff `1.705` → `1.7047` only |
+| `f-plot-1.svg` | red mean marker moves to the unrounded mean; curve and polygon unchanged |
+| `f-plot-2.svg` | orange normal overlay uses the unrounded moments; F curve and polygon unchanged |
+| `f-prob-lower.svg` | two annotation x positions change; polygons unchanged |
+| `f-prob-upper.svg` | one annotation x position changes; polygons unchanged |
+| `normal-perc-both.svg` | caption cutoff `4.666` → `4.6656` only |
+| `normal-perc-upper.svg` | caption cutoff `2.713` → `2.7132` only |
+| `t-perc-lower.svg` | extended view and corresponding polygon/curve coordinates |
+| `t-perc-upper.svg` | extended view and corresponding polygon/curve coordinates |
+| `t-perc-both.svg` | extended view; caption `±1.094` → `±1.0944` |
+| `t-prob-lower.svg` | extended view, changed axes and geometry |
+| `t-prob-upper.svg` | extended view, changed axes and geometry |
+| `t-prob-interval.svg` | extended view, changed axes and geometry |
+| `t-prob-both.svg` | extended view, changed axes and geometry |
 
-All other visual snapshots are byte-identical.
+All other round-3 visual snapshots are byte-identical. Round 4 changes the
+sampling grid for every continuous plot, so its 29 changed snapshots are listed
+and explained in `docs-dev/vfx4-report.md`.
 
 ## Tests added
 
