@@ -39,6 +39,10 @@ chi-square floor is `df >= 0.1`; the F floor is `num_df >= 1` (lower values
 cannot be drawn from a representable support boundary). The normal/t
 probability floor is 1e-10; the chi-square/F floor is 1e-6.
 
+One redundant `vdist_t_plot(df = 8)` example call was removed (roxygen and Rd)
+because the check reported its example page at 5.42 s elapsed; this is a
+documentation/example-time change only, no code path.
+
 ## Files changed
 
 | File | Change |
@@ -201,8 +205,37 @@ NOT_CRAN=true devtools::test()
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 513 ]
 ```
 
-Clean build and `R CMD check --as-cran --no-manual` from `git archive HEAD`
-are recorded in the final section below.
+## Clean build and `R CMD check`
+
+From a clean `git archive HEAD` extraction (code commit `443d3d8`; this report
+and all of `docs-dev/` are `.Rbuildignore`d and absent from the tarball):
+
+```text
+git archive HEAD | tar -x -C .vfx3-tmp/check-src
+R CMD build --no-manual .
+R CMD check --as-cran --no-manual vistributions_0.2.2.tar.gz
+...
+* checking examples ... [21s] OK
+* checking tests ... [34s] OK
+...
+Status: 1 NOTE
+```
+
+The sole NOTE is the expected maintainer-address NOTE:
+
+```text
+* checking CRAN incoming feasibility ... NOTE
+Maintainer: 'Aravind Hebbali <aravindhebbali@rsquaredacademy.com>'
+New maintainer:
+  Aravind Hebbali <aravindhebbali@rsquaredacademy.com>
+Old maintainer(s):
+  Aravind Hebbali <hebbali.aravind@gmail.com>
+```
+
+No errors, no warnings. An earlier run had a second NOTE for
+`vdist_t_plot` example elapsed time (5.42 s); one redundant example call was
+removed (roxygen and Rd), after which examples completed OK. CRAN-mode tests
+in the check skip the 15 vdiffr blocks and pass the remaining suite.
 
 ## Follow-ups (written out in full)
 
