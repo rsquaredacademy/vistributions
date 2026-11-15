@@ -312,7 +312,11 @@ fmt_num <- function(x, scale = Inf) {
   ref[!is.finite(ref) | ref == 0] <- 1
   dec <- pmax(3, 3 - floor(log10(ref)))
   out[keep] <- vapply(seq_along(xk), function(i) {
-    if (dec[i] > 17) {
+    if (abs(xk[i]) >= 1e15) {
+      # a very large cutoff keeps only significant digits; printing it as a
+      # fixed number would emit meaningless integer digits
+      format(signif(xk[i], 6), scientific = TRUE, trim = TRUE)
+    } else if (dec[i] > 17) {
       format(signif(xk[i], 4), scientific = TRUE, trim = TRUE)
     } else if (dec[i] > 13) {
       # a translated value (for example mean = 1, sd = 1e-13) needs digits
