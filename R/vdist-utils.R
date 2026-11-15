@@ -84,12 +84,24 @@ check_probability <- function(val, var = "probs", dist = "normal") {
 # A quantile is usable only if it is finite and its distribution function
 # returns the requested probability. `pfun` must evaluate the same tail that
 # produced `q` (pass a lower/upper-tail closure).
+#
+# At very large and very unequal degrees of freedom the stats q*() routines
+# return a value that does not invert their own p*() (for example
+# qf(.95, 1e8, 1e8) has pf about .8776). The p*() function is the accurate
+# one, so refine a failed quantile by root finding before rejecting it.
 vdist_check_quantile <- function(q, pfun, target, what = "quantile", dist = "normal") {
   ok <- length(q) == 1 && is.finite(q)
   if (ok) {
     got <- pfun(q)
     tol <- 1e-3 * max(target, 1e-6)
     ok  <- is.finite(got) && abs(got - target) <= tol
+    if (!ok) {
+      refined <- vdist_refine_quantile(q, pfun, target)
+      if (!is.null(refined)) {
+        q  <- refined
+        ok <- TRUE
+      }
+    }
   }
   if (!ok) {
     lim <- vdist_prob_range(dist)
@@ -102,6 +114,47 @@ vdist_check_quantile <- function(q, pfun, target, what = "quantile", dist = "nor
          call. = FALSE)
   }
   q
+}
+
+# Bracket and solve pfun(v) = target around a finite starting quantile. The
+# distribution function is monotone, so a geometric widening of the bracket
+# finds a sign change whenever one is representable. Returns NULL when no root
+# can be found (the caller then reports the documented range error).
+vdist_refine_quantile <- function(q, pfun, target) {
+  if (length(q) != 1 || !is.finite(q)) {
+    return(NULL)
+  }
+  f  <- function(v) pfun(v) - target
+  step <- max(1, abs(q))
+  lo <- q - step
+  hi <- q + step
+  flo <- f(lo)
+  fhi <- f(hi)
+  k <- 0L
+  while (is.finite(flo) && is.finite(fhi) && sign(flo) == sign(fhi) && k < 80L) {
+    step <- step * 2
+    lo <- q - step
+    hi <- q + step
+    if (!is.finite(lo) || !is.finite(hi)) {
+      return(NULL)
+    }
+    flo <- f(lo)
+    fhi <- f(hi)
+    k <- k + 1L
+  }
+  if (!is.finite(flo) || !is.finite(fhi) || sign(flo) == sign(fhi)) {
+    return(NULL)
+  }
+  r <- tryCatch(stats::uniroot(f, c(lo, hi), tol = .Machine$double.eps^0.9),
+                error = function(e) NULL)
+  if (is.null(r) || !is.finite(r$root)) {
+    return(NULL)
+  }
+  tol <- 1e-3 * max(target, 1e-6)
+  if (abs(f(r$root)) > tol) {
+    return(NULL)
+  }
+  r$root
 }
 
 # Reject a density that cannot be drawn: a non-finite ordinate would make an
@@ -159,18 +212,41 @@ vdist_check_event <- function(area, omitted, target, what = "shaded region") {
 
 # A translated normal is only representable when the standard deviation is
 # large enough, relative to the location, that the cutoff is more than a few
-# double-precision units away from the mean. Zero-centred normals have no
-# translation and are always evaluated on the standardized scale.
+# double-precision units away from the mean. The comparison is a ratio, so it
+# is unchanged by a change of measurement units (mean and sd scaled together);
+# `mean = 1e-16, sd = 1e-16` is an ordinary, resolvable distribution.
+# Zero-centred normals have no translation and are always evaluated on the
+# standardized scale.
 vdist_check_normal_resolution <- function(mean, sd) {
   if (abs(mean) > 0) {
-    ratio <- sd / max(1, abs(mean))
+    ratio <- sd / abs(mean)
     if (!is.finite(ratio) || ratio < 1e-14) {
       stop(paste0("The normal cutoff cannot be represented numerically: ",
-                  "sd / max(1, |mean|) = ",
+                  "sd / |mean| = ",
                   format(ratio, scientific = TRUE, digits = 3),
                   " is below the documented limit of 1e-14. Use a larger sd ",
-                  "or a mean closer to zero."), call. = FALSE)
+                  "relative to the mean (scaling mean and sd together is ",
+                  "always allowed)."), call. = FALSE)
     }
+  }
+  invisible(TRUE)
+}
+
+# A normal curve is drawable only when its peak density and its plotting range
+# are finite. These are limits of double precision, not a modelling choice, and
+# both are stated in the help page.
+vdist_check_normal_range <- function(mean, sd) {
+  if (!is.finite(dnorm(0, 0, sd))) {
+    stop(paste0("The normal density is not finite for sd = ",
+                format(sd, digits = 15),
+                "; sd must be at least about 1e-308."), call. = FALSE)
+  }
+  if (!is.finite(mean - 4 * sd) || !is.finite(mean + 4 * sd)) {
+    stop(paste0("The normal plotting range (mean +/- 4 sd) is not finite for ",
+                "mean = ", format(mean, digits = 15), " and sd = ",
+                format(sd, digits = 15),
+                "; mean and sd must be small enough that the range is ",
+                "representable."), call. = FALSE)
   }
   invisible(TRUE)
 }
@@ -258,7 +334,7 @@ fmt_num <- function(x, scale = Inf) {
 # requested endpoints are always kept, so a polygon closes on the event it
 # claims to shade.
 vdist_grid <- function(from, to, pfun, qfun, n = vdist_n_points,
-                       quantile = TRUE) {
+                       quantile = TRUE, uniform = TRUE) {
   if (from > to) {
     tmp  <- from
     from <- to
@@ -289,11 +365,26 @@ vdist_grid <- function(from, to, pfun, qfun, n = vdist_n_points,
 
   p <- stats::plogis(seq(stats::qlogis(plo), stats::qlogis(phi),
                          length.out = n))
+  # Refine any quantile that does not invert the probability that produced it.
+  # At very large degrees of freedom the stats q*() routines lose accuracy over
+  # the whole grid (not only at the requested cutoff), which would distort the
+  # drawn polygon; the p*() function is accurate, so solve it directly there.
+  xq <- qfun(p)
+  okq <- is.finite(xq) & is.finite(pfun(xq)) &
+    abs(pfun(xq) - p) <= 1e-6 * pmax(p, 1e-6)
+  if (any(!okq)) {
+    for (i in which(!okq)) {
+      xr <- vdist_refine_quantile(xq[i], pfun, p[i])
+      if (!is.null(xr)) {
+        xq[i] <- xr
+      }
+    }
+  }
   # Union with a fixed-count uniform grid: the probability grid resolves the
   # body and a singular support edge, while the uniform grid closes the far
   # tail where the CDF has saturated and a single segment to the endpoint
   # would otherwise create a spurious triangle.
-  x <- c(from, qfun(p), seq(from, to, length.out = n), to)
+  x <- c(from, xq, if (uniform) seq(from, to, length.out = n), to)
   x <- x[is.finite(x)]
   sort(unique(x))
 }
@@ -324,7 +415,15 @@ vdist_f_width <- function(num_df, den_df) {
 
 vdist_check_f_concentration <- function(num_df, den_df) {
   width <- vdist_f_width(num_df, den_df)
-  if (!is.finite(width) || width < 1e-3) {
+  if (!is.finite(width)) {
+    stop(paste0("The central 99.9998% probability mass of the F distribution ",
+                "does not span a finite interval for num_df = ",
+                format(num_df, digits = 15), " and den_df = ",
+                format(den_df, digits = 15),
+                "; the tail does not converge at double precision. Use larger ",
+                "degrees of freedom."), call. = FALSE)
+  }
+  if (width < 1e-3) {
     stop(paste0("The F density is too concentrated to plot accurately: its ",
                 "central 99.9998% probability mass spans ",
                 format(width, digits = 6),
@@ -339,16 +438,17 @@ vdist_check_f_concentration <- function(num_df, den_df) {
 # The width limit is still checked, so a density that no finite grid can draw
 # is rejected with its documented error.
 vdist_f_grid <- function(lo, hi, num_df, den_df, quantile = TRUE,
-                         step = NULL, n = NULL) {
+                         step = NULL, n = NULL, uniform = TRUE) {
   vdist_check_f_concentration(num_df, den_df)
   if (is.null(n)) {
-    n <- vdist_grid_n(num_df < 2)
+    n <- vdist_grid_n(num_df < 2 || den_df < 1)
   }
   vdist_grid(lo, hi,
              function(x) pf(x, num_df, den_df),
              function(p) qf(p, num_df, den_df),
              quantile = quantile,
-             n = n)
+             n = n,
+             uniform = uniform)
 }
 
 # Keep enough of both t tails that the omitted mass is below 1e-4: the
@@ -447,8 +547,7 @@ vdist_fmt_cutoff <- function(x, scale, pfun, target) {
 # at the original coordinate by at most `tol`. Used for probability captions,
 # where the printed cutoff defines the event and must therefore keep the
 # probability that is printed beside it.
-vdist_fmt_value <- function(x, scale, pfun, tol = 1e-6) {
-  target <- pfun(x)
+vdist_fmt_value <- function(x, scale, pfun, tol = 1e-6) {  target <- pfun(x)
   ok <- function(s) {
     v <- suppressWarnings(as.numeric(s))
     is.finite(v) && is.finite(pfun(v)) && abs(pfun(v) - target) <= tol
@@ -476,4 +575,144 @@ vdist_fmt_value <- function(x, scale, pfun, tol = 1e-6) {
               " cannot be printed with enough precision to state its ",
               "probability; the coordinate precision is insufficient. Use a ",
               "larger scale or a less extreme probability."), call. = FALSE)
+}
+
+# Format both ends of a central interval together. Each endpoint formatted on
+# its own can reproduce its own tail probability and still produce a pair whose
+# interval probability rounds to a different displayed value; the pair must be
+# checked as the event the caption names.
+vdist_fmt_interval <- function(x1, x2, scale, pfun, target) {
+  disp <- vdist_fmt_pct(target)
+  ok <- function(a, b) {
+    a <- suppressWarnings(as.numeric(a))
+    b <- suppressWarnings(as.numeric(b))
+    is.finite(a) && is.finite(b) && is.finite(pfun(b)) && is.finite(pfun(a)) &&
+      abs((pfun(b) - pfun(a)) - disp$value) <= disp$tol
+  }
+
+  s1 <- fmt_num(x1, scale)
+  s2 <- fmt_num(x2, scale)
+  if (ok(s1, s2)) {
+    return(c(s1, s2))
+  }
+  for (d in 3:17) {
+    a <- sprintf(paste0("%.", d, "f"), x1)
+    b <- sprintf(paste0("%.", d, "f"), x2)
+    if (ok(a, b)) {
+      return(c(a, b))
+    }
+  }
+  for (d in 4:17) {
+    a <- format(x1, scientific = TRUE, digits = d, trim = TRUE)
+    b <- format(x2, scientific = TRUE, digits = d, trim = TRUE)
+    if (ok(a, b)) {
+      return(c(a, b))
+    }
+  }
+  # No printable pair reproduces the requested displayed probability. Print
+  # both ends at full precision; the caption's percentage is then taken from
+  # the event these printed ends actually define, so the caption stays true.
+  c(format(x1, digits = 17, scientific = TRUE, trim = TRUE),
+    format(x2, digits = 17, scientific = TRUE, trim = TRUE))
+}
+
+# The upper limit of the density axis. A density that is unbounded at a support
+# edge (chi-square and F with a small shape parameter) has a peak orders of
+# magnitude above its body; drawing the true peak compresses the body and the
+# shaded region into the baseline. Capping the axis at a high quantile of the
+# plotted density keeps the body, and therefore the shading, visible. The
+# source-coordinate area checks always use the unclipped density.
+vdist_y_cap <- function(y) {
+  y <- y[is.finite(y) & y >= 0]
+  if (!length(y)) {
+    return(1)
+  }
+  mx <- max(y)
+  q  <- as.numeric(stats::quantile(y, 0.98, names = FALSE))
+  if (is.finite(q) && q > 0 && mx > 20 * q) q else mx
+}
+
+# Axis limits for the density panel: headroom for a clipped peak and for the
+# percentage labels above the curve.
+vdist_ylim <- function(y, headroom = 1.3) {
+  cap <- vdist_y_cap(y)
+  c(0, cap * headroom)
+}
+
+# Display cap for the density axis, sampled uniformly in probability space so
+# that the many nearly-empty points of a tail-resolving grid cannot decide it.
+# A density that is unbounded at a support edge is capped at a value its body
+# reaches, which keeps the body and the shaded region visible; ordinary
+# densities are not clipped. Source-coordinate area checks always use the
+# unclipped density.
+vdist_density_cap <- function(dfun, pfun, qfun, lo, hi) {
+  plo <- pfun(lo)
+  phi <- pfun(hi)
+  if (!is.finite(plo) || !is.finite(phi) || phi <= plo) {
+    p <- seq(1e-3, 1 - 1e-3, length.out = 501)
+  } else {
+    p <- seq(max(plo, 0), min(phi, 1), length.out = 501)
+  }
+  y <- dfun(qfun(p))
+  y <- y[is.finite(y) & y >= 0]
+  if (!length(y)) {
+    return(1)
+  }
+  mx  <- max(y)
+  q90 <- as.numeric(stats::quantile(y, 0.9, names = FALSE))
+  ref <- q90
+  if (is.finite(ref) && ref > 0 && mx > 20 * ref) ref else mx
+}
+
+vdist_ylim_cap <- function(cap, headroom = 1.3) {
+  c(0, cap * headroom)
+}
+
+# A very wide window (heavy t and F tails, singular support edges) cannot be
+# read on a linear axis: the shaded event, or the whole body of the density,
+# collapses into a line. Such windows are drawn on a symmetric log scale, which
+# is still the same data (the area checks and captions are unchanged) but keeps
+# every part of the window visible. Ordinary windows keep the linear axis.
+vdist_wide_window <- function(x, limit = 1e6) {
+  x <- x[is.finite(x)]
+  if (length(x) < 2) {
+    return(FALSE)
+  }
+  span <- max(x) - min(x)
+  is.finite(span) && span > limit
+}
+
+# x scale for a continuous density plot. `breaks` is a numeric vector for the
+# ordinary linear axis; the symmetric log axis uses its own breaks.
+vdist_x_scale <- function(x, breaks = NULL, wide = NULL) {
+  if (is.null(wide)) {
+    wide <- vdist_wide_window(x)
+  }
+  if (wide) {
+    return(ggplot2::scale_x_continuous(
+      trans  = scales::pseudo_log_trans(),
+      breaks = ggplot2::waiver(),
+      labels = function(v) {
+        out <- ifelse(v == 0, "0",
+                      format(signif(v, 2), scientific = TRUE, trim = TRUE))
+        out
+      }
+    ))
+  }
+  if (is.null(breaks)) {
+    ggplot2::scale_x_continuous(breaks = ggplot2::waiver())
+  } else {
+    ggplot2::scale_x_continuous(breaks = breaks)
+  }
+}
+
+# Caption that discloses the part of the named event outside the plotted range.
+# The area check adds this probability to the drawn polygon, so it must be
+# stated whenever it is not negligible.
+vdist_beyond_text <- function(omitted) {
+  if (!is.finite(omitted) || omitted <= 1e-7) {
+    return(NULL)
+  }
+  paste0(vdist_pct_text(omitted),
+         "% of the event lies outside the plotted range and is added by the area check")
 }

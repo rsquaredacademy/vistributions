@@ -61,8 +61,6 @@ test_that("H3: normal quantiles are not rounded before plotting", {
   expect_equal(sort(vlines(p)), qnorm(c(.1, .9), 5, .01))
 })
 
-# H4 ------------------------------------------------------------------------
-
 test_that("H4: binomial counts must be whole numbers", {
   expect_error(vdist_binom_prob(10, .5, s = 2.9, type = "exact"), "s must be whole numbers")
   expect_error(vdist_binom_prob(10, .5, s = 2.9, type = "upper"), "s must be whole numbers")

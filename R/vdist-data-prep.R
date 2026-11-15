@@ -103,7 +103,10 @@ cplot_data_prep <- function(df, range) {
        point_data = point_data,
        nline_data = nline_data,
        chim       = chim,
-       chisd      = chisd)
+       chisd      = chisd,
+       ycap       = vdist_density_cap(function(x) dchisq(x, df),
+                                      function(x) pchisq(x, df),
+                                      function(p) qchisq(p, df), lo, range))
 
 }
 
@@ -113,18 +116,21 @@ cperc_data_prep <- function(probs, df, method) {
   chisd  <- round(sqrt(2 * df), 3)
 
   if (method == "lower") {
-    pp  <- qchisq(probs, df)
-    vdist_check_quantile(pp, function(v) pchisq(v, df), probs,
-                         "chi-square quantile", "chisquare")
+    pp  <- vdist_check_quantile(qchisq(probs, df), function(v) pchisq(v, df),
+                                probs, "chi-square quantile", "chisquare")
     cut_text <- vdist_fmt_cutoff(pp, Inf, function(v) pchisq(v, df), probs)
+    pp_event <- pp
+    event_prob <- pchisq(as.numeric(cut_text), df)
     col <- c("#0000CD", "#6495ED")
   } else {
-    pp  <- qchisq(probs, df, lower.tail = FALSE)
-    vdist_check_quantile(pp, function(v) pchisq(v, df, lower.tail = FALSE),
-                         probs, "chi-square quantile", "chisquare")
+    pp  <- vdist_check_quantile(qchisq(probs, df, lower.tail = FALSE),
+                                function(v) pchisq(v, df, lower.tail = FALSE),
+                                probs, "chi-square quantile", "chisquare")
     cut_text <- vdist_fmt_cutoff(pp, Inf,
                                  function(v) pchisq(v, df, lower.tail = FALSE),
                                  probs)
+    pp_event <- pp
+    event_prob <- pchisq(as.numeric(cut_text), df, lower.tail = FALSE)
     col <- c("#6495ED", "#0000CD")
   }
 
@@ -133,7 +139,7 @@ cperc_data_prep <- function(probs, df, method) {
   # 1e-4 of the total probability remains, so the omitted part of the event is
   # far below the 1e-3 area tolerance.
   tail_hi <- qchisq(1 - 1e-4, df)
-  lmax <- max(chim + (5 * chisd), pp + chisd,
+  lmax <- max(chim + (5 * chisd), max(pp, pp_event) + chisd,
               if (method == "upper") tail_hi else -Inf)
   lmax <- max(min(lmax, qchisq(1 - 1e-9, df)), lmin, pp)
 
@@ -142,16 +148,16 @@ cperc_data_prep <- function(probs, df, method) {
                        function(p) qchisq(p, df),
                        quantile = TRUE, n = vdist_grid_n(df < 2))
   ln     <- length(l)
-  pc     <- min(max(pp, l[1]), l[ln])
+  pc     <- min(max(pp_event, l[1]), l[ln])
   lc     <- c(l[1], pc, l[ln])
   l1     <- c(1, 2)
   l2     <- c(2, 3)
 
   # the part of the named event that lies beyond the visible range
   omitted <- if (method == "lower") {
-    min(probs, pchisq(l[1], df))
+    min(event_prob, pchisq(l[1], df))
   } else {
-    min(probs, pchisq(l[ln], df, lower.tail = FALSE))
+    min(event_prob, pchisq(l[ln], df, lower.tail = FALSE))
   }
 
   xm         <- c(l[1], l[ln])
@@ -163,12 +169,18 @@ cperc_data_prep <- function(probs, df, method) {
        point_data = point_data,
        chim       = chim,
        chisd      = chisd,
+       ycap       = vdist_density_cap(function(x) dchisq(x, df),
+                                      function(x) pchisq(x, df),
+                                      function(p) qchisq(p, df),
+                                      if (method == "lower") lmin else pc,
+                                      if (method == "lower") pc else lmax),
        xm         = xm,
        l          = l,
        pp         = pp,
+       pp_event   = pp_event,
        cut_text   = cut_text,
-       prob_text  = vdist_pct_text(probs),
-       event_prob = probs,
+       prob_text  = vdist_pct_text(event_prob),
+       event_prob = event_prob,
        omitted    = omitted,
        pc         = pc,
        lc         = lc,
@@ -254,6 +266,11 @@ cprob_data_prep <- function(perc, df, method) {
        point_data = point_data,
        chim       = chim,
        chisd      = chisd,
+       ycap       = vdist_density_cap(function(x) dchisq(x, df),
+                                      function(x) pchisq(x, df),
+                                      function(p) qchisq(p, df),
+                                      if (method == "lower") lo else pc,
+                                      if (method == "lower") pc else hi),
        l          = l,
        ln         = ln,
        pp         = event_prob,
@@ -297,8 +314,10 @@ fplot_data_prep <- function(num_df, den_df) {
        point_data = point_data,
        nline_data = nline_data,
        fm         = fm,
-       fsd        = fsd)
-
+       fsd        = fsd,
+       ycap       = vdist_density_cap(function(x) df(x, num_df, den_df),
+                                      function(x) pf(x, num_df, den_df),
+                                      function(p) qf(p, num_df, den_df), lo, 4))
 }
 
 fperc_data_prep <- function(probs, num_df, den_df, method) {
@@ -307,19 +326,23 @@ fperc_data_prep <- function(probs, num_df, den_df, method) {
   fsd    <- if (den_df > 4) sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))) else NA_real_
 
   if (method == "lower") {
-    pp  <- qf(probs, num_df, den_df)
-    vdist_check_quantile(pp, function(v) pf(v, num_df, den_df), probs,
-                         "F quantile", "f")
+    pp  <- vdist_check_quantile(qf(probs, num_df, den_df),
+                                function(v) pf(v, num_df, den_df), probs,
+                                "F quantile", "f")
     cut_text <- vdist_fmt_cutoff(pp, Inf,
                                 function(v) pf(v, num_df, den_df), probs)
+    pp_event <- pp
+    event_prob <- pf(as.numeric(cut_text), num_df, den_df)
     col <- c("#0000CD", "#6495ED")
   } else {
-    pp  <- qf(probs, num_df, den_df, lower.tail = FALSE)
-    vdist_check_quantile(pp, function(v) pf(v, num_df, den_df, lower.tail = FALSE),
-                         probs, "F quantile", "f")
+    pp  <- vdist_check_quantile(qf(probs, num_df, den_df, lower.tail = FALSE),
+                                function(v) pf(v, num_df, den_df, lower.tail = FALSE),
+                                probs, "F quantile", "f")
     cut_text <- vdist_fmt_cutoff(pp, Inf,
                                 function(v) pf(v, num_df, den_df, lower.tail = FALSE),
                                 probs)
+    pp_event <- pp
+    event_prob <- pf(as.numeric(cut_text), num_df, den_df, lower.tail = FALSE)
     col <- c("#6495ED", "#0000CD")
   }
   l1  <- c(1, 2)
@@ -327,20 +350,20 @@ fperc_data_prep <- function(probs, num_df, den_df, method) {
 
   lo <- vdist_support_start(num_df, qf(1e-6, num_df, den_df), "F", min_df = 1)
   tail_hi <- qf(1 - 1e-4, num_df, den_df)
-  xu <- if (pp < 4) 4 else pp * 1.25
+  xu <- if (max(pp, pp_event) < 4) 4 else max(pp, pp_event) * 1.25
   if (method == "upper") {
     xu <- max(xu, tail_hi)
   }
   xu <- max(min(xu, qf(1 - 1e-9, num_df, den_df)), lo, pp)
   l  <- vdist_f_grid(lo, xu, num_df, den_df, quantile = TRUE)
   ln <- length(l)
-  pc <- min(max(pp, l[1]), l[ln])
+  pc <- min(max(pp_event, l[1]), l[ln])
   lc <- c(l[1], pc, l[ln])
 
   omitted <- if (method == "lower") {
-    min(probs, pf(l[1], num_df, den_df))
+    min(event_prob, pf(l[1], num_df, den_df))
   } else {
-    min(probs, pf(l[ln], num_df, den_df, lower.tail = FALSE))
+    min(event_prob, pf(l[ln], num_df, den_df, lower.tail = FALSE))
   }
 
   plot_data <- data.frame(x = l, y = df(l, num_df, den_df))
@@ -349,11 +372,17 @@ fperc_data_prep <- function(probs, num_df, den_df, method) {
   list(plot_data  = plot_data,
        fm         = fm,
        fsd        = fsd,
+       ycap       = vdist_density_cap(function(x) df(x, num_df, den_df),
+                                      function(x) pf(x, num_df, den_df),
+                                      function(p) qf(p, num_df, den_df),
+                                      if (method == "lower") lo else pc,
+                                      if (method == "lower") pc else xu),
        l          = l,
        pp         = pp,
+       pp_event   = pp_event,
        cut_text   = cut_text,
-       prob_text  = vdist_pct_text(probs),
-       event_prob = probs,
+       prob_text  = vdist_pct_text(event_prob),
+       event_prob = event_prob,
        omitted    = omitted,
        pc         = pc,
        lc         = lc,
@@ -414,6 +443,11 @@ fprob_data_prep <- function(perc, num_df, den_df, method) {
   list(plot_data  = plot_data,
        fm         = fm,
        fsd        = fsd,
+       ycap       = vdist_density_cap(function(x) df(x, num_df, den_df),
+                                      function(x) pf(x, num_df, den_df),
+                                      function(p) qf(p, num_df, den_df),
+                                      if (method == "lower") lo else pc,
+                                      if (method == "lower") pc else hi),
        l          = l,
        pp         = event_prob,
        cut_text   = cut_text,
@@ -440,6 +474,7 @@ nplot_data_prep <- function(mean, sd) {
   vdist_check_density(plot_data$y, "normal density")
 
   list(plot_data = plot_data,
+       ycap      = max(plot_data$y),
        l         = l,
        col       = col,
        l1        = l1,
@@ -478,34 +513,41 @@ vdist_halfwidth <- function(cutoff, mean, sd, min_k) {
 
 nperc_data_prep <- function(probs, mean, sd, method) {
 
-  # cutoffs keep full precision; only the displayed text is formatted
+  # cutoffs keep full precision; only the displayed text is formatted. The
+  # printed cutoffs define the shaded event, so the polygon and the caption use
+  # those values, and the caption's percentage is the probability they attain.
   if (method == "lower") {
-    pp  <- qnorm(probs, mean, sd)
-    vdist_check_quantile(pp, function(v) pnorm(v, mean, sd), probs,
-                         "normal quantile", "normal")
+    pp  <- vdist_check_quantile(qnorm(probs, mean, sd),
+                                function(v) pnorm(v, mean, sd), probs,
+                                "normal quantile", "normal")
     cut_text <- vdist_fmt_cutoff(pp, sd, function(v) pnorm(v, mean, sd), probs)
+    pp_event <- pp
+    event_prob <- pnorm(as.numeric(cut_text), mean, sd)
     col <- c("#0000CD", "#6495ED")
   } else if (method == "upper") {
-    pp  <- qnorm(probs, mean, sd, lower.tail = F)
-    vdist_check_quantile(pp, function(v) pnorm(v, mean, sd, lower.tail = F),
-                         probs, "normal quantile", "normal")
+    pp  <- vdist_check_quantile(qnorm(probs, mean, sd, lower.tail = F),
+                                function(v) pnorm(v, mean, sd, lower.tail = F),
+                                probs, "normal quantile", "normal")
     cut_text <- vdist_fmt_cutoff(pp, sd,
                                 function(v) pnorm(v, mean, sd, lower.tail = F),
                                 probs)
+    pp_event <- pp
+    event_prob <- pnorm(as.numeric(cut_text), mean, sd, lower.tail = FALSE)
     col <- c("#6495ED", "#0000CD")
   } else {
     alpha <- (1 - probs) / 2
-    pp1 <- qnorm(alpha, mean, sd)
-    pp2 <- qnorm(alpha, mean, sd, lower.tail = F)
-    vdist_check_quantile(pp1, function(v) pnorm(v, mean, sd), alpha,
-                         "normal quantile", "normal")
-    vdist_check_quantile(pp2, function(v) pnorm(v, mean, sd, lower.tail = F),
-                         alpha, "normal quantile", "normal")
+    pp1 <- vdist_check_quantile(qnorm(alpha, mean, sd),
+                                function(v) pnorm(v, mean, sd), alpha,
+                                "normal quantile", "normal")
+    pp2 <- vdist_check_quantile(qnorm(alpha, mean, sd, lower.tail = F),
+                                function(v) pnorm(v, mean, sd, lower.tail = F),
+                                alpha, "normal quantile", "normal")
     pp  <- c(pp1, pp2)
-    cut_text <- c(
-      vdist_fmt_cutoff(pp1, sd, function(v) pnorm(v, mean, sd), alpha),
-      vdist_fmt_cutoff(pp2, sd, function(v) pnorm(v, mean, sd, lower.tail = F), alpha)
-    )
+    cut_text <- vdist_fmt_interval(pp1, pp2, sd,
+                                   function(v) pnorm(v, mean, sd), probs)
+    pp_event <- pp
+    ev <- as.numeric(cut_text)
+    event_prob <- pnorm(ev[2], mean, sd) - pnorm(ev[1], mean, sd)
     col <- c("#6495ED", "#0000CD", "#6495ED")
   }
   l1  <- if (method == "both") c(1, 2, 3) else c(1, 2)
@@ -516,13 +558,13 @@ nperc_data_prep <- function(probs, mean, sd, method) {
   x      <- vdist_xax(mean, sd, min(vdist_halfwidth(pp, mean, sd, 4), qnorm(1 - 1e-9)))
   l      <- vdist_seql(mean, sd, k)
   ln     <- length(l)
-  pc     <- pmin(pmax(pp, l[1]), l[ln])
+  pc     <- pmin(pmax(pp_event, l[1]), l[ln])
   lc     <- if (method == "both") c(l[1], pc[1], pc[2], l[ln]) else c(l[1], pc, l[ln])
 
   omitted <- if (method == "lower") {
-    min(probs, pnorm(l[1], mean, sd))
+    min(event_prob, pnorm(l[1], mean, sd))
   } else if (method == "upper") {
-    min(probs, pnorm(l[ln], mean, sd, lower.tail = FALSE))
+    min(event_prob, pnorm(l[ln], mean, sd, lower.tail = FALSE))
   } else {
     0
   }
@@ -531,10 +573,12 @@ nperc_data_prep <- function(probs, mean, sd, method) {
   vdist_check_density(plot_data$y, "normal density")
 
   list(plot_data = plot_data,
+       ycap      = max(plot_data$y),
        pp        = pp,
+       pp_event  = pp_event,
        cut_text  = cut_text,
-       prob_text = vdist_pct_text(probs),
-       event_prob = probs,
+       prob_text = vdist_pct_text(event_prob),
+       event_prob = event_prob,
        omitted   = omitted,
        pc        = pc,
        l         = l,
@@ -612,6 +656,7 @@ nprob_data_prep <- function(perc, mean, sd, method) {
   vdist_check_density(plot_data$y, "normal density")
 
   list(plot_data = plot_data,
+       ycap      = max(plot_data$y),
        pp        = event_prob,
        cut_text  = cut_text,
        prob_text = vdist_pct_text(event_prob),
@@ -660,37 +705,42 @@ tplot_data_prep <- function(df) {
                           z = c(0, dt(x, df), 0))
 
   list(plot_data = plot_data,
-       poly_data = poly_data)
+       poly_data = poly_data,
+       ycap      = vdist_density_cap(function(x) dt(x, df),
+                                     function(x) pt(x, df),
+                                     function(p) qt(p, df), -4, 4))
 }
 
 tperc_data_prep <- function(probs, df, method) {
 
   if (method == "lower") {
-    pp    <- qt(probs, df)
-    vdist_check_quantile(pp, function(v) pt(v, df), probs,
-                         "t quantile", "t")
+    pp    <- vdist_check_quantile(qt(probs, df), function(v) pt(v, df), probs,
+                                  "t quantile", "t")
     cut_text <- vdist_fmt_cutoff(pp, Inf, function(v) pt(v, df), probs)
+    pp_event <- pp
+    event_prob <- pt(as.numeric(cut_text), df)
     col   <- c("#0000CD", "#6495ED")
   } else if (method == "upper") {
-    pp    <- qt(probs, df, lower.tail = F)
-    vdist_check_quantile(pp, function(v) pt(v, df, lower.tail = F), probs,
-                         "t quantile", "t")
+    pp    <- vdist_check_quantile(qt(probs, df, lower.tail = F),
+                                  function(v) pt(v, df, lower.tail = F), probs,
+                                  "t quantile", "t")
     cut_text <- vdist_fmt_cutoff(pp, Inf,
                                 function(v) pt(v, df, lower.tail = F), probs)
+    pp_event <- pp
+    event_prob <- pt(as.numeric(cut_text), df, lower.tail = FALSE)
     col   <- c("#6495ED", "#0000CD")
   } else {
     alpha <- (1 - probs) / 2
-    pp1   <- qt(alpha, df)
-    pp2   <- qt(alpha, df, lower.tail = F)
-    vdist_check_quantile(pp1, function(v) pt(v, df), alpha,
-                         "t quantile", "t")
-    vdist_check_quantile(pp2, function(v) pt(v, df, lower.tail = F), alpha,
-                         "t quantile", "t")
+    pp1   <- vdist_check_quantile(qt(alpha, df), function(v) pt(v, df), alpha,
+                                  "t quantile", "t")
+    pp2   <- vdist_check_quantile(qt(alpha, df, lower.tail = F),
+                                  function(v) pt(v, df, lower.tail = F), alpha,
+                                  "t quantile", "t")
     pp    <- c(pp1, pp2)
-    cut_text <- c(
-      vdist_fmt_cutoff(pp1, Inf, function(v) pt(v, df), alpha),
-      vdist_fmt_cutoff(pp2, Inf, function(v) pt(v, df, lower.tail = F), alpha)
-    )
+    cut_text <- vdist_fmt_interval(pp1, pp2, Inf, function(v) pt(v, df), probs)
+    pp_event <- pp
+    ev <- as.numeric(cut_text)
+    event_prob <- pt(ev[2], df) - pt(ev[1], df)
     col   <- c("#6495ED", "#0000CD", "#6495ED")
   }
   l1 <- if (method == "both") c(1, 2, 3) else c(1, 2)
@@ -710,13 +760,13 @@ tperc_data_prep <- function(probs, df, method) {
                       function(p) qt(p, df),
                       quantile = TRUE, n = vdist_grid_n_t(df))
   ln    <- length(l)
-  pc    <- pmin(pmax(pp, l[1]), l[ln])
+  pc    <- pmin(pmax(pp_event, l[1]), l[ln])
   lc    <- if (method == "both") c(l[1], pc[1], pc[2], l[ln]) else c(l[1], pc, l[ln])
 
   omitted <- if (method == "lower") {
-    min(probs, pt(l[1], df))
+    min(event_prob, pt(l[1], df))
   } else if (method == "upper") {
-    min(probs, pt(l[ln], df, lower.tail = FALSE))
+    min(event_prob, pt(l[ln], df, lower.tail = FALSE))
   } else {
     0
   }
@@ -725,12 +775,16 @@ tperc_data_prep <- function(probs, df, method) {
   vdist_check_density(plot_data$y, "t density")
 
   list(plot_data = plot_data,
+       ycap      = vdist_density_cap(function(x) dt(x, df),
+                                     function(x) pt(x, df),
+                                     function(p) qt(p, df), -bound, bound),
        l         = l,
        alpha     = if (method == "both") alpha else NULL,
        pp        = pp,
+       pp_event  = pp_event,
        cut_text  = cut_text,
-       prob_text = vdist_pct_text(probs),
-       event_prob = probs,
+       prob_text = vdist_pct_text(event_prob),
+       event_prob = event_prob,
        omitted   = omitted,
        pc        = pc,
        lc        = lc,
@@ -810,6 +864,9 @@ tprob_data_prep <- function(perc, df, method) {
   vdist_check_density(plot_data$y, "t density")
 
   list(plot_data = plot_data,
+       ycap      = vdist_density_cap(function(x) dt(x, df),
+                                     function(x) pt(x, df),
+                                     function(p) qt(p, df), -bound, bound),
        l         = l,
        l1        = l1,
        l2        = l2,

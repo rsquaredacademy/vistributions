@@ -5,9 +5,16 @@
 #' probability and probability from a given quantile.
 #'
 #' @details The F density must not be too concentrated to draw: the central
-#' 99.9998\% probability mass must span at least 0.001. More concentrated
-#' densities (for example \code{num_df = den_df = 1e9}) stop with a clear error
-#' instead of returning an inaccurate shaded area.
+#' 99.9998\% probability mass must span a finite interval of at least 0.001.
+#' More concentrated densities (for example \code{num_df = den_df = 1e9}) stop
+#' with a clear error instead of returning an inaccurate shaded area. A tail
+#' that does not converge at double precision (for example \code{den_df = 0.01})
+#' is reported as a tail-overflow error, separately from concentration.
+#' Very wide heavy-tail windows are drawn on a symmetric log axis so the shaded
+#' event stays visible; the printed probability and the area check always use
+#' the unclipped density. Quantiles are refined by root finding when the
+#' \code{stats} quantile does not invert its own distribution function, so equal
+#' degrees of freedom up to at least \code{1e8} plot accurately.
 #'
 #' @param num_df Degrees of freedom associated with the numerator of f statistic
 #'   (at least 1; need not be a whole number).

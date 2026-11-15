@@ -9,11 +9,17 @@
 #'   two values in nondecreasing order for the interval between them. Two
 #'   values select \code{type = "both"} automatically.
 #' @param sd Standard deviation of the normal distribution. It must be positive.
-#'   When \code{mean} is nonzero, \code{sd / max(1, abs(mean))} must be at least
+#'   When \code{mean} is nonzero, \code{sd / abs(mean)} must be at least
 #'   \code{1e-14}; below that limit the cutoff cannot be represented as a double
 #'   and all three normal functions stop with a numerical-resolution error.
 #'   Zero-centred distributions have no translation and may use any positive
-#'   \code{sd}.
+#'   \code{sd}. The comparison is a ratio, so multiplying \code{mean} and
+#'   \code{sd} by the same factor (a change of units, for example from metres to
+#'   millimetres) never changes the result. Independently, the density must be
+#'   finite (\code{sd} at least about \code{1e-308}) and the plotted range
+#'   \code{mean +/- 4 sd} must be representable (\code{sd} below about
+#'   \code{4e307}); both limits come from double precision and are reported by a
+#'   specific error.
 #' @param probs Probability value, strictly between 0 and 1 and within
 #'   \code{[1e-10, 1 - 1e-10]}.
 #' @param type Lower tail, upper tail or both.
@@ -50,6 +56,7 @@ vdist_normal_plot <- function(mean = 0, sd = 1, print_plot = TRUE) {
   check_scalar(sd, "sd")
   check_positive(sd)
   vdist_check_normal_resolution(mean, sd)
+  vdist_check_normal_range(mean, sd)
 
   data <- nplot_data_prep(mean, sd)
   plot <- nplot_plot_build(data, mean, sd)
@@ -77,6 +84,7 @@ vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", 
   check_range(probs, 0, 1, "probs")
   check_probability(probs, "probs", "normal")
   vdist_check_normal_resolution(mean, sd)
+  vdist_check_normal_range(mean, sd)
 
   method <- match.arg(type)
   data   <- nperc_data_prep(probs, mean, sd, method)
@@ -114,6 +122,7 @@ vdist_normal_prob <- function(perc = 3, mean = 0, sd = 1, type = c("lower", "upp
   }
   check_positive(sd)
   vdist_check_normal_resolution(mean, sd)
+  vdist_check_normal_range(mean, sd)
 
   if ((method == "both") && (length(perc) != 2)) {
     stop("Specify two percentile values.", call. = FALSE)
