@@ -5,7 +5,9 @@
 #' probability  and probability from a given quantile.
 #'
 #' @param mean Mean of the normal distribution.
-#' @param perc Quantile value.
+#' @param perc Quantile value(s): a single value for a lower or upper tail, or
+#'   two values in nondecreasing order for the interval between them. Two
+#'   values select \code{type = "both"} automatically.
 #' @param sd Standard deviation of the normal distribution.
 #' @param probs Probability value, strictly between 0 and 1.
 #' @param type Lower tail, upper tail or both.
@@ -96,14 +98,13 @@ vdist_normal_prob <- function(perc = 3, mean = 0, sd = 1, type = c("lower", "upp
   check_numeric(sd, "sd")
   check_scalar(sd, "sd")
   check_numeric(perc, "perc")
+  if (length(perc) < 1 || length(perc) > 2) {
+    stop("perc must have one or two values.", call. = FALSE)
+  }
   if (any(!is.finite(perc))) {
     stop("perc must be finite numbers.", call. = FALSE)
   }
   check_positive(sd)
-
-  if (length(perc) > 2) {
-    stop("Please do not specify more than 2 percentile values.", call. = FALSE)
-  }
 
   if ((method == "both") && (length(perc) != 2)) {
     stop("Specify two percentile values.", call. = FALSE)

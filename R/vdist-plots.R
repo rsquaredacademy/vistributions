@@ -102,7 +102,7 @@ cplot_plot_build <- function(data, df, range, normal) {
     ggtitle(label    = "Chi Square Distribution",
             subtitle = paste("df =", df)) +
     ylab('') +
-    xlab(paste("Mean =", data$chim, " Std Dev. =", data$chisd)) +
+    xlab(paste("Mean =", fmt_num(df), " Std Dev. =", fmt_num(sqrt(2 * df)))) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5)) +
     scale_x_continuous(breaks = if (range <= 100) seq(0, range, 2) else waiver()) +
@@ -135,7 +135,7 @@ cperc_plot_build <- function(data, method, probs, df) {
     ggplot(data$plot_data) +
     geom_line(aes(x = x, y = y),
               color = "blue") +
-    xlab(paste("Mean =", data$chim, " Std Dev. =", data$chisd)) +
+    xlab(paste("Mean =", fmt_num(df), " Std Dev. =", fmt_num(sqrt(2 * df)))) +
     ylab('') +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
@@ -210,7 +210,7 @@ cprob_plot_build <- function(data, method, perc, df) {
     ggplot(data$plot_data) +
     geom_line(aes(x = x, y = y),
               color = "blue") +
-    xlab(paste("Mean =", data$chim, " Std Dev. =", data$chisd)) +
+    xlab(paste("Mean =", fmt_num(df), " Std Dev. =", fmt_num(sqrt(2 * df)))) +
     ylab('') +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
@@ -279,10 +279,23 @@ cprob_plot_build <- function(data, method, perc, df) {
   return(gplot)
 }
 
+# x coordinates of a filled polygon: the sampled grid, closed at the requested
+# endpoints. An endpoint beyond the sampled central mass was clipped by
+# vdist_grid, so the polygon stops at the grid edge instead.
+vdist_pol_x <- function(g, l1, l2) {
+  clipped <- attr(g, "clipped")
+  if (is.null(clipped)) {
+    clipped <- c(FALSE, FALSE)
+  }
+  c(if (clipped[1]) min(g) else l1, g, if (clipped[2]) max(g) else l2)
+}
+
 vdist_pol_chi <- function(l1, l2, df) {
-  g   <- vdist_seq(l1, l2)
-  x   <- c(l1, g, l2)
-  y   <- c(0, dchisq(g, df), 0)
+  pfun <- function(x) pchisq(x, df)
+  qfun <- function(p) qchisq(p, df)
+  g    <- vdist_grid(l1, l2, pfun, qfun, quantile = df < 2)
+  x    <- vdist_pol_x(g, l1, l2)
+  y    <- c(0, dchisq(g, df), 0)
   data.frame(x = x, y = y)
 }
 
@@ -493,8 +506,10 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
 }
 
 vdist_pol_f <- function(l1, l2, num_df, den_df) {
-  g    <- vdist_seq(l1, l2)
-  x    <- c(l1, g, l2)
+  pfun <- function(x) pf(x, num_df, den_df)
+  qfun <- function(p) qf(p, num_df, den_df)
+  g    <- vdist_grid(l1, l2, pfun, qfun, quantile = num_df < 2)
+  x    <- vdist_pol_x(g, l1, l2)
   y    <- c(0, df(g, num_df, den_df), 0)
   data.frame(x = x, y = y)
 }
@@ -525,8 +540,10 @@ nplot_plot_build <- function(data, mean, sd) {
 }
 
 vdist_pol_cord <- function(l1, l2, mean, sd) {
-  g <- vdist_seq(l1, l2)
-  x <- c(l1, g, l2)
+  pfun <- function(x) pnorm(x, mean, sd)
+  qfun <- function(p) qnorm(p, mean, sd)
+  g <- vdist_grid(l1, l2, pfun, qfun)
+  x <- vdist_pol_x(g, l1, l2)
   y <- c(0, dnorm(g, mean, sd), 0)
   data.frame(x = x, y = y)
 }
@@ -1043,8 +1060,10 @@ tprob_plot_build <- function(data, perc, df, method) {
 
 
 vdist_pol_t <- function(l1, l2, df) {
-  g    <- vdist_seq(l1, l2)
-  x    <- c(l1, g, l2)
+  pfun <- function(x) pt(x, df)
+  qfun <- function(p) qt(p, df)
+  g    <- vdist_grid(l1, l2, pfun, qfun)
+  x    <- vdist_pol_x(g, l1, l2)
   y    <- c(0, dt(g, df), 0)
   data.frame(x = x, y = y)
 }

@@ -43,7 +43,7 @@
 vdist_binom_plot <- function(n = 10, p = 0.3, print_plot = TRUE) {
 
 	check_numeric(n)
-	check_count(n)
+	n <- check_count(n)
 	check_numeric(p, "p")
 	check_scalar(p, "p")
 	check_range(p)
@@ -65,7 +65,7 @@ vdist_binom_plot <- function(n = 10, p = 0.3, print_plot = TRUE) {
 vdist_binom_prob <- function(n = 10, p = 0.3, s = 4, type = c("lower", "upper", "exact", "interval"), print_plot = TRUE) {
 
 	check_numeric(n)
-	check_count(n)
+	n <- check_count(n)
 	check_numeric(p, "p")
 	check_scalar(p, "p")
 	check_range(p)
@@ -112,7 +112,7 @@ vdist_binom_prob <- function(n = 10, p = 0.3, s = 4, type = c("lower", "upper", 
 vdist_binom_perc <- function(n = 10, p = 0.5, tp = 0.05, type = c("lower", "upper"), print_plot = TRUE) {
 
 	check_numeric(n)
-	check_count(n)
+	n <- check_count(n)
 	check_numeric(p, "p")
 	check_scalar(p, "p")
 	check_numeric(tp, "tp")

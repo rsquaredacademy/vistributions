@@ -14,7 +14,8 @@ test_that("vdist_normal_prob throws the appropriate errors", {
   expect_error(vdist_normal_prob(0.95, 10, "0.5"), "sd must be numeric.")
   expect_error(vdist_normal_prob(0.95, 10, as.factor(0.5)), "sd must be numeric.")
   expect_error(vdist_normal_prob(0.95, 10, -2), "sd must be a positive value.")
-  expect_error(vdist_normal_prob(c(-1.74, 1.83, 0.6)), "Please do not specify more than 2 percentile values.")
+  expect_error(vdist_normal_prob(c(-1.74, 1.83, 0.6)), "perc must have one or two values.")
+  expect_error(vdist_normal_prob(numeric()), "perc must have one or two values.")
   expect_error(vdist_normal_prob(c(-1.74), type = 'both'), "Specify two percentile values.")
 })
 

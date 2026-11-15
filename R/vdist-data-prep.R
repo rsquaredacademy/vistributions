@@ -9,7 +9,7 @@
 #'
 bplot_data_prep <- function(n, p) {
 
-  n    <- as.integer(n)
+  n    <- round(n)
   x    <- seq(0, n, 1)
   bm   <- round(n * p, 2)
   bsd  <- round(sqrt(n * p * (1 - p)), 2)
@@ -22,7 +22,7 @@ bplot_data_prep <- function(n, p) {
 
 bprob_data_prep <- function(n, p, s, method) {
 
-  n   <- as.integer(n)
+  n   <- round(n)
   x   <- seq(0, n, 1)
   bm  <- round(n * p, 2)
   bsd <- round(sqrt(n * p * (1 - p)), 2)
@@ -51,7 +51,7 @@ bprob_data_prep <- function(n, p, s, method) {
 
 bperc_data_prep <- function(n, p, tp, method) {
 
-  n      <- as.integer(n)
+  n      <- round(n)
   x      <- seq(0, n, 1)
 
   if (method == "lower") {
@@ -75,14 +75,20 @@ cplot_data_prep <- function(df, range) {
 
   chim  <- round(df, 3)
   chisd <- round(sqrt(2 * df), 3)
-  x     <- vdist_seq(0, range)
+  lo    <- vdist_support_start(df, qchisq(1e-6, df))
+  x     <- vdist_grid(lo, range,
+                      function(v) pchisq(v, df),
+                      function(p) qchisq(p, df),
+                      quantile = df < 2)
   data  <- dchisq(x, df)
 
   plot_data  <- data.frame(x = x, chi = data)
   poly_data  <- data.frame(y = c(0, x, range),
                            z = c(0, data, 0))
   point_data <- data.frame(x = chim, y = min(data))
-  nline_data <- data.frame(x = x, y = dnorm(x, chim, chisd))
+  # the overlay uses the df that was supplied: rounding df (or its sd) to three
+  # decimals turns a valid positive sd into a point mass for tiny df
+  nline_data <- data.frame(x = x, y = dnorm(x, df, sqrt(2 * df)))
 
   list(plot_data  = plot_data,
        poly_data  = poly_data,
@@ -107,15 +113,17 @@ cperc_data_prep <- function(probs, df, method) {
   }
 
   # the grid must cover the cutoff, however far out it is
-  l      <- vdist_chiseql(chim, chisd, pp)
+  l      <- vdist_chiseql(chim, chisd, pp, df)
   ln     <- length(l)
-  lc     <- c(l[1], pp, l[ln])
+  # the drawn cutoff is clipped to the visible range; the caption keeps pp
+  pc     <- min(max(pp, l[1]), l[ln])
+  lc     <- c(l[1], pc, l[ln])
   l1     <- c(1, 2)
   l2     <- c(2, 3)
 
   xm         <- c(l[1], l[ln])
   plot_data  <- data.frame(x = l, y = dchisq(l, df))
-  point_data <- data.frame(x = pp, y = min(dchisq(l, df)))
+  point_data <- data.frame(x = pc, y = min(dchisq(l, df)))
 
   list(plot_data  = plot_data,
        point_data = point_data,
@@ -124,19 +132,25 @@ cperc_data_prep <- function(probs, df, method) {
        xm         = xm,
        l          = l,
        pp         = pp,
+       pc         = pc,
        lc         = lc,
        l1         = l1,
        l2         = l2,
        col        = col)
 }
 
-vdist_chiseql <- function(mean, sd, cutoff = NULL) {
-  lmin <- mean - (5 * sd)
+vdist_chiseql <- function(mean, sd, cutoff = NULL, df) {
+  lmin <- vdist_support_start(df, qchisq(1e-6, df))
   lmax <- mean + (5 * sd)
   if (!is.null(cutoff)) {
     lmax <- max(lmax, max(cutoff) + sd)
   }
-  vdist_seq(lmin, lmax)
+  # never plot beyond the central mass: a cutoff further out is drawn clipped
+  lmax <- max(min(lmax, qchisq(1 - 1e-9, df)), lmin)
+  vdist_grid(lmin, lmax,
+             function(x) pchisq(x, df),
+             function(p) qchisq(p, df),
+             quantile = df < 2)
 }
 
 vdist_xmm <- function(mean, sd) {
@@ -150,14 +164,18 @@ cprob_data_prep <- function(perc, df, method) {
   chim   <- round(df, 3)
   chisd  <- round(sqrt(2 * df), 3)
 
-  l <- if (perc < 25) {
-    vdist_seq(0, 25)
-  } else {
-    vdist_seq(0, (perc + (3 * chisd)))
-  }
+  lo <- vdist_support_start(df, qchisq(1e-6, df))
+  hi <- if (perc < 25) 25 else (perc + (3 * chisd))
+  # never plot beyond the central mass: a cutoff further out is drawn clipped
+  hi <- max(min(hi, qchisq(1 - 1e-9, df)), lo + 1)
 
+  l  <- vdist_grid(lo, hi,
+                   function(x) pchisq(x, df),
+                   function(p) qchisq(p, df),
+                   quantile = df < 2)
   ln <- length(l)
-  # the support starts at 0: clamp the cutoff used for the shaded regions
+  # the support starts at 0 and the view stops at the central mass: clamp the
+  # cutoff used for the shaded regions (the caption keeps the true perc)
   pc <- min(max(perc, l[1]), l[ln])
 
   if (method == "lower") {
@@ -184,6 +202,7 @@ cprob_data_prep <- function(perc, df, method) {
        l          = l,
        ln         = ln,
        pp         = pp,
+       pc         = pc,
        lc         = lc,
        l1         = l1,
        l2         = l2,
@@ -195,18 +214,20 @@ fplot_data_prep <- function(num_df, den_df) {
 
   fm     <- if (den_df > 2) round(den_df / (den_df - 2), 3) else NA_real_
   fsd    <- if (den_df > 4) round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3) else NA_real_
-  x      <- seq(0, 4, 0.01)
-  nx     <- seq(0, 4, 0.01)
+  lo     <- vdist_support_start(num_df, qf(1e-6, num_df, den_df))
+  x      <- vdist_grid(lo, 4,
+                       function(v) pf(v, num_df, den_df),
+                       function(p) qf(p, num_df, den_df),
+                       quantile = num_df < 2)
+  nx     <- x
 
   plot_data  <- data.frame(x = x, y = df(x, num_df, den_df))
   point_data <- if (!is.na(fm)) data.frame(x = fm, y = 0) else data.frame(x = numeric(0), y = numeric(0))
   nline_data <- if (!is.na(fsd)) data.frame(x = nx, y = dnorm(nx, fm, fsd)) else data.frame(x = numeric(0), y = numeric(0))
 
-  poly_data  <- data.frame(y = c(0, seq(0, 4, 0.01), 4),
+  poly_data  <- data.frame(y = c(0, x, 4),
                            z = c(0,
-                                 df(seq(0, 4, 0.01),
-                                    num_df,
-                                    den_df),
+                                 df(x, num_df, den_df),
                                  0))
 
   list(plot_data  = plot_data,
@@ -236,9 +257,16 @@ fperc_data_prep <- function(probs, num_df, den_df, method) {
   }
 
   xu <- if (pp < 4) 4 else pp * 1.25
-  l  <- vdist_seq(0, xu)
+  # never plot beyond the central mass: a cutoff further out is drawn clipped
+  xu <- max(min(xu, qf(1 - 1e-9, num_df, den_df)), qf(1e-6, num_df, den_df))
+  lo <- vdist_support_start(num_df, qf(1e-6, num_df, den_df))
+  l  <- vdist_grid(lo, xu,
+                   function(x) pf(x, num_df, den_df),
+                   function(p) qf(p, num_df, den_df),
+                   quantile = num_df < 2)
   ln <- length(l)
-  lc <- c(l[1], pp, l[ln])
+  pc <- min(max(pp, l[1]), l[ln])
+  lc <- c(l[1], pc, l[ln])
 
   plot_data <- data.frame(x = l, y = df(l, num_df, den_df))
 
@@ -247,6 +275,7 @@ fperc_data_prep <- function(probs, num_df, den_df, method) {
        fsd       = fsd,
        l         = l,
        pp        = pp,
+       pc        = pc,
        lc        = lc,
        l1        = l1,
        l2        = l2,
@@ -259,13 +288,18 @@ fprob_data_prep <- function(perc, num_df, den_df, method) {
   fm     <- if (den_df > 2) round(den_df / (den_df - 2), 3) else NA_real_
   fsd    <- if (den_df > 4) round(sqrt((2 * (fm ^ 2) * (num_df + den_df - 2)) / (num_df * (den_df - 4))), 3) else NA_real_
 
-  l <- if (perc < 4) {
-    vdist_seq(0, 4)
-  } else {
-    vdist_seq(0, (perc * 1.25))
-  }
+  lo <- vdist_support_start(num_df, qf(1e-6, num_df, den_df))
+  hi <- if (perc < 4) 4 else (perc * 1.25)
+  # never plot beyond the central mass: a cutoff further out is drawn clipped
+  hi <- max(min(hi, qf(1 - 1e-9, num_df, den_df)), lo + 1)
+
+  l  <- vdist_grid(lo, hi,
+                   function(x) pf(x, num_df, den_df),
+                   function(p) qf(p, num_df, den_df),
+                   quantile = num_df < 2)
   ln <- length(l)
-  # the support starts at 0: clamp the cutoff used for the shaded regions
+  # the support starts at 0 and the view stops at the central mass: clamp the
+  # cutoff used for the shaded regions (the caption keeps the true perc)
   pc <- min(max(perc, l[1]), l[ln])
 
   if (method == "lower") {
@@ -289,6 +323,7 @@ fprob_data_prep <- function(perc, num_df, den_df, method) {
        fsd       = fsd,
        l         = l,
        pp        = pp,
+       pc        = pc,
        lc        = lc,
        l1        = l1,
        l2        = l2,
@@ -360,16 +395,20 @@ nperc_data_prep <- function(probs, mean, sd, method) {
     l2  <- c(2, 3, 4)
   }
 
-  # the grid must cover every cutoff
-  x      <- vdist_xax(mean, sd, vdist_halfwidth(pp, mean, sd, 4))
-  l      <- vdist_seql(mean, sd, vdist_halfwidth(pp, mean, sd, 5))
+  # the grid must cover every cutoff, but never beyond the central mass
+  k      <- min(vdist_halfwidth(pp, mean, sd, 5), qnorm(1 - 1e-9))
+  x      <- vdist_xax(mean, sd, min(vdist_halfwidth(pp, mean, sd, 4), qnorm(1 - 1e-9)))
+  l      <- vdist_seql(mean, sd, k)
   ln     <- length(l)
-  lc     <- if (method == "both") c(l[1], pp1, pp2, l[ln]) else c(l[1], pp, l[ln])
+  # the drawn cutoff is clipped to the visible range; the caption keeps pp
+  pc     <- pmin(pmax(pp, l[1]), l[ln])
+  lc     <- if (method == "both") c(l[1], pc[1], pc[2], l[ln]) else c(l[1], pc, l[ln])
 
   plot_data <- data.frame(x = x, y = dnorm(x, mean, sd))
 
   list(plot_data = plot_data,
        pp        = pp,
+       pc        = pc,
        l         = l,
        x         = x,
        alpha     = alpha,
@@ -382,16 +421,19 @@ nperc_data_prep <- function(probs, mean, sd, method) {
 
 nprob_data_prep <- function(perc, mean, sd, method) {
 
-  el <- max(abs(perc - mean)) / sd + 1
+  # the view includes the cutoffs unless they lie beyond the central mass
+  el <- min(max(abs(perc - mean)) / sd + 1, qnorm(1 - 1e-9))
   x  <- vdist_xaxp(mean, sd, el)
   l  <- vdist_seqlp(mean, sd, el)
   ln <- length(l)
+  # the drawn cutoffs are clipped to the visible range; captions keep perc
+  pc <- pmin(pmax(perc, l[1]), l[ln])
 
   if (method == "lower") {
     pp1 <- NULL
     pp2 <- NULL
     pp  <- round(pnorm(perc, mean, sd), 3)
-    lc  <- c(l[1], perc, l[ln])
+    lc  <- c(l[1], pc, l[ln])
     col <- c("#0000CD", "#6495ED")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
@@ -399,7 +441,7 @@ nprob_data_prep <- function(perc, mean, sd, method) {
     pp1 <- NULL
     pp2 <- NULL
     pp  <- round(pnorm(perc, mean, sd, lower.tail = F), 3)
-    lc  <- c(l[1], perc, l[ln])
+    lc  <- c(l[1], pc, l[ln])
     col <- c("#6495ED", "#0000CD")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
@@ -407,7 +449,7 @@ nprob_data_prep <- function(perc, mean, sd, method) {
     pp1 <- round(pnorm(perc[1], mean, sd), 3)
     pp2 <- round(pnorm(perc[2], mean, sd, lower.tail = F), 3)
     pp  <- c(pp1, pp2)
-    lc  <- c(l[1], perc[1], perc[2], l[ln])
+    lc  <- c(l[1], pc[1], pc[2], l[ln])
     col <- c("#6495ED", "#0000CD", "#6495ED")
     l1  <- c(1, 2, 3)
     l2  <- c(2, 3, 4)
@@ -418,6 +460,7 @@ nprob_data_prep <- function(perc, mean, sd, method) {
 
   list(plot_data = plot_data,
        pp        = pp,
+       pc        = pc,
        x         = x,
        l         = l,
        pp1       = pp1,
@@ -489,11 +532,16 @@ tperc_data_prep <- function(probs, df, method) {
     l2    <- c(2, 3, 4)
   }
 
-  # the grid must cover every cutoff
+  # the grid must cover every cutoff, but never beyond the central mass
   bound <- max(5, max(abs(pp)) + 1)
-  l     <- vdist_seq(-bound, bound)
+  bound <- min(bound, qt(1 - 1e-9, df))
+  l     <- vdist_grid(-bound, bound,
+                      function(x) pt(x, df),
+                      function(p) qt(p, df))
   ln    <- length(l)
-  lc    <- if (method == "both") c(l[1], pp1, pp2, l[ln]) else c(l[1], pp, l[ln])
+  # the drawn cutoffs are clipped to the visible range; captions keep pp
+  pc    <- pmin(pmax(pp, l[1]), l[ln])
+  lc    <- if (method == "both") c(l[1], pc[1], pc[2], l[ln]) else c(l[1], pc, l[ln])
 
   plot_data <- data.frame(x = l, y = dt(l, df))
 
@@ -501,6 +549,7 @@ tperc_data_prep <- function(probs, df, method) {
        l         = l,
        alpha     = alpha,
        pp        = pp,
+       pc        = pc,
        lc        = lc,
        l1        = l1,
        l2        = l2,
@@ -511,15 +560,20 @@ tperc_data_prep <- function(probs, df, method) {
 tprob_data_prep <- function(perc, df, method) {
 
   bound <- max(5, abs(perc) + 1)
-  l     <- vdist_seq(-bound, bound)
+  bound <- min(bound, qt(1 - 1e-9, df))
+  l     <- vdist_grid(-bound, bound,
+                      function(x) pt(x, df),
+                      function(p) qt(p, df))
 
   ln <- length(l)
+  # the drawn cutoff is clipped to the visible range; the caption keeps perc
+  pc <- min(max(perc, l[1]), l[ln])
 
   if (method == "lower") {
     pp1 <- NULL
     pp2 <- NULL
     pp  <- round(pt(perc, df), 3)
-    lc  <- c(l[1], perc, l[ln])
+    lc  <- c(l[1], pc, l[ln])
     col <- c("#0000CD", "#6495ED")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
@@ -527,7 +581,7 @@ tprob_data_prep <- function(perc, df, method) {
     pp1 <- NULL
     pp2 <- NULL
     pp  <- round(pt(perc, df, lower.tail = F), 3)
-    lc  <- c(l[1], perc, l[ln])
+    lc  <- c(l[1], pc, l[ln])
     col <- c("#6495ED", "#0000CD")
     l1  <- c(1, 2)
     l2  <- c(2, 3)
@@ -539,7 +593,7 @@ tprob_data_prep <- function(perc, df, method) {
     pp1 <- round(pt(-perc, df), 3)
     pp2 <- round(pt(perc, df, lower.tail = F), 3)
     pp  <- c(pp1, pp2)
-    lc  <- c(l[1], -perc, perc, l[ln])
+    lc  <- c(l[1], -pc, pc, l[ln])
     col <- c("#6495ED", "#0000CD", "#6495ED")
     l1  <- c(1, 2, 3)
     l2  <- c(2, 3, 4)
@@ -551,7 +605,7 @@ tprob_data_prep <- function(perc, df, method) {
     pp1 <- round(pt(-perc, df), 3)
     pp2 <- round(pt(perc, df, lower.tail = F), 3)
     pp  <- c(pp1, pp2)
-    lc  <- c(l[1], -perc, perc, l[ln])
+    lc  <- c(l[1], -pc, pc, l[ln])
     col <- c("#0000CD", "#6495ED", "#0000CD")
     l1  <- c(1, 2, 3)
     l2  <- c(2, 3, 4)
@@ -567,6 +621,7 @@ tprob_data_prep <- function(perc, df, method) {
        col       = col,
        pp        =  pp,
        pp1       = pp1,
-       pp2       = pp2)
+       pp2       = pp2,
+       pc        = pc)
 
 }
