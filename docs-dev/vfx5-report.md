@@ -11,9 +11,12 @@ Environment: Windows 11 x64, R 4.6.1 ucrt (2026-06-24), ggplot2 4.0.3,
 testthat 3.3.2, vdiffr 1.0.9, devtools 2.5.2. Heavy commands ran through
 `bash ~/.claude/bin/heavy-slot.sh pkg-vfx5 …`.
 
-Code commit: `5a35260` (`fix: standardize density display, event captions and
-limits (VFXX4-H1/H2/M1/M2/L1) (vfx5)`). This report is a later
-documentation-only commit under `.Rbuildignore`d `docs-dev/`.
+Code commits: `5a35260` (`fix: standardize density display, event captions and
+limits (VFXX4-H1/H2/M1/M2/L1) (vfx5)`) and `6b61940` (`fix: keep very large
+cutoff labels to significant digits (vfx5)`). The second prints a very large
+cutoff with significant digits (for example `P(X < -1.60443e+96) = 1e-08%`)
+instead of a 90-digit fixed number; it affects no ordinary snapshot. This report
+is a later documentation-only commit under `.Rbuildignore`d `docs-dev/`.
 
 ## Design of this round
 
@@ -136,7 +139,7 @@ Each “after” caption is true at the half-unit of its printed percentage
 
 | Input | Before | After |
 |---|---|---|
-| `vdist_t_perc(1e-10, .1)` | error: area `1.0011274` vs `1` | plot; the 1e-10 event lies beyond the view, is stated in the caption and counted by the area check (area `0`) |
+| `vdist_t_perc(1e-10, .1)` | error: area `1.0011274` vs `1` | plot; `P(X < -1.60443e+96) = 1e-08%`; the 1e-10 event lies beyond the view and is counted by the area check (area `0`) |
 | `vdist_f_prob(0, 2, .5, "upper")` | error: area `1.0015961` vs `.9999` | area `.999917`; caption `P(X > 0) = 100%` |
 | `vdist_f_perc(.95, 2, .1)` | error: area `.96831008` vs `.95` | area `.950192` |
 | `vdist_f_perc(1e-6, 5, .5, "upper")` | error: area `1.0021338` vs `.999999` | area `5.4e-8`; the 1e-4 off-view event mass is stated in the caption |
@@ -238,7 +241,7 @@ NOT_CRAN=true devtools::test()
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 746 ]
 ```
 
-Clean `git archive` from the code commit (`5a35260`):
+Clean `git archive` from the final code commit (`6b61940`):
 
 ```text
 R CMD build --no-manual .                    exit 0 (vignette built)
