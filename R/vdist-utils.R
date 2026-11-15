@@ -168,6 +168,35 @@ vdist_check_density <- function(y, what = "density") {
   invisible(y)
 }
 
+# ---------------------------------------------------------------------------
+# Input contract
+#
+# Every exported plotting function validates against the table below; it is the
+# single definition used by the validators, by the help-page tests and by the
+# report. The limits are the probability range in which a quantile is both
+# representable and invertible at double precision, and the parameter ranges in
+# which the density can be drawn. Ordinary teaching inputs (the function
+# defaults, normal(100, 15), t with 5 df, chi-square with 1 or 2 df and an upper
+# tail, F(5, 10), a typical binomial) are well inside every limit.
+# ---------------------------------------------------------------------------
+vdist_contract <- function(dist = NULL) {
+  tab <- data.frame(
+    dist          = c("normal", "t", "chisquare", "f", "binomial"),
+    prob_lo       = c(1e-10, 1e-10, 1e-6, 1e-6, NA_real_),
+    prob_hi       = c(1 - 1e-10, 1 - 1e-10, 1 - 1e-6, 1 - 1e-6, NA_real_),
+    parameter     = c("sd / |mean| >= 1e-14 (mean != 0)",
+                      "df > 0",
+                      "df >= 0.1",
+                      "num_df >= 1, den_df > 0",
+                      "n a whole number in [0, 2^31 - 1], 0 <= p <= 1"),
+    stringsAsFactors = FALSE
+  )
+  if (is.null(dist)) {
+    return(tab)
+  }
+  tab[tab$dist == dist, , drop = FALSE]
+}
+
 # Convergence check: the shoelace area of a drawn polygon. The local-edge
 # form uses only coordinate differences, so it stays accurate for polygons far
 # from zero (e.g. mean = 1, sd = 1e-13) and for very wide t tails, where
@@ -193,21 +222,156 @@ vdist_check_area <- function(x, y, target, what = "shaded region") {
   invisible(area)
 }
 
-# Check the event the caption names, not just the polygon's own endpoints: the
-# drawn area plus the part of the event that lies outside the visible window
-# must equal the stated event probability. `omitted` is computed with the
-# distribution's p*() function by the data preparation step.
-vdist_check_event <- function(area, omitted, target, what = "shaded region") {
-  total <- area + omitted
-  if (!is.finite(total) || abs(total - target) > 1e-3) {
+# Check the polygon the plot actually draws: its own area must equal the exact
+# probability of the event it represents, computed from the distribution
+# function (never from the polygon). No "off-view" amount is added here: the
+# shading polygon spans the whole event (the panel only clips the drawing), so
+# the area is a direct, independent check of the sampling grid.
+vdist_check_region <- function(area, target, what = "shaded region") {
+  if (!is.finite(area) || abs(area - target) > 1e-3) {
     stop(paste0("The ", what, " area (", format(area, digits = 8),
-                ") plus the ", format(omitted, digits = 8),
-                " probability outside the visible range does not match the ",
-                "stated event probability (", format(target, digits = 8),
-                ") within 1e-3; choose parameters inside the documented ",
-                "plotting contract."), call. = FALSE)
+                ") does not match the probability of its event (",
+                format(target, digits = 8),
+                ") within 1e-3; the density is too concentrated for the ",
+                "documented plotting contract."), call. = FALSE)
   }
-  invisible(total)
+  invisible(area)
+}
+
+# ---------------------------------------------------------------------------
+# Shading polygons
+#
+# A shaded region is built from three grids unioned together, so every scale of
+# the region is resolved by construction:
+#
+#   1. points equally spaced in probability (logit-spaced: geometric in x in
+#      both tails, which resolves a support edge where the density is
+#      unbounded and a far tail that spans many orders of magnitude);
+#   2. points equally spaced in standardised x (the body of the density).
+#
+# The polygon is then closed on the x axis at both ends. Its own shoelace area
+# is compared with the exact probability p(hi) - p(lo) and the grid is refined
+# (by doubling) until the area is within `tol`; the caller reports the
+# documented error when the budget is exhausted. No step in data units is used
+# and nothing is derived from the drawn grid.
+#
+# A density that is unbounded at a support edge cannot be evaluated at the
+# edge. The edge vertex is then given the height that makes the first (last)
+# trapezoid carry the exact CDF mass of that sliver, so the singular part of
+# the region is included exactly instead of being dropped or drawn as a spike.
+# ---------------------------------------------------------------------------
+
+
+# log-spaced x values across [lo, hi], aware of the sign of the interval
+
+vdist_region_grid <- function(lo, hi, pfun, qfun, n) {
+  plo <- min(max(pfun(lo), 1e-12), 1 - 1e-12)
+  phi <- min(max(pfun(hi), 1e-12), 1 - 1e-12)
+  # probability-spaced points: geometric in x near a support edge and in a
+  # heavy tail, so the singular part of the region is resolved
+  xp  <- if (phi > plo) {
+    qfun(stats::plogis(seq(stats::qlogis(plo), stats::qlogis(phi),
+                           length.out = n)))
+  } else {
+    numeric(0)
+  }
+  # uniform points across the region (in standardised units, see vdist_region)
+  xu  <- seq(lo, hi, length.out = n)
+  x  <- sort(unique(c(lo, xp, xu, hi)))
+  x  <- x[is.finite(x) & x >= lo & x <= hi]
+  x
+}
+
+
+# Polygon of the region [lo, hi] under the density. Returns the closed polygon
+# (both ends on the x axis), its area and the number of points used.
+#
+# The initial grid (probability + uniform + log, see above) is refined where
+# the trapezoid rule is actually wrong: the local error of every interval is
+# compared with the exact CDF mass p(x[i+1]) - p(x[i]), and the worst intervals
+# are bisected until the polygon's own area is within `tol` of the exact
+# p(hi) - p(lo). The refinement is therefore driven by the region's own scale
+# and its exact probability, not by a step in data units.
+vdist_region <- function(lo, hi, dfun, pfun, qfun,
+                         n = 65L, tol = 1e-5, max_pts = 20001L,
+                         max_pass = 200L, frac = 0.03,
+                         center = 0, scale = 1) {
+  if (!is.finite(lo) || !is.finite(hi)) {
+    stop("The shading region is not finite; choose parameters inside the ",
+         "documented plotting contract.", call. = FALSE)
+  }
+  if (hi <= lo) {
+    return(list(x = c(lo, hi), y = c(0, 0), area = 0, n = 0L))
+  }
+  # Work in standardised units z = (x - center) / scale. The same region and
+  # the same density under any change of measurement units therefore give the
+  # same grid, the same refinement decisions and (mapped back) the same
+  # standardised polygon.
+  ctr <- if (is.finite(center)) center else 0
+  scl <- if (is.finite(scale) && scale > 0) scale else 1
+  zlo <- (lo - ctr) / scl
+  zhi <- (hi - ctr) / scl
+  if (!is.finite(zlo) || !is.finite(zhi) || zhi <= zlo) {
+    return(list(x = c(lo, hi), y = c(0, 0), area = 0, n = 0L))
+  }
+  pfun_z <- function(z) pfun(ctr + scl * z)
+  dfun_z <- function(z) scl * dfun(ctr + scl * z)
+  qfun_z <- function(p) (qfun(p) - ctr) / scl
+
+  p_lo   <- pfun_z(zlo)
+  p_hi   <- pfun_z(zhi)
+  target <- p_hi - p_lo
+  x <- vdist_region_grid(zlo, zhi, pfun_z, qfun_z, n)
+  if (length(x) < 2) {
+    return(list(x = c(lo, hi), y = c(0, 0), area = 0, n = 0L))
+  }
+  fix <- function(x, y) {
+    if (length(x) >= 2 && !is.finite(y[1])) {
+      y[1] <- 2 * (pfun_z(x[2]) - p_lo) / (x[2] - zlo) - y[2]
+    }
+    if (length(x) >= 2 && !is.finite(y[length(y)])) {
+      y[length(y)] <- 2 * (p_hi - pfun_z(x[length(x) - 1])) /
+        (zhi - x[length(x) - 1]) - y[length(y) - 1]
+    }
+    y[!is.finite(y)] <- 0
+    y[y < 0] <- 0
+    y
+  }
+  y <- fix(x, dfun_z(x))
+  poly_area <- function() vdist_area(c(zlo, x, zhi), c(0, y, 0))
+  a <- poly_area()
+  # Decisions are taken on values quantised to 12 significant digits: two
+  # representations of the same region that differ only by a floating-point
+  # rounding step then make exactly the same refinement decisions, so the
+  # standardised polygon is the same picture in every unit system.
+  qz <- function(v) signif(v, 12)
+  pass <- 0L
+  while (qz(abs(a - target)) > tol && length(x) < max_pts && pass < max_pass) {
+    pass <- pass + 1L
+    err <- ((y[-1] + y[-length(y)]) / 2) * diff(x) -
+      (pfun_z(x[-1]) - pfun_z(x[-length(x)]))
+    ae  <- abs(qz(err))
+    k   <- max(4L, ceiling(frac * length(x)))
+    thr <- max(tol * 1e-2, as.numeric(stats::quantile(
+      ae, max(0, 1 - k / length(x)), names = FALSE, type = 1)))
+    idx <- which(ae >= thr & ae > 0)
+    if (!length(idx)) {
+      idx <- which.max(ae)
+    }
+    mid <- (x[idx] + x[idx + 1]) / 2
+    mid <- mid[is.finite(mid) & mid > x[idx] & mid < x[idx + 1]]
+    if (!length(mid)) {
+      break
+    }
+    x <- sort(c(x, mid))
+    y <- fix(x, dfun_z(x))
+    a <- poly_area()
+  }
+  zx <- c(zlo, x, zhi)
+  list(x  = ctr + scl * zx,
+       y  = c(0, y, 0) / scl,
+       area = a,
+       n  = length(zx))
 }
 
 # A translated normal is only representable when the standard deviation is
@@ -274,18 +438,7 @@ check_count <- function(val, var = "n") {
 # wastes almost every point on a long, empty tail.
 vdist_n_points <- 1001L
 
-# A density that is singular at the support boundary needs more probability
-# points close to that boundary; the fixed count keeps allocation bounded.
-vdist_grid_n <- function(singular = FALSE) {
-  if (isTRUE(singular)) 10001L else vdist_n_points
-}
 
-# Very small t degrees of freedom put almost all probability in a tail that
-# reaches millions or further; the extra points keep the central mass resolved
-# without slowing the ordinary examples.
-vdist_grid_n_t <- function(df) {
-  if (df < 1) 4001L else vdist_n_points
-}
 
 vdist_seq <- function(from, to, n = vdist_n_points) {
   seq(from, to, length.out = n)
@@ -389,27 +542,12 @@ vdist_grid <- function(from, to, pfun, qfun, n = vdist_n_points,
   # tail where the CDF has saturated and a single segment to the endpoint
   # would otherwise create a spurious triangle.
   x <- c(from, xq, if (uniform) seq(from, to, length.out = n), to)
-  x <- x[is.finite(x)]
+  # a refined quantile can land a rounding step outside the requested view (or
+  # just below a support boundary at 0); the curve is only drawn inside the view
+  x <- x[is.finite(x) & x >= from & x <= to]
   sort(unique(x))
 }
 
-# Lower end of a plotting grid for a distribution on [0, Inf): the support
-# itself, or the requested quantile where the density is unbounded at zero.
-# No absolute epsilon floor is used: a quantile that underflows to zero is a
-# documented parameter-limit error rather than a silent mass loss.
-vdist_support_start <- function(df, q, what = "distribution", min_df = 0) {
-  if (df < 2) {
-    if (!is.finite(q) || q <= 0) {
-      stop(paste0("The ", what, " support boundary cannot be represented for ",
-                  "df = ", format(df, digits = 15),
-                  "; df must be at least ", format(min_df, digits = 15),
-                  "."), call. = FALSE)
-    }
-    q
-  } else {
-    0
-  }
-}
 
 # F density concentration: the central 99.9998% mass must span at least 1e-3,
 # so that the capped 20,001-point grid resolves the body of the density.
@@ -437,23 +575,6 @@ vdist_check_f_concentration <- function(num_df, den_df) {
   width
 }
 
-# F grid: probability-space sampling with a fixed point count resolves both
-# ordinary densities and the concentrated ones whose central mass is narrow.
-# The width limit is still checked, so a density that no finite grid can draw
-# is rejected with its documented error.
-vdist_f_grid <- function(lo, hi, num_df, den_df, quantile = TRUE,
-                         step = NULL, n = NULL, uniform = TRUE) {
-  vdist_check_f_concentration(num_df, den_df)
-  if (is.null(n)) {
-    n <- vdist_grid_n(num_df < 2 || den_df < 1)
-  }
-  vdist_grid(lo, hi,
-             function(x) pf(x, num_df, den_df),
-             function(p) qf(p, num_df, den_df),
-             quantile = quantile,
-             n = n,
-             uniform = uniform)
-}
 
 # Keep enough of both t tails that the omitted mass is below 1e-4: the
 # density is heavy-tailed, so a fixed +/-5 window loses more than 1e-3 of the
@@ -478,34 +599,47 @@ fmt_moment <- function(x) {
 
 # Format a probability for a caption together with the interval its printed
 # digits guarantee. Percentages at or above 0.1 keep one decimal; smaller ones
-# use three significant digits in scientific notation. The caption is true
-# only when the probability of the printed cutoff falls inside this interval.
+# use three significant digits in scientific notation.
+#
+# The displayed precision is increased whenever the exact value does not fall
+# inside the rounding interval of the first candidate (a value exactly on a
+# rounding boundary, such as 5.05%, cannot be stated truthfully with one
+# decimal). The rule is a function of the probability alone, so it is unchanged
+# by a change of measurement units and it guarantees that every printed
+# percentage is true at the precision it shows.
 vdist_fmt_pct <- function(p) {
   if (length(p) != 1L || !is.finite(p)) {
     return(list(text = "NA", value = NA_real_, tol = Inf))
   }
-  v <- p * 100
-  if (v == 0) {
+  if (p == 0) {
     return(list(text = "0", value = 0, tol = 0.005))
   }
+  v <- p * 100
   if (v >= 0.1) {
-    r <- round(v, 1)
-    s <- format(r, trim = TRUE, scientific = FALSE)
-    dec <- if (grepl("\\.", s)) {
+    dec <- 1L
+    repeat {
+      shown <- round(v, dec)
+      half  <- 0.5 * 10 ^ (-dec)
+      if (abs(v - shown) <= half * (1 - 1e-9) || dec >= 12L) {
+        break
+      }
+      dec <- dec + 1L
+    }
+    s  <- format(shown, trim = TRUE, scientific = FALSE, digits = 15)
+    dec_shown <- if (grepl("\\.", s)) {
       nchar(sub("^[^.]*\\.", "", s))
     } else {
-      0
+      0L
     }
-    list(text = s, value = r / 100, tol = 0.5 * 10 ^ (-dec) / 100)
-  } else {
-    s <- format(v, scientific = TRUE, digits = 3, trim = TRUE)
-    mant <- sub("e.*$", "", s)
-    dec <- if (grepl("\\.", mant)) nchar(sub("^[^.]*\\.", "", mant)) else 0
-    ex <- suppressWarnings(as.numeric(sub("^.*e", "", s)))
-    if (!is.finite(ex)) ex <- 0
-    list(text = s, value = as.numeric(s) / 100,
-         tol = 0.5 * 10 ^ (-dec) * 10 ^ ex / 100)
+    return(list(text = s, value = shown / 100, tol = 0.5 * 10 ^ (-dec_shown) / 100))
   }
+  s <- format(v, scientific = TRUE, digits = 3, trim = TRUE)
+  mant <- sub("e.*$", "", s)
+  dec <- if (grepl("\\.", mant)) nchar(sub("^[^.]*\\.", "", mant)) else 0
+  ex <- suppressWarnings(as.numeric(sub("^.*e", "", s)))
+  if (!is.finite(ex)) ex <- 0
+  list(text = s, value = as.numeric(s) / 100,
+       tol = 0.5 * 10 ^ (-dec) * 10 ^ ex / 100)
 }
 
 vdist_pct_text <- function(p) {
@@ -620,52 +754,29 @@ vdist_fmt_interval <- function(x1, x2, scale, pfun, target) {
     format(x2, digits = 17, scientific = TRUE, trim = TRUE))
 }
 
-# The upper limit of the density axis. A density that is unbounded at a support
-# edge (chi-square and F with a small shape parameter) has a peak orders of
-# magnitude above its body; drawing the true peak compresses the body and the
-# shaded region into the baseline. Capping the axis at a high quantile of the
-# plotted density keeps the body, and therefore the shading, visible. The
-# source-coordinate area checks always use the unclipped density.
-vdist_y_cap <- function(y) {
+
+
+# Display cap for the density axis. It is sampled uniformly in x over the
+# plotted view, because that is the scale the eye sees: a density that is
+# unbounded at a support edge has an integrable spike whose visible width is
+# tiny, and a probability-spaced sample would let that spike decide the axis
+# (and hide the body and the shaded region). When the maximum is orders of
+# magnitude above the body, the axis is capped at the 95th percentile of the
+# density over the view; ordinary densities are not clipped at all.
+# Source-coordinate area checks always use the unclipped density.
+vdist_density_cap <- function(dfun, lo, hi) {
+  if (!is.finite(lo) || !is.finite(hi) || hi <= lo) {
+    return(1)
+  }
+  x <- seq(lo, hi, length.out = 501)
+  y <- dfun(x)
   y <- y[is.finite(y) & y >= 0]
   if (!length(y)) {
     return(1)
   }
-  mx <- max(y)
-  q  <- as.numeric(stats::quantile(y, 0.98, names = FALSE))
-  if (is.finite(q) && q > 0 && mx > 20 * q) q else mx
-}
-
-# Axis limits for the density panel: headroom for a clipped peak and for the
-# percentage labels above the curve.
-vdist_ylim <- function(y, headroom = 1.3) {
-  cap <- vdist_y_cap(y)
-  c(0, cap * headroom)
-}
-
-# Display cap for the density axis, sampled uniformly in probability space so
-# that the many nearly-empty points of a tail-resolving grid cannot decide it.
-# A density that is unbounded at a support edge is capped at a value its body
-# reaches, which keeps the body and the shaded region visible; ordinary
-# densities are not clipped. Source-coordinate area checks always use the
-# unclipped density.
-vdist_density_cap <- function(dfun, pfun, qfun, lo, hi) {
-  plo <- pfun(lo)
-  phi <- pfun(hi)
-  if (!is.finite(plo) || !is.finite(phi) || phi <= plo) {
-    p <- seq(1e-3, 1 - 1e-3, length.out = 501)
-  } else {
-    p <- seq(max(plo, 0), min(phi, 1), length.out = 501)
-  }
-  y <- dfun(qfun(p))
-  y <- y[is.finite(y) & y >= 0]
-  if (!length(y)) {
-    return(1)
-  }
-  mx  <- max(y)
-  q90 <- as.numeric(stats::quantile(y, 0.9, names = FALSE))
-  ref <- q90
-  if (is.finite(ref) && ref > 0 && mx > 20 * ref) ref else mx
+  mx   <- max(y)
+  body <- as.numeric(stats::quantile(y, 0.95, names = FALSE))
+  if (is.finite(body) && body > 0 && mx > 20 * body) body else mx
 }
 
 vdist_ylim_cap <- function(cap, headroom = 1.3) {
@@ -710,13 +821,114 @@ vdist_x_scale <- function(x, breaks = NULL, wide = NULL) {
   }
 }
 
-# Caption that discloses the part of the named event outside the plotted range.
-# The area check adds this probability to the drawn polygon, so it must be
-# stated whenever it is not negligible.
+# Caption that discloses the fraction of the shaded region that lies outside
+# the plotted window. The polygon itself covers the whole event; only the panel
+# is clipped, so the area check is unaffected. Disclosed only when the visible
+# picture loses at least 1% of the region; small tail slivers are not worth a
+# caption.
 vdist_beyond_text <- function(omitted) {
-  if (!is.finite(omitted) || omitted <= 1e-7) {
+  if (!is.finite(omitted) || omitted <= 1e-2) {
     return(NULL)
   }
   paste0(vdist_pct_text(omitted),
-         "% of the event lies outside the plotted range and is added by the area check")
+         "% of the shaded region lies outside the plotted range")
+}
+
+# ---------------------------------------------------------------------------
+# Distribution geometry helpers shared by the four continuous families
+# ---------------------------------------------------------------------------
+
+# A finite quantile for a tail probability. Heavy-tailed families have no
+# representable quantile below some probability; walk the requested tail
+# towards the centre until the quantile is finite and report the probability
+# that is actually covered.
+vdist_tail_quantile <- function(qfun, p, lower.tail = TRUE, max_p = 0.1) {
+  p <- max(p, 1e-300)
+  repeat {
+    q <- qfun(p, lower.tail = lower.tail)
+    if (is.finite(q) || p >= max_p) {
+      return(list(q = q, p = p))
+    }
+    p <- min(max_p, p * 10)
+  }
+}
+
+# Region bounds for an event: the event is clipped to its support, and an
+# infinite side is replaced by the representable tail quantile [q(tail)]. A
+# finite support bound is used as it is (the singular-endpoint correction in
+# vdist_region includes the mass at that edge exactly).
+vdist_region_bounds <- function(spec, ev_lo, ev_hi) {
+  lo <- ev_lo
+  hi <- ev_hi
+  p_lo <- p_hi <- 0
+  if (is.infinite(lo) && lo < 0) {
+    if (is.finite(spec$support[1])) {
+      lo <- spec$support[1]
+    } else {
+      b <- vdist_tail_quantile(spec$qfun, spec$tail, lower.tail = TRUE)
+      lo <- b$q
+      p_lo <- spec$pfun(lo)
+    }
+  }
+  if (is.infinite(hi) && hi > 0) {
+    if (is.finite(spec$support[2])) {
+      hi <- spec$support[2]
+    } else {
+      b <- vdist_tail_quantile(spec$qfun, spec$tail, lower.tail = FALSE)
+      hi <- b$q
+      p_hi <- spec$pfun(hi, lower.tail = FALSE)
+    }
+  }
+  list(lo = lo, hi = hi, tail_prob = p_lo + p_hi)
+}
+
+# Expand a plotting window so that every cutoff sits strictly inside it with a
+# margin on both sides. A cutoff exactly on the panel edge is drawn as a line on
+# the axis and its shaded region collapses to nothing.
+vdist_view_margin <- function(view, cut, scale, qfun, pfun, tail = 1e-3) {
+  cut <- cut[is.finite(cut)]
+  if (!length(cut)) {
+    return(view)
+  }
+  span <- view[2] - view[1]
+  margin <- if (is.finite(scale) && scale > 0) 0.25 * scale else 0
+  margin <- max(margin, 0.02 * span)
+  lo <- min(view[1], min(cut) - margin)
+  hi <- max(view[2], max(cut) + margin)
+  # extend on the event side at least a little way into the tail, so the
+  # reference line is not on the boundary of the panel
+  for (c in cut) {
+    if (c - lo < 0.02 * (hi - lo) && is.finite(pfun(c))) {
+      b <- vdist_tail_quantile(qfun, max(pfun(c) - tail, 1e-12),
+                               lower.tail = TRUE)
+      if (is.finite(b$q)) lo <- min(lo, b$q)
+    }
+    if (hi - c < 0.02 * (hi - lo) && is.finite(pfun(c, lower.tail = FALSE))) {
+      b <- vdist_tail_quantile(qfun, max(pfun(c, lower.tail = FALSE) - tail, 1e-12),
+                               lower.tail = FALSE)
+      if (is.finite(b$q)) hi <- max(hi, b$q)
+    }
+  }
+  c(lo, hi)
+}
+
+# Nice axis breaks for a linear window: at most 11 values, anchored on the
+# distribution's own centre and scale so the labels are round numbers in the
+# data units. Falls back to pretty() when the window is not a small multiple of
+# the scale.
+vdist_axis_breaks <- function(view, scale = NULL, center = NULL, n = 6L) {
+  if (!all(is.finite(view)) || diff(view) <= 0) {
+    return(ggplot2::waiver())
+  }
+  if (length(scale) == 1L && is.finite(scale) && scale > 0 &&
+      length(center) == 1L && is.finite(center)) {
+    lo <- ceiling((view[1] - center) / scale)
+    hi <- floor((view[2] - center) / scale)
+    k  <- hi - lo
+    if (is.finite(k) && k >= 1 && k <= 10) {
+      return(center + seq(lo, hi) * scale)
+    }
+  }
+  b <- pretty(view, n = n)
+  b[b >= view[1] & b <= view[2]]
 }

@@ -13,6 +13,17 @@
 #' @param type Lower tail, upper tail, interval or both.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
+#' @details
+#' Drawing contract: every probability, cutoff and caption is computed from the
+#' t density, distribution and quantile functions, never from the drawn grid.
+#' The shaded polygon spans the whole event (clipped only by the panel) and is
+#' sampled on a grid spaced in probability, with a fixed number of points; its
+#' own area is checked against the exact event probability and kept within
+#' 1e-3. Captions use one rounding rule and are true at the precision they
+#' print. A very wide window - for example a heavy tail with a small \code{df} -
+#' is drawn on a symmetric log axis so the shaded event stays visible; the
+#' printed probability and the area check always use the unclipped density.
+#'
 #' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 #'
 #' @family t visualization

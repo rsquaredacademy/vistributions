@@ -59,6 +59,20 @@ Visualize how changes in mean and standard deviation affect the
 shape of the normal distribution. Compute & visualize quantiles out of given
 probability  and probability from a given quantile.
 }
+\details{
+Drawing contract: every probability, cutoff and caption is computed from the
+normal density, distribution and quantile functions, never from the drawn
+grid. The shaded polygon spans the whole event and is sampled on a grid
+spaced in probability and in standardised units; its own area is checked
+against the exact event probability and kept within 1e-3. A percentage is
+printed at a precision whose rounding interval contains the exact
+probability, and the printed cutoffs reproduce that displayed percentage.
+Because the normal is a location-scale family, multiplying \code{mean} and
+\code{sd} by the same factor changes only the axis labels: the shaded
+proportion, the probability caption and the standardised picture are the
+same. A part of the shaded region that lies outside the plotted window is
+disclosed in a plot caption.
+}
 \examples{
 # visualize normal distribution
 vdist_normal_plot()

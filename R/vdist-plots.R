@@ -106,7 +106,7 @@ cplot_plot_build <- function(data, df, range, normal) {
     xlab(paste("Mean =", fmt_num(df), " Std Dev. =", fmt_num(sqrt(2 * df)))) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5)) +
-    scale_x_continuous(breaks = if (range <= 100) seq(0, range, 2) else waiver()) +
+    scale_x_continuous(breaks = data$breaks) +
     geom_polygon(data    = data$poly_data,
                  mapping = aes(x = y, y = z),
                  fill    = '#4682B4') +
@@ -115,7 +115,7 @@ cplot_plot_build <- function(data, df, range, normal) {
                shape   = 4,
                color   = 'red',
                size    = 3) +
-    coord_cartesian(ylim = ydisp, expand = FALSE)
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   if (normal) {
 
@@ -133,7 +133,7 @@ cplot_plot_build <- function(data, df, range, normal) {
 
 cperc_plot_build <- function(data, method, probs, df) {
 
-  other_text <- vdist_pct_text(1 - data$event_prob)
+  other_text <- data$other_text
   ydisp      <- vdist_ylim_cap(data$ycap)
   ytext      <- ydisp[2] * 0.97
 
@@ -153,13 +153,13 @@ cperc_plot_build <- function(data, method, probs, df) {
               subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label   = paste0(data$prob_text, "%"),
-               x       = vdist_clamp(data$pc - data$chisd, data$l),
+               x       = vdist_clamp(data$pc - data$chisd, data$view),
                y       = ytext,
                color   = "#0000CD",
                size    = 3) +
       annotate("text",
                label   = paste0(other_text, "%"),
-               x       = vdist_clamp(data$pc + data$chisd, data$l),
+               x       = vdist_clamp(data$pc + data$chisd, data$view),
                y       = ytext,
                color   = "#6495ED",
                size    = 3)
@@ -171,13 +171,13 @@ cperc_plot_build <- function(data, method, probs, df) {
               subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label   = paste0(other_text, "%"),
-               x       = vdist_clamp(data$pc - data$chisd, data$l),
+               x       = vdist_clamp(data$pc - data$chisd, data$view),
                y       = ytext,
                color   = "#6495ED",
                size    = 3) +
       annotate("text",
                label   = paste0(data$prob_text, "%"),
-               x       = vdist_clamp(data$pc + data$chisd, data$l),
+               x       = vdist_clamp(data$pc + data$chisd, data$view),
                y       = ytext,
                color   = "#0000CD",
                size    = 3)
@@ -185,7 +185,7 @@ cperc_plot_build <- function(data, method, probs, df) {
 
   dark <- 0
   for (i in seq_len(length(data$l1))) {
-    pol_data <- vdist_pol_chi(data$lc[data$l1[i]], data$lc[data$l2[i]], df)
+    pol_data <- vdist_pol_seg(data, i)
     if (identical(data$col[i], "#0000CD")) {
       dark <- dark + vdist_area(pol_data$x, pol_data$y)
     }
@@ -195,8 +195,7 @@ cperc_plot_build <- function(data, method, probs, df) {
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
-  vdist_check_event(dark, data$omitted, data$event_prob,
-                    "chi-square shaded region")
+  vdist_check_region(dark, data$event_prob, "chi-square shaded region")
 
   plot <-
     plot +
@@ -210,7 +209,7 @@ cperc_plot_build <- function(data, method, probs, df) {
                size       = 3) +
     scale_y_continuous(breaks = NULL) +
     scale_x_continuous(breaks = if (data$xm[2] <= 300) seq(0, data$xm[2], by = 5) else waiver()) +
-    coord_cartesian(ylim = ydisp, expand = FALSE)
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   if (!is.null(vdist_beyond_text(data$omitted))) {
     plot <- plot + labs(caption = vdist_beyond_text(data$omitted))
@@ -222,7 +221,7 @@ cperc_plot_build <- function(data, method, probs, df) {
 
 cprob_plot_build <- function(data, method, perc, df) {
 
-  other_text <- vdist_pct_text(1 - data$event_prob)
+  other_text <- data$other_text
   ydisp      <- vdist_ylim_cap(data$ycap)
   ytext      <- ydisp[2] * 0.97
 
@@ -243,13 +242,13 @@ cprob_plot_build <- function(data, method, perc, df) {
               subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc - data$chisd, data$l),
+               x     = vdist_clamp(data$pc - data$chisd, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc + data$chisd, data$l),
+               x     = vdist_clamp(data$pc + data$chisd, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3)
@@ -261,13 +260,13 @@ cprob_plot_build <- function(data, method, perc, df) {
               subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc - data$chisd, data$l),
+               x     = vdist_clamp(data$pc - data$chisd, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc + data$chisd, data$l),
+               x     = vdist_clamp(data$pc + data$chisd, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3)
@@ -275,7 +274,7 @@ cprob_plot_build <- function(data, method, perc, df) {
 
   dark <- 0
   for (i in seq_len(length(data$l1))) {
-    pol_data <- vdist_pol_chi(data$lc[data$l1[i]], data$lc[data$l2[i]], df)
+    pol_data <- vdist_pol_seg(data, i)
     if (identical(data$col[i], "#0000CD")) {
       dark <- dark + vdist_area(pol_data$x, pol_data$y)
     }
@@ -285,8 +284,7 @@ cprob_plot_build <- function(data, method, perc, df) {
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
-  vdist_check_event(dark, data$omitted, data$event_prob,
-                    "chi-square shaded region")
+  vdist_check_region(dark, data$event_prob, "chi-square shaded region")
 
   gplot <-
     gplot +
@@ -300,7 +298,7 @@ cprob_plot_build <- function(data, method, perc, df) {
                size       = 3) +
     scale_y_continuous(breaks = NULL) +
     scale_x_continuous(breaks = if (data$l[data$ln] <= 300) seq(0, data$l[data$ln], by = 5) else waiver()) +
-    coord_cartesian(ylim = ydisp, expand = FALSE)
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   if (!is.null(vdist_beyond_text(data$omitted))) {
     gplot <- gplot + labs(caption = vdist_beyond_text(data$omitted))
@@ -309,28 +307,30 @@ cprob_plot_build <- function(data, method, perc, df) {
   return(gplot)
 }
 
-# x coordinates of a filled polygon: the sampled grid, closed at the requested
-# endpoints. An endpoint beyond the sampled central mass was clipped by
-# vdist_grid, so the polygon stops at the grid edge instead.
-vdist_pol_x <- function(g, l1, l2) {
-  clipped <- attr(g, "clipped")
-  if (is.null(clipped)) {
-    clipped <- c(FALSE, FALSE)
+# Polygon of a continuous region. The builder in R/vdist-utils.R samples the
+# region on a support/tail-aware grid and refines it until its own area matches
+# the exact probability p(hi) - p(lo); this function only wraps the vertices.
+vdist_pol_cont <- function(spec, lo, hi, tol = 1e-5) {
+  # Only location-scale families are standardised in the region builder: for a
+  # distribution on a support boundary the affine map to z would collapse the
+  # many decades between the support and the body into one double, and the
+  # support-edge mass would be lost.
+  if (isTRUE(spec$standardise)) {
+    r <- vdist_region(lo, hi, spec$dfun, spec$pfun, spec$qfun, tol = tol,
+                      center = spec$center, scale = spec$scale)
+  } else {
+    r <- vdist_region(lo, hi, spec$dfun, spec$pfun, spec$qfun, tol = tol)
   }
-  c(if (clipped[1]) min(g) else l1, g, if (clipped[2]) max(g) else l2)
+  data.frame(x = r$x, y = r$y)
 }
 
-vdist_pol_chi <- function(l1, l2, df) {
-  pfun <- function(x) pchisq(x, df)
-  qfun <- function(p) qchisq(p, df)
-  g    <- vdist_grid(l1, l2, pfun, qfun, quantile = TRUE,
-                     n = vdist_grid_n(df < 2), uniform = FALSE)
-  x    <- vdist_pol_x(g, l1, l2)
-  y    <- c(0, dchisq(g, df), 0)
-  # The polygon is checked where it is assembled into the plot, against the
-  # event the caption names (drawn area plus any off-view event mass), not
-  # against the CDF difference between its own clipped endpoints.
-  data.frame(x = x, y = y)
+# One polygon of the event layout. The dark segments carry the probability and
+# are built to the area tolerance; the light background segments are only
+# geometry, so a looser tolerance keeps the plot cheap.
+vdist_pol_seg <- function(data, i, bounds = NULL) {
+  lc <- if (is.null(bounds)) data$lc else bounds
+  vdist_pol_cont(data$spec, lc[data$l1[i]], lc[data$l2[i]],
+                 tol = if (identical(data$col[i], "#0000CD")) 1e-5 else 1e-3)
 }
 
 fplot_plot_build <- function(data, num_df, den_df, normal) {
@@ -356,9 +356,9 @@ fplot_plot_build <- function(data, num_df, den_df, normal) {
             subtitle = paste("Num df =", num_df, "  Den df =", den_df)) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5)) +
-    scale_x_continuous(breaks = c(-2:4)) +
+    scale_x_continuous(breaks = data$breaks) +
     scale_y_continuous(breaks = NULL) +
-    coord_cartesian(ylim = ydisp, expand = FALSE)
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   if (normal && nrow(data$nline_data) > 0) {
     gplot <-
@@ -390,7 +390,7 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
           plot.subtitle = element_text(hjust = 0.5))
 
 
-  other_text <- vdist_pct_text(1 - data$event_prob)
+  other_text <- data$other_text
 
   if (method == "lower") {
     gplot <-
@@ -399,13 +399,13 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
               subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc - 0.2, data$l),
+               x     = vdist_clamp(data$pc - 0.2, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc + 0.2, data$l),
+               x     = vdist_clamp(data$pc + 0.2, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3)
@@ -417,13 +417,13 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
               subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc - 0.2, data$l),
+               x     = vdist_clamp(data$pc - 0.2, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc + 0.2, data$l),
+               x     = vdist_clamp(data$pc + 0.2, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3)
@@ -431,7 +431,7 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
 
   dark <- 0
   for (i in seq_len(length(data$l1))) {
-    poly_data <- vdist_pol_f(data$lc[data$l1[i]], data$lc[data$l2[i]], num_df, den_df)
+    poly_data <- vdist_pol_seg(data, i)
     if (identical(data$col[i], "#0000CD")) {
       dark <- dark + vdist_area(poly_data$x, poly_data$y)
     }
@@ -441,7 +441,7 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
-  vdist_check_event(dark, data$omitted, data$event_prob, "F shaded region")
+  vdist_check_region(dark, data$event_prob, "F shaded region")
 
   pln <- length(data$pp)
 
@@ -464,8 +464,8 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    vdist_x_scale(data$l, breaks = 0:5) +
-    coord_cartesian(ylim = ydisp, expand = FALSE)
+    vdist_x_scale(data$view, breaks = data$breaks) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   if (!is.null(vdist_beyond_text(data$omitted))) {
     gplot <- gplot + labs(caption = vdist_beyond_text(data$omitted))
@@ -491,7 +491,7 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
           plot.subtitle = element_text(hjust = 0.5))
 
   fsd_offset <- if (!is.na(data$fsd)) data$fsd else 0.5
-  other_text <- vdist_pct_text(1 - data$event_prob)
+  other_text <- data$other_text
 
   if (method == "lower") {
     gplot <-
@@ -500,13 +500,13 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
               subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc - fsd_offset, data$l),
+               x     = vdist_clamp(data$pc - fsd_offset, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc + fsd_offset, data$l),
+               x     = vdist_clamp(data$pc + fsd_offset, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3)
@@ -518,13 +518,13 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
               subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc - fsd_offset, data$l),
+               x     = vdist_clamp(data$pc - fsd_offset, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc + fsd_offset, data$l),
+               x     = vdist_clamp(data$pc + fsd_offset, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3)
@@ -532,7 +532,7 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
 
   dark <- 0
   for (i in seq_len(length(data$l1))) {
-    poly_data <- vdist_pol_f(data$lc[data$l1[i]], data$lc[data$l2[i]], num_df, den_df)
+    poly_data <- vdist_pol_seg(data, i)
     if (identical(data$col[i], "#0000CD")) {
       dark <- dark + vdist_area(poly_data$x, poly_data$y)
     }
@@ -542,7 +542,7 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
-  vdist_check_event(dark, data$omitted, data$event_prob, "F shaded region")
+  vdist_check_region(dark, data$event_prob, "F shaded region")
 
   pln <- length(data$pp)
 
@@ -565,8 +565,8 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    vdist_x_scale(data$l, breaks = if (max(data$l) <= 60) 0:max(data$l) else NULL) +
-    coord_cartesian(ylim = ydisp, expand = FALSE)
+    vdist_x_scale(data$view, breaks = data$breaks) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   if (!is.null(vdist_beyond_text(data$omitted))) {
     gplot <- gplot + labs(caption = vdist_beyond_text(data$omitted))
@@ -576,17 +576,6 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
 
 }
 
-vdist_pol_f <- function(l1, l2, num_df, den_df) {
-  pfun <- function(x) pf(x, num_df, den_df)
-  qfun <- function(p) qf(p, num_df, den_df)
-  g <- vdist_f_grid(l1, l2, num_df, den_df, quantile = TRUE, uniform = FALSE)
-  x <- vdist_pol_x(g, l1, l2)
-  y <- c(0, df(g, num_df, den_df), 0)
-  # The polygon is checked where it is assembled into the plot, against the
-  # event the caption names (drawn area plus any off-view event mass), not
-  # against the CDF difference between its own clipped endpoints.
-  data.frame(x = x, y = y)
-}
 
 nplot_plot_build <- function(data, mean, sd) {
 
@@ -603,7 +592,7 @@ nplot_plot_build <- function(data, mean, sd) {
           plot.subtitle = element_text(hjust = 0.5))
 
   for (i in seq_len(length(data$l1))) {
-    poly_data <- vdist_pol_cord(data$ll[data$l1[i]], data$ll[data$l2[i]], mean, sd)
+    poly_data <- vdist_pol_seg(data, i, data$ll)
     gplot <-
       gplot +
       geom_polygon(data    = poly_data,
@@ -611,23 +600,12 @@ nplot_plot_build <- function(data, mean, sd) {
                    fill    = data$col[i])
   }
 
-  gplot <- gplot + coord_cartesian(ylim = ydisp, expand = FALSE)
+  gplot <- gplot + coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   return(gplot)
 
 }
 
-vdist_pol_cord <- function(l1, l2, mean, sd, n = 1001L) {
-  pfun <- function(x) pnorm(x, mean, sd)
-  qfun <- function(p) qnorm(p, mean, sd)
-  g <- vdist_grid(l1, l2, pfun, qfun, quantile = TRUE, n = n, uniform = FALSE)
-  x <- vdist_pol_x(g, l1, l2)
-  y <- c(0, dnorm(g, mean, sd), 0)
-  # The polygon is checked where it is assembled into the plot, against the
-  # event the caption names (drawn area plus any off-view event mass), not
-  # against the CDF difference between its own clipped endpoints.
-  data.frame(x = x, y = y)
-}
 
 nperc_plot_build <- function(data, probs, mean, sd, method) {
 
@@ -642,7 +620,7 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
-  other_text <- vdist_pct_text(1 - data$event_prob)
+  other_text <- data$other_text
 
   if (method == "lower") {
     gplot <-
@@ -651,13 +629,13 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
               subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc - sd, data$l),
+               x     = vdist_clamp(data$pc - sd, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc + sd, data$l),
+               x     = vdist_clamp(data$pc + sd, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3)
@@ -669,13 +647,13 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
               subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc - sd, data$l),
+               x     = vdist_clamp(data$pc - sd, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc + sd, data$l),
+               x     = vdist_clamp(data$pc + sd, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3)
@@ -687,19 +665,19 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
               subtitle = paste0("P(", data$cut_text[1], " < X < ", data$cut_text[2], ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(mean(data$pc), data$l),
+               x     = vdist_clamp(mean(data$pc), data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
                label = paste0(tail_text, "%"),
-               x     = vdist_clamp(data$pc[1] - sd, data$l),
+               x     = vdist_clamp(data$pc[1] - sd, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(tail_text, "%"),
-               x     = vdist_clamp(data$pc[2] + sd, data$l),
+               x     = vdist_clamp(data$pc[2] + sd, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3)
@@ -707,7 +685,7 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
 
   dark <- 0
   for (i in seq_len(length(data$l1))) {
-    poly_data <- vdist_pol_cord(data$lc[data$l1[i]], data$lc[data$l2[i]], mean, sd)
+    poly_data <- vdist_pol_seg(data, i)
     if (identical(data$col[i], "#0000CD")) {
       dark <- dark + vdist_area(poly_data$x, poly_data$y)
     }
@@ -717,7 +695,7 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
-  vdist_check_event(dark, data$omitted, data$event_prob, "normal shaded region")
+  vdist_check_region(dark, data$event_prob, "normal shaded region")
 
   pln <- length(data$pc)
 
@@ -740,8 +718,8 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = if (length(data$l) <= 60) data$l else waiver()) +
-    coord_cartesian(ylim = ydisp, expand = FALSE)
+    scale_x_continuous(breaks = data$breaks) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   if (!is.null(vdist_beyond_text(data$omitted))) {
     gplot <- gplot + labs(caption = vdist_beyond_text(data$omitted))
@@ -763,7 +741,7 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
-  other_text <- vdist_pct_text(1 - data$event_prob)
+  other_text <- data$other_text
 
   if (method == "lower") {
     gplot <-
@@ -772,13 +750,13 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
               subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc - sd, data$l),
+               x     = vdist_clamp(data$pc - sd, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc + sd, data$l),
+               x     = vdist_clamp(data$pc + sd, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3)
@@ -790,13 +768,13 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
               subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc - sd, data$l),
+               x     = vdist_clamp(data$pc - sd, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc + sd, data$l),
+               x     = vdist_clamp(data$pc + sd, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3)
@@ -807,19 +785,19 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
               subtitle = paste0("P(", data$cut_text[1], " < X < ", data$cut_text[2], ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(mean(data$pc), data$l),
+               x     = vdist_clamp(mean(data$pc), data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
                label = paste0(vdist_pct_text(data$pp1), "%"),
-               x     = vdist_clamp(data$pc[1] - sd, data$l),
+               x     = vdist_clamp(data$pc[1] - sd, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(vdist_pct_text(data$pp2), "%"),
-               x     = vdist_clamp(data$pc[2] + sd, data$l),
+               x     = vdist_clamp(data$pc[2] + sd, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3)
@@ -827,7 +805,7 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
 
   dark <- 0
   for (i in seq_len(length(data$l1))) {
-    poly_data <- vdist_pol_cord(data$lc[data$l1[i]], data$lc[data$l2[i]], mean, sd)
+    poly_data <- vdist_pol_seg(data, i)
     if (identical(data$col[i], "#0000CD")) {
       dark <- dark + vdist_area(poly_data$x, poly_data$y)
     }
@@ -837,7 +815,7 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
-  vdist_check_event(dark, data$omitted, data$event_prob, "normal shaded region")
+  vdist_check_region(dark, data$event_prob, "normal shaded region")
 
   pln <- length(data$pc)
 
@@ -860,8 +838,8 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = if (length(data$l) <= 60) data$l else waiver()) +
-    coord_cartesian(ylim = ydisp, expand = FALSE)
+    scale_x_continuous(breaks = data$breaks) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   if (!is.null(vdist_beyond_text(data$omitted))) {
     gplot <- gplot + labs(caption = vdist_beyond_text(data$omitted))
@@ -888,7 +866,7 @@ tplot_plot_build <- function(data, df) {
                  fill    = '#4682B4') +
     scale_y_continuous(breaks = NULL) +
     scale_x_continuous(breaks = -4:4) +
-    coord_cartesian(ylim = ydisp, expand = FALSE) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
@@ -910,7 +888,7 @@ tperc_plot_build <- function(data, probs, df, method) {
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
-  other_text <- vdist_pct_text(1 - data$event_prob)
+  other_text <- data$other_text
 
   if (method == "lower") {
     gplot <-
@@ -919,13 +897,13 @@ tperc_plot_build <- function(data, probs, df, method) {
               subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc - 0.3, data$l),
+               x     = vdist_clamp(data$pc - 0.3, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc + 0.3, data$l),
+               x     = vdist_clamp(data$pc + 0.3, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3)
@@ -937,13 +915,13 @@ tperc_plot_build <- function(data, probs, df, method) {
               subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc - 0.3, data$l),
+               x     = vdist_clamp(data$pc - 0.3, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc + 0.3, data$l),
+               x     = vdist_clamp(data$pc + 0.3, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3)
@@ -955,19 +933,19 @@ tperc_plot_build <- function(data, probs, df, method) {
               subtitle = paste0("P(", data$cut_text[1], " < X < ", data$cut_text[2], ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(mean(data$pc), data$l),
+               x     = vdist_clamp(mean(data$pc), data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
                label = paste0(tail_text, "%"),
-               x     = vdist_clamp(data$pc[1] - 0.3, data$l),
+               x     = vdist_clamp(data$pc[1] - 0.3, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(tail_text, "%"),
-               x     = vdist_clamp(data$pc[2] + 0.3, data$l),
+               x     = vdist_clamp(data$pc[2] + 0.3, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3)
@@ -975,7 +953,7 @@ tperc_plot_build <- function(data, probs, df, method) {
 
   dark <- 0
   for (i in seq_len(length(data$l1))) {
-    poly_data <- vdist_pol_t(data$lc[data$l1[i]], data$lc[data$l2[i]], df)
+    poly_data <- vdist_pol_seg(data, i)
     if (identical(data$col[i], "#0000CD")) {
       dark <- dark + vdist_area(poly_data$x, poly_data$y)
     }
@@ -985,7 +963,7 @@ tperc_plot_build <- function(data, probs, df, method) {
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
-  vdist_check_event(dark, data$omitted, data$event_prob, "t shaded region")
+  vdist_check_region(dark, data$event_prob, "t shaded region")
 
   pln <- length(data$pc)
 
@@ -1008,8 +986,8 @@ tperc_plot_build <- function(data, probs, df, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    vdist_x_scale(data$l, breaks = -5:5) +
-    coord_cartesian(ylim = ydisp, expand = FALSE)
+    vdist_x_scale(data$view, breaks = data$breaks) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   if (!is.null(vdist_beyond_text(data$omitted))) {
     gplot <- gplot + labs(caption = vdist_beyond_text(data$omitted))
@@ -1031,13 +1009,13 @@ tprob_plot_build <- function(data, perc, df, method) {
     ylab('') +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5)) +
-    vdist_x_scale(data$l, breaks = if (max(data$l) <= 30) min(data$l):max(data$l) else NULL) +
+    vdist_x_scale(data$view, breaks = data$breaks) +
     scale_y_continuous(breaks = NULL) +
-    coord_cartesian(ylim = ydisp, expand = FALSE)
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   dark <- 0
   for (i in seq_len(length(data$l1))) {
-    poly_data <- vdist_pol_t(data$lc[data$l1[i]], data$lc[data$l2[i]], df)
+    poly_data <- vdist_pol_seg(data, i)
     if (identical(data$col[i], "#0000CD")) {
       dark <- dark + vdist_area(poly_data$x, poly_data$y)
     }
@@ -1047,9 +1025,9 @@ tprob_plot_build <- function(data, perc, df, method) {
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
-  vdist_check_event(dark, data$omitted, data$event_prob, "t shaded region")
+  vdist_check_region(dark, data$event_prob, "t shaded region")
 
-  other_text <- vdist_pct_text(1 - data$event_prob)
+  other_text <- data$other_text
 
   if (method == "lower") {
 
@@ -1061,13 +1039,13 @@ tprob_plot_build <- function(data, perc, df, method) {
               subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc - 1, data$l),
+               x     = vdist_clamp(data$pc - 1, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc + 1, data$l),
+               x     = vdist_clamp(data$pc + 1, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
@@ -1090,13 +1068,13 @@ tprob_plot_build <- function(data, perc, df, method) {
               subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc - 1, data$l),
+               x     = vdist_clamp(data$pc - 1, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc + 1, data$l),
+               x     = vdist_clamp(data$pc + 1, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3) +
@@ -1125,13 +1103,13 @@ tprob_plot_build <- function(data, perc, df, method) {
                size  = 3) +
       annotate("text",
                label = paste0(vdist_pct_text(data$pp1), "%"),
-               x     = vdist_clamp(-data$pc - 1, data$l),
+               x     = vdist_clamp(-data$pc - 1, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(vdist_pct_text(data$pp2), "%"),
-               x     = vdist_clamp(data$pc + 1, data$l),
+               x     = vdist_clamp(data$pc + 1, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
@@ -1167,13 +1145,13 @@ tprob_plot_build <- function(data, perc, df, method) {
                size  = 3) +
       annotate("text",
                label = paste0(vdist_pct_text(data$pp1), "%"),
-               x     = vdist_clamp(-data$pc - 1, data$l),
+               x     = vdist_clamp(-data$pc - 1, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
                label = paste0(vdist_pct_text(data$pp2), "%"),
-               x     = vdist_clamp(data$pc + 1, data$l),
+               x     = vdist_clamp(data$pc + 1, data$view),
                y     = ytext,
                color = "#0000CD",
                size  = 3) +
@@ -1204,15 +1182,3 @@ tprob_plot_build <- function(data, perc, df, method) {
 }
 
 
-vdist_pol_t <- function(l1, l2, df) {
-  pfun <- function(x) pt(x, df)
-  qfun <- function(p) qt(p, df)
-  g <- vdist_grid(l1, l2, pfun, qfun, quantile = TRUE,
-                  n = vdist_grid_n_t(df), uniform = FALSE)
-  x <- vdist_pol_x(g, l1, l2)
-  y <- c(0, dt(g, df), 0)
-  # The polygon is checked where it is assembled into the plot, against the
-  # event the caption names (drawn area plus any off-view event mass), not
-  # against the CDF difference between its own clipped endpoints.
-  data.frame(x = x, y = y)
-}

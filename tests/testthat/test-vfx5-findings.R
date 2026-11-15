@@ -183,10 +183,11 @@ test_that("VFXX4-M2: the stated domain matches the implementation", {
   }
   ok(function() vdist_f_prob(0, 2, .5, "upper", print_plot = FALSE), 1)
   ok(function() vdist_f_perc(.95, 2, .1, print_plot = FALSE), .95)
-  # 1e-6 probability event: the drawn polygon is the visible part; the
-  # off-view part is disclosed and added by the area check
+  # an event that the panel cannot contain discloses how much of the shading
+  # lies outside it (the polygon itself always covers the whole event)
   p <- vdist_f_perc(1e-6, 5, .5, "upper", print_plot = FALSE)
   expect_true(grepl("outside the plotted range", p$labels$caption))
+  expect_match(p$labels$caption, "of the shaded region")
 
   # extreme t probability now reports the event, not a spurious area error
   p <- vdist_t_perc(1e-10, .1, print_plot = FALSE)
@@ -216,14 +217,22 @@ test_that("scaling the units does not change the plot", {
                  sub("^P\\([^)]*\\) = ", "", subtitle(base)))
     expect_match(subtitle(scaled), "= 95%$")
 
-    # the dark polygon, expressed in standardized units, is the same curve
+    # the dark polygon, expressed in standardized units, is the same curve.
+    # The adaptive grid may hold one vertex more or less in a different unit
+    # system, so the polygons are compared as piecewise-linear functions.
     std <- function(p, s) {
       lay <- Filter(function(l) identical(layer_fill(l), "#0000CD"), poly_layers(p))[[1]]
-      list(x = (lay$data$x - 100 * s) / (15 * s), y = lay$data$y * (15 * s))
+      z <- (lay$data$x - 100 * s) / (15 * s)
+      y <- lay$data$y * (15 * s)
+      u <- sort(unique(z))
+      list(z = u, y = vapply(u, function(v) max(y[z == v]), numeric(1)))
     }
     a <- std(base, 1); b <- std(scaled, k)
-    expect_lt(max(abs(a$x - b$x)), 1e-6)
-    expect_lt(max(abs(a$y - b$y)), 1e-6)
+    grid <- seq(max(min(a$z), min(b$z)) + 1e-9,
+                min(max(a$z), max(b$z)) - 1e-9, length.out = 300)
+    ya <- stats::approx(a$z, a$y, grid, rule = 2)$y
+    yb <- stats::approx(b$z, b$y, grid, rule = 2)$y
+    expect_lt(max(abs(ya - yb)), 1e-3)
   }
 })
 

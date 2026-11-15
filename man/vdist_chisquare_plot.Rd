@@ -52,6 +52,17 @@ Visualize how changes in degrees of freedom affect the shape of
 the chi square distribution. Compute & visualize quantiles out of given
 probability and probability from a given quantile.
 }
+\details{
+Drawing contract: every probability, cutoff and caption is computed from the
+chi-square density, distribution and quantile functions, never from the
+drawn grid. The shading polygon starts at the support (zero), not at a
+quantile floor, so no probability is discarded for small \code{df}; it
+spans the whole event and its own area is checked against the exact event
+probability (within 1e-3). Where the density is unbounded at zero it is
+capped on the display axis only: the source-coordinate area and the printed
+probability always use the unclipped density. Captions use one rounding rule
+and are true at the precision they print.
+}
 \examples{
 # visualize chi square distribution
 vdist_chisquare_plot()

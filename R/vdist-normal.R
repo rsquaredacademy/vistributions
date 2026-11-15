@@ -25,6 +25,20 @@
 #' @param type Lower tail, upper tail or both.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
+#' @details
+#' Drawing contract: every probability, cutoff and caption is computed from the
+#' normal density, distribution and quantile functions, never from the drawn
+#' grid. The shaded polygon spans the whole event and is sampled on a grid
+#' spaced in probability and in standardised units; its own area is checked
+#' against the exact event probability and kept within 1e-3. A percentage is
+#' printed at a precision whose rounding interval contains the exact
+#' probability, and the printed cutoffs reproduce that displayed percentage.
+#' Because the normal is a location-scale family, multiplying \code{mean} and
+#' \code{sd} by the same factor changes only the axis labels: the shaded
+#' proportion, the probability caption and the standardised picture are the
+#' same. A part of the shaded region that lies outside the plotted window is
+#' disclosed in a plot caption.
+#'
 #' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 #'
 #' @family normal visualization

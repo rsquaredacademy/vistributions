@@ -59,9 +59,15 @@ More concentrated densities (for example \code{num_df = den_df = 1e9}) stop
 with a clear error instead of returning an inaccurate shaded area. A tail
 that does not converge at double precision (for example \code{den_df = 0.01})
 is reported as a tail-overflow error, separately from concentration.
+Every probability, cutoff and caption is computed from the F density,
+distribution and quantile functions, never from the drawn grid: the shading
+polygon starts at the support and spans the whole event, and its own area is
+checked against the exact event probability (within 1e-3). Where the density
+is unbounded at zero it is capped on the display axis only; the area check
+and the printed probability always use the unclipped density.
 Very wide heavy-tail windows are drawn on a symmetric log axis so the shaded
-event stays visible; the printed probability and the area check always use
-the unclipped density. Quantiles are refined by root finding when the
+event stays visible. Captions use one rounding rule and are true at the
+precision they print. Quantiles are refined by root finding when the
 \code{stats} quantile does not invert its own distribution function, so equal
 degrees of freedom up to at least \code{1e8} plot accurately.
 }
