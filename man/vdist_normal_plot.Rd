@@ -35,7 +35,9 @@ vdist_normal_prob(
 
 \item{type}{Lower tail, upper tail or both.}
 
-\item{perc}{Quantile value.}
+\item{perc}{Quantile value(s): a single value for a lower or upper tail, or
+two values in nondecreasing order for the interval between them. Two
+values select \code{type = "both"} automatically.}
 }
 \value{
 An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
