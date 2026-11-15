@@ -21,7 +21,6 @@
 #' # visualize t distribution
 #' vdist_t_plot()
 #' vdist_t_plot(6)
-#' vdist_t_plot(df = 8)
 #'
 #' # visualize quantiles out of given probability
 #' vdist_t_perc(probs = 0.95, df = 4, type = 'lower')
