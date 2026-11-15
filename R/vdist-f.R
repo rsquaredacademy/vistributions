@@ -4,6 +4,11 @@
 #' shape of the F distribution. Compute & visualize quantiles out of given
 #' probability and probability from a given quantile.
 #'
+#' @details The F density must not be too concentrated to draw: the central
+#' 99.9998\% probability mass must span at least 0.001. More concentrated
+#' densities (for example \code{num_df = den_df = 1e9}) stop with a clear error
+#' instead of returning an inaccurate shaded area.
+#'
 #' @param num_df Degrees of freedom associated with the numerator of f statistic
 #'   (at least 1; need not be a whole number).
 #' @param den_df Degrees of freedom associated with the denominator of f statistic

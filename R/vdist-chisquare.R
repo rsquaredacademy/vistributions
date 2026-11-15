@@ -41,7 +41,7 @@ vdist_chisquare_plot <- function(df = 3, normal = FALSE, xaxis_range = 25, print
   check_numeric(df, "df")
   check_scalar(df, "df")
   check_positive(df, "df")
-  if (df < 0.05) {
+  if (df < 0.1) {
     stop("df must be at least 0.1 for guaranteed numerical accuracy.", call. = FALSE)
   }
   check_numeric(xaxis_range, "xaxis_range")
@@ -70,7 +70,7 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3, type = c("lower", "upper"
   check_numeric(df, "df")
   check_scalar(df, "df")
   check_positive(df, "df")
-  if (df < 0.05) {
+  if (df < 0.1) {
     stop("df must be at least 0.1 for guaranteed numerical accuracy.", call. = FALSE)
   }
   check_range(probs, 0, 1, "probs")
@@ -96,7 +96,7 @@ vdist_chisquare_prob <- function(perc = 13, df = 11, type = c("lower", "upper"),
   check_numeric(df, "df")
   check_scalar(df, "df")
   check_positive(df, "df")
-  if (df < 0.05) {
+  if (df < 0.1) {
     stop("df must be at least 0.1 for guaranteed numerical accuracy.", call. = FALSE)
   }
   check_numeric(perc, "perc")

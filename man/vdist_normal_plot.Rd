@@ -27,10 +27,12 @@ vdist_normal_prob(
 \arguments{
 \item{mean}{Mean of the normal distribution.}
 
-\item{sd}{Standard deviation of the normal distribution. It must be positive
-and large enough, relative to \code{mean}, that the requested cutoff is a
-representable double; otherwise \code{vdist_normal_perc()} stops with a
-numerical-resolution error.}
+\item{sd}{Standard deviation of the normal distribution. It must be positive.
+When \code{mean} is nonzero, \code{sd / max(1, abs(mean))} must be at least
+\code{1e-14}; below that limit the cutoff cannot be represented as a double
+and all three normal functions stop with a numerical-resolution error.
+Zero-centred distributions have no translation and may use any positive
+\code{sd}.}
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 

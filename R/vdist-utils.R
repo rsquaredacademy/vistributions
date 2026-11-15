@@ -115,13 +115,17 @@ vdist_check_density <- function(y, what = "density") {
   invisible(y)
 }
 
-# Convergence check: the shoelace area of a drawn polygon must match the
-# probability between its own endpoints within 1e-3.
+# Convergence check: the shoelace area of a drawn polygon. The local-edge
+# form uses only coordinate differences, so it stays accurate for polygons far
+# from zero (e.g. mean = 1, sd = 1e-13) and for very wide t tails, where
+# multiplying absolute coordinates or subtracting a distant origin loses the
+# central differences.
 vdist_area <- function(x, y) {
-  # translate first: a polygon far from zero (e.g. mean = 1, sd = 1e-13) would
-  # otherwise lose the small area to cancellation in the absolute coordinates
-  xr <- x - x[1]
-  abs(sum(xr * c(y[-1], y[1]) - y * c(xr[-1], xr[1]))) / 2
+  n <- length(x)
+  if (n < 3L) {
+    return(0)
+  }
+  abs(sum((c(x[-1], x[1]) - x) * (y + c(y[-1], y[1])))) / 2
 }
 
 vdist_check_area <- function(x, y, target, what = "shaded region") {
@@ -134,6 +138,41 @@ vdist_check_area <- function(x, y, target, what = "shaded region") {
                 "documented plotting contract."), call. = FALSE)
   }
   invisible(area)
+}
+
+# Check the event the caption names, not just the polygon's own endpoints: the
+# drawn area plus the part of the event that lies outside the visible window
+# must equal the stated event probability. `omitted` is computed with the
+# distribution's p*() function by the data preparation step.
+vdist_check_event <- function(area, omitted, target, what = "shaded region") {
+  total <- area + omitted
+  if (!is.finite(total) || abs(total - target) > 1e-3) {
+    stop(paste0("The ", what, " area (", format(area, digits = 8),
+                ") plus the ", format(omitted, digits = 8),
+                " probability outside the visible range does not match the ",
+                "stated event probability (", format(target, digits = 8),
+                ") within 1e-3; choose parameters inside the documented ",
+                "plotting contract."), call. = FALSE)
+  }
+  invisible(total)
+}
+
+# A translated normal is only representable when the standard deviation is
+# large enough, relative to the location, that the cutoff is more than a few
+# double-precision units away from the mean. Zero-centred normals have no
+# translation and are always evaluated on the standardized scale.
+vdist_check_normal_resolution <- function(mean, sd) {
+  if (abs(mean) > 0) {
+    ratio <- sd / max(1, abs(mean))
+    if (!is.finite(ratio) || ratio < 1e-14) {
+      stop(paste0("The normal cutoff cannot be represented numerically: ",
+                  "sd / max(1, |mean|) = ",
+                  format(ratio, scientific = TRUE, digits = 3),
+                  " is below the documented limit of 1e-14. Use a larger sd ",
+                  "or a mean closer to zero."), call. = FALSE)
+    }
+  }
+  invisible(TRUE)
 }
 
 # Keep drawn markers, reference lines and annotation labels inside the plotted
@@ -154,18 +193,26 @@ check_count <- function(val, var = "n") {
   round(val)
 }
 
-# Grid of plotting points from `from` to `to`: steps of `step`, but never fewer
-# than ~20 steps (very narrow regions would collapse to a triangle) and never
-# more than `max_n` steps (very wide regions would allocate huge vectors).
-vdist_seq <- function(from, to, step = 0.01, min_n = 20, max_n = 20000) {
-  n <- (to - from) / step
-  if (n > max_n) {
-    seq(from, to, length.out = max_n + 1)
-  } else if (n < min_n) {
-    seq(from, to, length.out = 101)
-  } else {
-    seq(from, to, step)
-  }
+# Fixed number of plotting points. The grid never uses a step in data units:
+# a 0.01 step collapses when the distribution is narrow or far from zero, and
+# wastes almost every point on a long, empty tail.
+vdist_n_points <- 1001L
+
+# A density that is singular at the support boundary needs more probability
+# points close to that boundary; the fixed count keeps allocation bounded.
+vdist_grid_n <- function(singular = FALSE) {
+  if (isTRUE(singular)) 10001L else vdist_n_points
+}
+
+# Very small t degrees of freedom put almost all probability in a tail that
+# reaches millions or further; the extra points keep the central mass resolved
+# without slowing the ordinary examples.
+vdist_grid_n_t <- function(df) {
+  if (df < 1) 4001L else vdist_n_points
+}
+
+vdist_seq <- function(from, to, n = vdist_n_points) {
+  seq(from, to, length.out = n)
 }
 
 # Format a number for display text. Calculations always use full precision;
@@ -189,8 +236,13 @@ fmt_num <- function(x, scale = Inf) {
   ref[!is.finite(ref) | ref == 0] <- 1
   dec <- pmax(3, 3 - floor(log10(ref)))
   out[keep] <- vapply(seq_along(xk), function(i) {
-    if (dec[i] > 15) {
+    if (dec[i] > 17) {
       format(signif(xk[i], 4), scientific = TRUE, trim = TRUE)
+    } else if (dec[i] > 13) {
+      # a translated value (for example mean = 1, sd = 1e-13) needs digits
+      # to the right of the leading 1; print them fixed instead of letting
+      # `format()` round the whole value to 15 significant digits
+      sprintf(paste0("%.", dec[i], "f"), xk[i])
     } else {
       format(round(xk[i], dec[i]), digits = 15, scientific = FALSE, trim = TRUE)
     }
@@ -198,50 +250,52 @@ fmt_num <- function(x, scale = Inf) {
   out
 }
 
-# Plotting grid for a continuous density over [from, to]. A uniform step of
-# 0.01 is used unless the caller asks for probability-space sampling
-# (`quantile = TRUE`, used where the density is unbounded at the support edge)
-# or supplies a refined step (concentrated F densities). Uniform grids are
-# capped at `max_n` intervals; probability-space grids put most points in the
-# central mass instead of spreading them over a far, essentially empty tail.
-# Requested endpoints are only kept when they fall inside that sampled range,
-# so a polygon never jumps from an empty far tail to the body of the density.
-vdist_grid <- function(from, to, pfun, qfun, n = 8000, quantile = FALSE,
-                       step = 0.01, max_n = 20000) {
+# Plotting grid for a continuous density over [from, to]. A fixed number of
+# points is used across the visible range. `quantile = TRUE` spaces those
+# points in probability, which puts them where the mass is and makes the grid
+# independent of the distribution's location and scale; it is also the only
+# way to resolve a density that is singular at the support boundary. Both
+# requested endpoints are always kept, so a polygon closes on the event it
+# claims to shade.
+vdist_grid <- function(from, to, pfun, qfun, n = vdist_n_points,
+                       quantile = TRUE) {
   if (from > to) {
     tmp  <- from
     from <- to
     to   <- tmp
   }
+  if (!is.finite(from) || !is.finite(to)) {
+    stop("The plotting range is not finite; choose parameters inside the ",
+         "documented plotting contract.", call. = FALSE)
+  }
   if (!quantile) {
-    return(vdist_seq(from, to, step = step, max_n = max_n))
+    return(vdist_seq(from, to, n))
   }
 
-  eps <- 1e-6
   p_from <- pfun(from)
   p_to   <- pfun(to)
+
+  if (!is.finite(p_from) || !is.finite(p_to) || p_to <= p_from) {
+    return(sort(unique(c(from, to))))
+  }
+
+  eps <- 1e-12
   plo <- min(max(p_from, eps), 1 - eps)
   phi <- min(max(p_to, eps), 1 - eps)
 
-  if (!is.finite(plo) || !is.finite(phi) || phi <= plo) {
-    return(c(from, to))
+  if (phi <= plo) {
+    return(sort(unique(c(from, to))))
   }
 
-  p <- stats::plogis(seq(stats::qlogis(plo), stats::qlogis(phi), length.out = n))
-  x <- sort(unique(qfun(p)))
-
-  # the endpoints are part of the drawn range only if they were sampled
-  lower_clipped <- p_from < eps
-  upper_clipped <- p_to > 1 - eps
-  if (!lower_clipped) {
-    x <- sort(unique(c(from, x)))
-  }
-  if (!upper_clipped) {
-    x <- sort(unique(c(x, to)))
-  }
-  attr(x, "clipped") <- c(lower_clipped, upper_clipped)
-
-  x
+  p <- stats::plogis(seq(stats::qlogis(plo), stats::qlogis(phi),
+                         length.out = n))
+  # Union with a fixed-count uniform grid: the probability grid resolves the
+  # body and a singular support edge, while the uniform grid closes the far
+  # tail where the CDF has saturated and a single segment to the endpoint
+  # would otherwise create a spurious triangle.
+  x <- c(from, qfun(p), seq(from, to, length.out = n), to)
+  x <- x[is.finite(x)]
+  sort(unique(x))
 }
 
 # Lower end of a plotting grid for a distribution on [0, Inf): the support
@@ -280,20 +334,21 @@ vdist_check_f_concentration <- function(num_df, den_df) {
   width
 }
 
-# F grid: refine the uniform step to the width of the central mass. Ordinary F
-# densities keep the 0.01 step; very concentrated ones are sampled finely and
-# capped at 20,001 points.
-vdist_f_grid <- function(lo, hi, num_df, den_df, quantile = FALSE,
-                         step = NULL) {
-  width <- vdist_check_f_concentration(num_df, den_df)
-  if (is.null(step)) {
-    step <- min(0.01, width / 50)
+# F grid: probability-space sampling with a fixed point count resolves both
+# ordinary densities and the concentrated ones whose central mass is narrow.
+# The width limit is still checked, so a density that no finite grid can draw
+# is rejected with its documented error.
+vdist_f_grid <- function(lo, hi, num_df, den_df, quantile = TRUE,
+                         step = NULL, n = NULL) {
+  vdist_check_f_concentration(num_df, den_df)
+  if (is.null(n)) {
+    n <- vdist_grid_n(num_df < 2)
   }
   vdist_grid(lo, hi,
              function(x) pf(x, num_df, den_df),
              function(p) qf(p, num_df, den_df),
              quantile = quantile,
-             step = step)
+             n = n)
 }
 
 # Keep enough of both t tails that the omitted mass is below 1e-4: the
@@ -317,16 +372,50 @@ fmt_moment <- function(x) {
   }
 }
 
-# Format a cutoff so that the event in the caption is numerically true when
-# the printed text is parsed again. The value is printed with more digits
-# when the distribution's scale or the magnitude of the mean requires it; if
-# no printable value reproduces the requested probability, that is a
-# documented numerical-resolution error (the coordinate itself is unusable).
+# Format a probability for a caption together with the interval its printed
+# digits guarantee. Percentages at or above 0.1 keep one decimal; smaller ones
+# use three significant digits in scientific notation. The caption is true
+# only when the probability of the printed cutoff falls inside this interval.
+vdist_fmt_pct <- function(p) {
+  if (length(p) != 1L || !is.finite(p)) {
+    return(list(text = "NA", value = NA_real_, tol = Inf))
+  }
+  v <- p * 100
+  if (v == 0) {
+    return(list(text = "0", value = 0, tol = 0.005))
+  }
+  if (v >= 0.1) {
+    r <- round(v, 1)
+    s <- format(r, trim = TRUE, scientific = FALSE)
+    dec <- if (grepl("\\.", s)) {
+      nchar(sub("^[^.]*\\.", "", s))
+    } else {
+      0
+    }
+    list(text = s, value = r / 100, tol = 0.5 * 10 ^ (-dec) / 100)
+  } else {
+    s <- format(v, scientific = TRUE, digits = 3, trim = TRUE)
+    mant <- sub("e.*$", "", s)
+    dec <- if (grepl("\\.", mant)) nchar(sub("^[^.]*\\.", "", mant)) else 0
+    ex <- suppressWarnings(as.numeric(sub("^.*e", "", s)))
+    if (!is.finite(ex)) ex <- 0
+    list(text = s, value = as.numeric(s) / 100,
+         tol = 0.5 * 10 ^ (-dec) * 10 ^ ex / 100)
+  }
+}
+
+vdist_pct_text <- function(p) {
+  vdist_fmt_pct(p)$text
+}
+
+# Find a printable cutoff whose distribution function rounds to the displayed
+# probability. The check is done at the precision the caption actually shows,
+# not at an unrelated fixed tolerance.
 vdist_fmt_cutoff <- function(x, scale, pfun, target) {
-  tol <- 1e-4 * max(target, 1e-4)
+  disp <- vdist_fmt_pct(target)
   ok <- function(s) {
     v <- suppressWarnings(as.numeric(s))
-    is.finite(v) && abs(pfun(v) - target) <= tol
+    is.finite(v) && is.finite(pfun(v)) && abs(pfun(v) - disp$value) <= disp$tol
   }
 
   current <- fmt_num(x, scale)
@@ -352,4 +441,39 @@ vdist_fmt_cutoff <- function(x, scale, pfun, target) {
               "requested probability; the coordinate precision is ",
               "insufficient. Use a larger scale or a less extreme probability."),
        call. = FALSE)
+}
+
+# Find a printable value whose distribution function differs from the value
+# at the original coordinate by at most `tol`. Used for probability captions,
+# where the printed cutoff defines the event and must therefore keep the
+# probability that is printed beside it.
+vdist_fmt_value <- function(x, scale, pfun, tol = 1e-6) {
+  target <- pfun(x)
+  ok <- function(s) {
+    v <- suppressWarnings(as.numeric(s))
+    is.finite(v) && is.finite(pfun(v)) && abs(pfun(v) - target) <= tol
+  }
+
+  current <- fmt_num(x, scale)
+  if (ok(current)) {
+    return(current)
+  }
+
+  for (d in 3:17) {
+    s <- sprintf(paste0("%.", d, "f"), x)
+    if (ok(s)) {
+      return(s)
+    }
+  }
+  for (d in 4:17) {
+    s <- format(x, scientific = TRUE, digits = d, trim = TRUE)
+    if (ok(s)) {
+      return(s)
+    }
+  }
+
+  stop(paste0("The cutoff ", format(x, digits = 17),
+              " cannot be printed with enough precision to state its ",
+              "probability; the coordinate precision is insufficient. Use a ",
+              "larger scale or a less extreme probability."), call. = FALSE)
 }
