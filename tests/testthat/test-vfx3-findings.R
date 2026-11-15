@@ -158,7 +158,11 @@ test_that("VFXX2-M2: annotations, markers and reference lines stay in view", {
 # VFXX2-L1 ------------------------------------------------------------------
 
 test_that("VFXX2-L1: NEWS states the implemented limits, not blanket claims", {
-  news <- readLines(test_path("..", "..", "NEWS.md"))
+  news_file <- system.file("NEWS.md", package = "vistributions")
+  if (!nzchar(news_file)) {
+    news_file <- test_path("..", "..", "NEWS.md")
+  }
+  news <- readLines(news_file)
   text <- paste(news, collapse = "\n")
   expect_match(text, "at least 0.1")
   expect_match(text, "num_df")

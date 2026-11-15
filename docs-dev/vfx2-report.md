@@ -2,7 +2,11 @@
 
 Worktree: `F:/R/Packages/_worktrees/vist-fix-022` (branch `task/vist-fix-022`).
 Base for this round: `6d26c7d` (the three `vfx` commits). Findings: Codex re-audit
-`docs-dev/vfxx-reaudit.md` (untracked, left in place), VFXX-H1–H4, M1, L1–L3 — all eight fixed.
+`docs-dev/vfxx-reaudit.md` (untracked, left in place), VFXX-H1–H4, M1, L1–L3. That round fixed the
+eight VFXX findings within its own scope; the subsequent VFXX2 re-audit
+(`docs-dev/vfxx2-reaudit.md`) found four high, two medium and one low remaining result, corrected in
+the vfx3 round (see `docs-dev/vfx3-report.md`). This report's "all fixed" statements describe the
+VFXX round only and must not be read as a release-readiness claim.
 Commits: `1e68fd3` (code + tests + snapshots), `dad7416` (roxygen/Rd + NEWS),
 plus the commit that adds this report. Not pushed; no GitHub operations; no branch switch.
 
@@ -100,7 +104,7 @@ captioned one (`R/vdist-data-prep.R:119, 179, 268, 303, 404, 430, 570`).
 | `vdist_chisquare_prob(1e6, 5)` | 3.2647639e-08 | 0.99999997 | 1 |
 | `vdist_f_prob(1e5, 4, 30)` | 0.018176127 | 0.99996444 | 1 |
 | `vdist_t_perc(.99999, 1)` | 1.1322405 | 0.99999938 | .99999 |
-| `vdist_f_prob(5000, 4, 30)` | 0.97814934 | 0.99996444 | 0.9999644 |
+| `vdist_f_prob(5000, 4, 30)` | 0.97814934 | 0.99996444 | 1 (area .99996444) |
 
 Captions are unchanged (`P(X < 1e+06) = 100%`, `P(X < 10.828) = 99.9%`); each case still allocates
 ≤ 2,800 rows. An ordinary plot keeps its 1,001-row grid (asserted).
@@ -249,20 +253,20 @@ are correct (H3), but the rendered plot still shows the density as a spike at ze
 cutoffs. Re-anchoring the reference line and the percentage annotations at the clip edge would give
 a usable view; that changes rendering (and possibly snapshots) beyond the audited numerical finding,
 so it is a follow-up rather than part of this round. The same applies to `vdist_normal_prob(1e6)`,
-`vdist_chisquare_prob(1e6, 5)` and `vdist_f_prob(1e5, 4, 30)`.
+`vdist_chisquare_prob(1e6, 5)` and `vdist_f_prob(1e5, 4, 30)`. The vfx3 round implements that
+follow-up: reference lines, markers and annotations are clamped to the visible view while captions
+keep the true event.
 
 **F3 — `stats::qf()` underflow for very small probabilities.** `qf(1e-9, 1, 1)` returns exactly 0
-in R 4.6.1, so `vdist_f_perc(1e-9, 1, 1)` captions `P(X < 0) = 1e-07%` while the true quantile is
-about 1e-17 (not representable). Same at HEAD, not a regression of this round and not one of the
-audited findings. Suggested remedy: after computing a quantile in the `*_perc()` functions, error
-out when the distribution's CDF at the returned quantile does not reproduce the requested
-probability, per the convergence rule (“stop with a clear error rather than draw something wrong”).
-Needs its own fails-before test and a decision on tolerance.
+in R 4.6.1, so `vdist_f_perc(1e-9, 1, 1)` captioned `P(X < 0) = 1e-07%`. The true quantile is
+2.467401e-18 and *is* representable; only the `stats::qf()` result is wrong. The vfx3 round now
+checks every `q*()` result against the requested tail and raises a package error when it does not
+invert the CDF; F probabilities below 1e-6 are outside the documented contract.
 
-**F4 — F normal overlay still uses the rounded mean/sd.** `fplot_data_prep()` builds
-`dnorm(nx, fm, fsd)` from `round(…, 3)` values. Unlike chi-square (M1) this cannot currently
-produce a zero sd for a valid `den_df`, so it was left alone; computing it from the unrounded
-values would be more consistent.
+**F4 — F normal overlay still uses the rounded mean/sd.** `fplot_data_prep()` built
+`dnorm(nx, fm, fsd)` from `round(…, 3)` values. The VFXX2 re-audit showed that this *can* round a
+valid large-df sd to zero (for example `vdist_f_plot(1e8, 1e8, normal = TRUE)`); the vfx3 round now
+uses the unrounded moments and omits the overlay with a message when `den_df <= 4`.
 
 **F5 — `RoxygenNote`/roxygen2 version mismatch.** The installed roxygen2 is 8.1.1 while
 `DESCRIPTION` says `RoxygenNote: 7.3.3`; `devtools::document()` therefore rewrote `NAMESPACE`
@@ -316,6 +320,7 @@ content is unchanged by it.
 
 - Enormous-`n` binomial allocation remains a resource limit (no huge-n experiment attempted).
 - `vdist_binom_perc()`'s `tp` endpoints stay at the intentionally narrower documented contract.
-- The infinite F density at zero is mathematically correct; it is now only reached at the sampled
-  boundary (`num_df < 2` starts at `qf(1e-6, …)`), so no `Inf` enters polygon data.
+- The infinite F density at zero is mathematically correct. The vfx3 round rejects `num_df < 1`,
+  whose support boundary cannot be represented at double precision, and starts accepted
+  `num_df < 2` grids at `qf(1e-6, …)`, so no `Inf` enters polygon data.
 - pkgdown website prose/runtime is unaudited beyond F1.
