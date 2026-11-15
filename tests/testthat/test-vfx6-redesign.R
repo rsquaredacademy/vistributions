@@ -448,7 +448,9 @@ test_that("the contract table is the one the implementation enforces", {
   expect_match(tab$parameter[tab$dist == "chisquare"], "0.1")
   expect_match(tab$parameter[tab$dist == "f"], "num_df >= 1")
   # NEWS states the redesign without the retracted claims of earlier rounds
-  news <- paste(readLines(test_path("..", "..", "NEWS.md")), collapse = "\n")
+  news_file <- system.file("NEWS.md", package = "vistributions")
+  if (!nzchar(news_file)) news_file <- test_path("..", "..", "NEWS.md")
+  news <- paste(readLines(news_file), collapse = "\n")
   expect_match(news, "exact")
   expect_false(grepl("uniform 0.01 x-grid", news))
 })
