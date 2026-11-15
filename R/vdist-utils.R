@@ -64,11 +64,23 @@ check_open_range <- function(val, var = "probs") {
 # are excluded because their quantiles either overflow or cannot be recovered
 # from the returned double.
 vdist_prob_range <- function(dist) {
-  switch(dist,
-         normal    = c(1e-10, 1 - 1e-10),
-         t         = c(1e-10, 1 - 1e-10),
-         chisquare = c(1e-6, 1 - 1e-6),
-         f         = c(1e-6, 1 - 1e-6))
+  tab <- vdist_contract(dist)
+  c(tab$prob_lo[1], tab$prob_hi[1])
+}
+
+# Parameter floors, defined once and used by every export of the family.
+vdist_check_chisquare_df <- function(df) {
+  if (df < 0.1) {
+    stop("df must be at least 0.1 for guaranteed numerical accuracy.", call. = FALSE)
+  }
+  invisible(df)
+}
+
+vdist_check_f_num_df <- function(num_df) {
+  if (num_df < 1) {
+    stop("num_df must be at least 1 for guaranteed numerical accuracy.", call. = FALSE)
+  }
+  invisible(num_df)
 }
 
 check_probability <- function(val, var = "probs", dist = "normal") {

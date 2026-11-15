@@ -64,9 +64,7 @@ vdist_f_plot <- function(num_df = 4, den_df = 30, normal = FALSE, print_plot = T
   check_scalar(den_df, "den_df")
   check_positive(num_df, "num_df")
   check_positive(den_df, "den_df")
-  if (num_df < 1) {
-    stop("num_df must be at least 1 for guaranteed numerical accuracy.", call. = FALSE)
-  }
+  vdist_check_f_num_df(num_df)
   check_logical(normal)
 
   data <- fplot_data_prep(num_df, den_df)
@@ -91,9 +89,7 @@ vdist_f_perc <- function(probs = 0.95, num_df = 3, den_df = 30, type = c("lower"
   check_scalar(den_df, "den_df")
   check_positive(num_df, "num_df")
   check_positive(den_df, "den_df")
-  if (num_df < 1) {
-    stop("num_df must be at least 1 for guaranteed numerical accuracy.", call. = FALSE)
-  }
+  vdist_check_f_num_df(num_df)
   check_numeric(probs, "probs")
   check_scalar(probs, "probs")
   check_range(probs, 0, 1, "probs")
@@ -124,9 +120,7 @@ vdist_f_prob <- function(perc = 2.35, num_df = 5, den_df = 32, type = c("lower",
   check_scalar(den_df, "den_df")
   check_positive(num_df, "num_df")
   check_positive(den_df, "den_df")
-  if (num_df < 1) {
-    stop("num_df must be at least 1 for guaranteed numerical accuracy.", call. = FALSE)
-  }
+  vdist_check_f_num_df(num_df)
 
   method <- match.arg(type)
   data   <- fprob_data_prep(perc, num_df, den_df, method)
