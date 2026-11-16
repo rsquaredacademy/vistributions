@@ -387,6 +387,32 @@ vdist_region <- function(lo, hi, dfun, pfun, qfun,
     y <- fix(x, dfun_z(x))
     a <- poly_area()
   }
+  # qfun(plogis(qlogis(p))) need not round-trip exactly: the first and last
+  # probability-spaced points can land a few double-precision units inside
+  # zlo/zhi, and whether they do depends on the platform's p/q functions. Such
+  # a point is the same vertex as its endpoint, but unique() keeps it, so the
+  # polygon gains one extra vertex on that platform only (the CI snapshot of
+  # `vdist_t_prob(1.445, 7, 'interval')` had `265.66,407.84` twice on Linux).
+  #
+  # The duplicate is dropped here, after the refinement, so the refinement
+  # itself and every other vertex are untouched: the drawn shape loses only
+  # the duplicate. The region's own endpoint always survives. The test is
+  # relative to the coordinates, never to the width of the region: a heavy
+  # tail can span 1e96, where an epsilon proportional to the width would
+  # swallow most of the grid.
+  if (length(x) >= 3) {
+    tol  <- 64 * .Machine$double.eps
+    same <- diff(x) <= tol * pmax(abs(x[-1]), abs(x[-length(x)]))
+    if (any(same)) {
+      drop <- c(FALSE, same)            # drop the later point of a pair
+      if (same[length(same)]) {         # ... unless the later one is zhi
+        drop[length(drop)] <- FALSE
+        drop[length(drop) - 1L] <- TRUE
+      }
+      x <- x[!drop]
+      y <- y[!drop]
+    }
+  }
   zx <- c(zlo, x, zhi)
   list(x  = ctr + scl * zx,
        y  = c(0, y, 0) / scl,

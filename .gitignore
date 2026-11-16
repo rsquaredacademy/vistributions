@@ -9,3 +9,4 @@ daily-log.md
 # testthat writing a default device leaves this in the source tree
 tests/testthat/Rplots.pdf
 .vfx7-tmp/
+.vfx8-tmp/
