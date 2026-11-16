@@ -297,7 +297,14 @@ vdist_region_grid <- function(lo, hi, pfun, qfun, n) {
   }
   # uniform points across the region (in standardised units, see vdist_region)
   xu  <- seq(lo, hi, length.out = n)
-  x  <- sort(unique(c(lo, xp, xu, hi)))
+  x  <- c(lo, xp, xu, hi)
+  # Snap points that land within floating-point rounding of an endpoint onto
+  # it (qfun(plogis(qlogis(plo))) can miss lo by one ulp on some platforms),
+  # so unique() removes them and every platform draws the same polygon.
+  eps <- 1e-12 * max(abs(hi - lo), .Machine$double.eps)
+  x[is.finite(x) & abs(x - lo) <= eps] <- lo
+  x[is.finite(x) & abs(x - hi) <= eps] <- hi
+  x  <- sort(unique(x))
   x  <- x[is.finite(x) & x >= lo & x <= hi]
   x
 }
