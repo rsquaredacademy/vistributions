@@ -12,28 +12,54 @@ bplot_plot_build <- function(data, n, p) {
 
   p <-
     ggplot(data$plot_data) +
-    geom_col(aes(x = n, y = df), fill = "blue") +
+    vdist_col_layer(data, "blue") +
     ylab("Probability") +
     xlab("No. of success") +
     ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
             subtitle = paste("Mean =", data$bm, ", Std. Dev. =", data$bsd)) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5)) +
-    scale_x_continuous(breaks = seq(0, n))
+    scale_x_continuous(breaks = vdist_count_breaks(n))
+
+  if (isTRUE(data$binned)) {
+    p <- p + labs(caption = vdist_binned_text())
+  }
 
   return(p)
 
+}
+
+# Bars of a count distribution. Individual counts keep the ordinary narrow bar;
+# a support too wide for individual bars is drawn from binned probabilities and
+# the bars then touch, so each bar shows the mass of its own bin.
+vdist_col_layer <- function(data, fill) {
+  n <- df <- NULL
+  if (isTRUE(data$binned)) {
+    geom_col(aes(x = n, y = df), fill = fill, width = data$plot_data$w)
+  } else {
+    geom_col(aes(x = n, y = df), fill = fill)
+  }
+}
+
+# Axis breaks for a count axis never number more than 31 ticks, so a large n
+# does not materialise one label per count.
+vdist_count_breaks <- function(n) {
+  if (n <= 30) seq(0, n) else ggplot2::waiver()
+}
+
+vdist_binned_text <- function() {
+  paste("Bars are grouped: each bar shows the probability of a range of counts,",
+        "because individual bars would be narrower than a pixel at this scale")
 }
 
 bprob_plot_build <- function(data, method, n, p, s) {
 
   plot <-
     ggplot(data$plot_data) +
-    geom_col(aes(x = n, y = df),
-             fill = data$cols) +
+    vdist_col_layer(data, data$cols) +
     ylab("Probability") +
     xlab(paste("No. of success\n", "Mean =", data$bm, ", Std. Dev. =", data$bsd)) +
-    scale_x_continuous(breaks = seq(0, n)) +
+    scale_x_continuous(breaks = vdist_count_breaks(n)) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
@@ -59,6 +85,10 @@ bprob_plot_build <- function(data, method, n, p, s) {
               subtitle = paste0("P(", s[1], " <= X <= ", s[2], ")", " = ", round(data$k, 3)))
   }
 
+  if (isTRUE(data$binned)) {
+    plot <- plot + labs(caption = vdist_binned_text())
+  }
+
   return(plot)
 }
 
@@ -66,11 +96,10 @@ bperc_plot_build <- function(data, method, n, p, tp) {
 
   plot <-
     ggplot(data$plot_data) +
-    geom_col(aes(x = n, y = df),
-             fill = data$cols) +
+    vdist_col_layer(data, data$cols) +
     ylab("Probability") +
     xlab("No. of success") +
-    scale_x_continuous(breaks = seq(0, n)) +
+    scale_x_continuous(breaks = vdist_count_breaks(n)) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
@@ -86,6 +115,10 @@ bperc_plot_build <- function(data, method, n, p, tp) {
       ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
               subtitle = paste0("P(X >= ", (data$k + 1), ") <= ", tp, ", but P(X >= ", data$k, ") > ", tp)
       )
+  }
+
+  if (isTRUE(data$binned)) {
+    plot <- plot + labs(caption = vdist_binned_text())
   }
 
   return(plot)
@@ -211,8 +244,10 @@ cperc_plot_build <- function(data, method, probs, df) {
     scale_x_continuous(breaks = if (data$xm[2] <= 300) seq(0, data$xm[2], by = 5) else waiver()) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
-  if (!is.null(vdist_beyond_text(data$omitted))) {
-    plot <- plot + labs(caption = vdist_beyond_text(data$omitted))
+  plot <- plot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    plot <- plot + labs(caption = vdist_caption_text(data))
   }
 
   return(plot)
@@ -300,8 +335,10 @@ cprob_plot_build <- function(data, method, perc, df) {
     scale_x_continuous(breaks = if (data$l[data$ln] <= 300) seq(0, data$l[data$ln], by = 5) else waiver()) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
-  if (!is.null(vdist_beyond_text(data$omitted))) {
-    gplot <- gplot + labs(caption = vdist_beyond_text(data$omitted))
+  gplot <- gplot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    gplot <- gplot + labs(caption = vdist_caption_text(data))
   }
 
   return(gplot)
@@ -467,8 +504,10 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
     vdist_x_scale(data$view, breaks = data$breaks) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
-  if (!is.null(vdist_beyond_text(data$omitted))) {
-    gplot <- gplot + labs(caption = vdist_beyond_text(data$omitted))
+  gplot <- gplot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    gplot <- gplot + labs(caption = vdist_caption_text(data))
   }
 
   return(gplot)
@@ -568,8 +607,10 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
     vdist_x_scale(data$view, breaks = data$breaks) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
-  if (!is.null(vdist_beyond_text(data$omitted))) {
-    gplot <- gplot + labs(caption = vdist_beyond_text(data$omitted))
+  gplot <- gplot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    gplot <- gplot + labs(caption = vdist_caption_text(data))
   }
 
   return(gplot)
@@ -721,8 +762,10 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
     scale_x_continuous(breaks = data$breaks) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
-  if (!is.null(vdist_beyond_text(data$omitted))) {
-    gplot <- gplot + labs(caption = vdist_beyond_text(data$omitted))
+  gplot <- gplot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    gplot <- gplot + labs(caption = vdist_caption_text(data))
   }
 
   return(gplot)
@@ -841,8 +884,10 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
     scale_x_continuous(breaks = data$breaks) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
-  if (!is.null(vdist_beyond_text(data$omitted))) {
-    gplot <- gplot + labs(caption = vdist_beyond_text(data$omitted))
+  gplot <- gplot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    gplot <- gplot + labs(caption = vdist_caption_text(data))
   }
 
   return(gplot)
@@ -989,8 +1034,10 @@ tperc_plot_build <- function(data, probs, df, method) {
     vdist_x_scale(data$view, breaks = data$breaks) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
-  if (!is.null(vdist_beyond_text(data$omitted))) {
-    gplot <- gplot + labs(caption = vdist_beyond_text(data$omitted))
+  gplot <- gplot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    gplot <- gplot + labs(caption = vdist_caption_text(data))
   }
 
   return(gplot)
@@ -1173,8 +1220,10 @@ tprob_plot_build <- function(data, perc, df, method) {
                  size    = 3)
   }
 
-  if (!is.null(vdist_beyond_text(data$omitted))) {
-    gplot <- gplot + labs(caption = vdist_beyond_text(data$omitted))
+  gplot <- gplot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    gplot <- gplot + labs(caption = vdist_caption_text(data))
   }
 
   return(gplot)

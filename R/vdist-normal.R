@@ -12,14 +12,17 @@
 #'   When \code{mean} is nonzero, \code{sd / abs(mean)} must be at least
 #'   \code{1e-14}; below that limit the cutoff cannot be represented as a double
 #'   and all three normal functions stop with a numerical-resolution error.
-#'   Zero-centred distributions have no translation and may use any positive
+#'   A near-zero mean is not a resolution failure: the ratio may overflow to
+#'   infinity (\code{mean = 1e-308, sd = 10}) while the distribution is still
+#'   perfectly resolvable, and it is drawn normally. Zero-centred
+#'   distributions have no translation and may use any positive
 #'   \code{sd}. The comparison is a ratio, so multiplying \code{mean} and
 #'   \code{sd} by the same factor (a change of units, for example from metres to
 #'   millimetres) never changes the result. Independently, the density must be
-#'   finite (\code{sd} at least about \code{1e-308}) and the plotted range
-#'   \code{mean +/- 4 sd} must be representable (\code{sd} below about
-#'   \code{4e307}); both limits come from double precision and are reported by a
-#'   specific error.
+#'   finite (\code{sd} at least about \code{1e-308}) and the plotted window
+#'   \code{mean +/- 4 sd} must be representable: both its ends and its width
+#'   must fit in a double (\code{sd} below about \code{2.2e307}). Both limits
+#'   come from double precision and are reported by a specific error.
 #' @param probs Probability value, strictly between 0 and 1 and within
 #'   \code{[1e-10, 1 - 1e-10]}.
 #' @param type Lower tail, upper tail or both.
@@ -37,7 +40,12 @@
 #' \code{sd} by the same factor changes only the axis labels: the shaded
 #' proportion, the probability caption and the standardised picture are the
 #' same. A part of the shaded region that lies outside the plotted window is
-#' disclosed in a plot caption.
+#' disclosed in a plot caption. A shaded region too narrow to occupy a pixel at
+#' the plotted scale (for example an extreme percentile of a concentrated
+#' distribution) is marked with a visible strip in the panel and disclosed in
+#' the caption; its polygon and its checked area are unchanged. Every plotting
+#' grid has a bounded number of points, whatever the mean and standard
+#' deviation.
 #'
 #' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 #'

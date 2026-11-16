@@ -16,6 +16,13 @@
 #'   \code{x > k} are shaded.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
+#' @details Every bar is one count while \code{n + 1} counts fit in the plotting
+#' grid (2001 bars). A wider support is drawn as at most 2001 equal-width bins
+#' of counts, each bar showing the exact probability of its bin, with a caption
+#' that discloses the grouping; the grid therefore has a bounded number of
+#' points whatever \code{n} is. Probabilities, quantiles and shaded masses always
+#' come from \code{dbinom()}, \code{pbinom()} and \code{qbinom()}.
+#'
 #' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 #'
 #' @family binomial visualization

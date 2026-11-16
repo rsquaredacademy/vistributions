@@ -10,41 +10,43 @@
 bplot_data_prep <- function(n, p) {
 
   n    <- round(n)
-  x    <- seq(0, n, 1)
+  g    <- vdist_count_grid(n)
+  data <- vdist_count_prob(g, n, p)
   bm   <- round(n * p, 2)
   bsd  <- round(sqrt(n * p * (1 - p)), 2)
-  data <- stats::dbinom(x, n, p)
-  plot_data <- data.frame(n = seq(0, n), df = data)
+  plot_data <- data.frame(n = g$x, df = data, w = g$w)
 
-  list(plot_data = plot_data, bm = bm, bsd = bsd)
+  list(plot_data = plot_data, bm = bm, bsd = bsd, binned = g$binned)
 
 }
 
 bprob_data_prep <- function(n, p, s, method) {
 
   n   <- round(n)
-  x   <- seq(0, n, 1)
+  g   <- vdist_count_grid(n)
   bm  <- round(n * p, 2)
   bsd <- round(sqrt(n * p * (1 - p)), 2)
+  last <- g$hi - 1
 
   if (method == "lower") {
     k    <- round(pbinom(s, n, p), 3)
-    cols <- ifelse(x <= s, "#0000CD", "#6495ED")
+    cols <- ifelse(last <= s, "#0000CD", "#6495ED")
   } else if (method == "upper") {
     k    <- round(1 - pbinom((s - 1), n, p), 3)
-    cols <- ifelse(x >= s, "#0000CD", "#6495ED")
+    cols <- ifelse(g$lo >= s, "#0000CD", "#6495ED")
   } else if (method == "exact") {
     k    <- round(dbinom(s, n, p), 5)
-    cols <- ifelse(x == s, "#0000CD", "#6495ED")
+    cols <- ifelse(g$lo <= s & last >= s, "#0000CD", "#6495ED")
   } else {
     k    <- round(pbinom(s[2], n, p) - pbinom((s[1] - 1), n, p), 5)
-    cols <- ifelse(x >= s[1] & x <= s[2], "#0000CD", "#6495ED")
+    cols <- ifelse(g$lo <= s[2] & last >= s[1], "#0000CD", "#6495ED")
   }
 
-  data      <- dbinom(x, n, p)
-  plot_data <- data.frame(n = seq(0, n), df = data)
+  data      <- vdist_count_prob(g, n, p)
+  plot_data <- data.frame(n = g$x, df = data, w = g$w)
 
-  list(plot_data = plot_data, bm = bm, bsd = bsd, k = k, cols = cols)
+  list(plot_data = plot_data, bm = bm, bsd = bsd, k = k, cols = cols,
+       binned = g$binned)
 
 }
 
@@ -52,23 +54,55 @@ bprob_data_prep <- function(n, p, s, method) {
 bperc_data_prep <- function(n, p, tp, method) {
 
   n      <- round(n)
-  x      <- seq(0, n, 1)
+  g      <- vdist_count_grid(n)
+  last   <- g$hi - 1
 
   if (method == "lower") {
     # smallest k with P(X <= k) >= tp; shade x <= k
     k    <- qbinom(tp, n, p)
-    cols <- ifelse(x <= k, "#0000CD", "#6495ED")
+    cols <- ifelse(last <= k, "#0000CD", "#6495ED")
   } else {
     # smallest k with P(X > k) <= tp; shade the tail x > k (x >= k + 1)
     k    <- qbinom(tp, n, p, lower.tail = FALSE)
-    cols <- ifelse(x > k, "#0000CD", "#6495ED")
+    cols <- ifelse(g$lo > k, "#0000CD", "#6495ED")
   }
 
-  data      <- dbinom(x, n, p)
-  plot_data <- data.frame(n = seq(0, n), df = data)
+  data      <- vdist_count_prob(g, n, p)
+  plot_data <- data.frame(n = g$x, df = data, w = g$w)
 
-  list(plot_data = plot_data, k = k, cols = cols)
+  list(plot_data = plot_data, k = k, cols = cols, binned = g$binned)
 
+}
+
+# Bounded bar grid for a count distribution. Every bar is one count while the
+# support fits in `max_bars`; a wider support is aggregated into at most
+# `max_bars` equal-width bins of counts (each bar then shows the probability of
+# its bin), because one bar per count would be narrower than a pixel and the
+# grid would grow with n. The `binned` flag lets the plot disclose this.
+vdist_count_grid <- function(n, max_bars = 2001L) {
+  if (n + 1 <= max_bars) {
+    x <- seq(0, n, 1)
+    # each bar is the half-open count interval [x, x + 1)
+    return(list(x = x, lo = x, hi = x + 1, w = rep(1, length(x)),
+                binned = FALSE))
+  }
+  edges <- unique(round(seq(0, n + 1, length.out = max_bars + 1)))
+  lo <- edges[-length(edges)]
+  hi <- edges[-1]
+  keep <- hi > lo
+  lo <- lo[keep]
+  hi <- hi[keep]
+  list(x = (lo + hi - 1) / 2, lo = lo, hi = hi, w = hi - lo, binned = TRUE)
+}
+
+# Probability carried by each bar of the bounded grid: the exact probability of
+# a single count, or the exact mass of a bin of counts.
+vdist_count_prob <- function(g, n, p) {
+  if (isTRUE(g$binned)) {
+    stats::pbinom(g$hi - 1, n, p) - stats::pbinom(g$lo - 1, n, p)
+  } else {
+    stats::dbinom(g$x, n, p)
+  }
 }
 # ---------------------------------------------------------------------------
 # Continuous families
@@ -197,6 +231,11 @@ vdist_cont_prep <- function(spec, parts, prob, view, method,
                             tol = 2e-4) {
   ev_lo <- min(vapply(parts, function(p) p[1], numeric(1)))
   ev_hi <- max(vapply(parts, function(p) p[2], numeric(1)))
+  if (!is.finite(view[2] - view[1])) {
+    stop(paste0("The plotted range spans more than the double range; ",
+                "use a smaller scale so the window is representable."),
+         call. = FALSE)
+  }
   rb <- vdist_region_bounds(spec, ev_lo, ev_hi)
   rb$lo <- max(rb$lo, spec$support[1])
   rb$hi <- min(rb$hi, spec$support[2])
@@ -246,6 +285,8 @@ vdist_cont_prep <- function(spec, parts, prob, view, method,
   pc <- vdist_clamp(cut, view)
   if (!is.null(cut_draw)) pc <- vdist_clamp(cut_draw, view)
 
+  omitted <- vdist_view_omitted(spec, parts, view, rb)
+
   list(spec       = spec,
        plot_data  = plot_data,
        x          = x,
@@ -261,7 +302,8 @@ vdist_cont_prep <- function(spec, parts, prob, view, method,
        l2         = l2,
        col        = col,
        event_prob = prob,
-       omitted    = vdist_view_omitted(spec, parts, view, rb),
+       omitted    = omitted,
+       subpixel   = vdist_subpixel_region(parts, view, rb, prob, omitted),
        ycap       = vdist_density_cap(spec$dfun, view[1], view[2]),
        point_data = data.frame(x = pc, y = 0))
 }

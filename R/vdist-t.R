@@ -23,6 +23,10 @@
 #' print. A very wide window - for example a heavy tail with a small \code{df} -
 #' is drawn on a symmetric log axis so the shaded event stays visible; the
 #' printed probability and the area check always use the unclipped density.
+#' A shaded region too narrow to occupy a pixel at the plotted scale is marked
+#' with a visible strip in the panel and disclosed in the caption; its polygon
+#' and its checked area are unchanged. Every plotting grid has a bounded number
+#' of points, whatever the degrees of freedom or the cutoff.
 #'
 #' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 #'

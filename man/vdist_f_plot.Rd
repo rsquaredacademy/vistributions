@@ -69,7 +69,11 @@ Very wide heavy-tail windows are drawn on a symmetric log axis so the shaded
 event stays visible. Captions use one rounding rule and are true at the
 precision they print. Quantiles are refined by root finding when the
 \code{stats} quantile does not invert its own distribution function, so equal
-degrees of freedom up to at least \code{1e8} plot accurately.
+degrees of freedom up to at least \code{1e8} plot accurately. A shaded
+region too narrow to occupy a pixel at the plotted scale is marked with a
+visible strip in the panel and disclosed in the caption; its polygon and its
+checked area are unchanged. Every plotting grid has a bounded number of
+points, whatever the degrees of freedom or the cutoff.
 }
 \examples{
 # visualize F distribution

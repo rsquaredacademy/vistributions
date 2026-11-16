@@ -23,7 +23,12 @@
 #' probability (within 1e-3). Where the density is unbounded at zero it is
 #' capped on the display axis only: the source-coordinate area and the printed
 #' probability always use the unclipped density. Captions use one rounding rule
-#' and are true at the precision they print.
+#' and are true at the precision they print. A shaded region too narrow to
+#' occupy a pixel at the plotted scale (for example the lower 5\% tail of
+#' \code{df = 0.1}) is marked with a visible strip in the panel and disclosed in
+#' the caption; its polygon and its checked area are unchanged. Every plotting
+#' grid has a bounded number of points, whatever the range or degrees of
+#' freedom.
 #'
 #' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 #'

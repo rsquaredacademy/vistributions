@@ -50,6 +50,14 @@ Visualize how changes in number of trials and the probability of
 success affect the shape of the binomial distribution. Compute & visualize
 probability from a given quantile and quantiles out of given probability.
 }
+\details{
+Every bar is one count while \code{n + 1} counts fit in the plotting
+grid (2001 bars). A wider support is drawn as at most 2001 equal-width bins
+of counts, each bar showing the exact probability of its bin, with a caption
+that discloses the grouping; the grid therefore has a bounded number of
+points whatever \code{n} is. Probabilities, quantiles and shaded masses always
+come from \code{dbinom()}, \code{pbinom()} and \code{qbinom()}.
+}
 \examples{
 # visualize binomial distribution
 vdist_binom_plot(10, 0.3)

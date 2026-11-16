@@ -219,7 +219,15 @@ vdist_area <- function(x, y) {
   if (n < 3L) {
     return(0)
   }
-  abs(sum((c(x[-1], x[1]) - x) * (y + c(y[-1], y[1])))) / 2
+  # local-edge trapezoid sum over consecutive vertices
+  a <- sum(diff(x) * (y[-n] + y[-1L])) / 2
+  # closing edge, unless both ends lie on the axis: then its height is zero and
+  # computing the edge explicitly would overflow for a region wider than the
+  # double range (for example sd = 3e307), turning 0 * Inf into NaN.
+  if ((y[1] + y[n]) != 0) {
+    a <- a + (x[1] - x[n]) * (y[1] + y[n]) / 2
+  }
+  abs(a)
 }
 
 vdist_check_area <- function(x, y, target, what = "shaded region") {
@@ -396,10 +404,19 @@ vdist_region <- function(lo, hi, dfun, pfun, qfun,
 vdist_check_normal_resolution <- function(mean, sd) {
   if (abs(mean) > 0) {
     ratio <- sd / abs(mean)
-    if (!is.finite(ratio) || ratio < 1e-14) {
+    # Compare on the log scale. The ratio itself overflows to Inf for a
+    # near-zero mean (mean = 1e-308, sd = 10) and underflows to 0 for a mean
+    # close to the largest double; only a genuinely tiny ratio is rejected.
+    # log(sd) - log(|mean|) is the same comparison without either overflow.
+    lratio <- log(sd) - log(abs(mean))
+    if (is.finite(lratio) && lratio < log(1e-14)) {
+      shown <- if (is.finite(ratio)) {
+        format(ratio, scientific = TRUE, digits = 3)
+      } else {
+        "0 (underflow)"
+      }
       stop(paste0("The normal cutoff cannot be represented numerically: ",
-                  "sd / |mean| = ",
-                  format(ratio, scientific = TRUE, digits = 3),
+                  "sd / |mean| = ", shown,
                   " is below the documented limit of 1e-14. Use a larger sd ",
                   "relative to the mean (scaling mean and sd together is ",
                   "always allowed)."), call. = FALSE)
@@ -422,6 +439,15 @@ vdist_check_normal_range <- function(mean, sd) {
                 "mean = ", format(mean, digits = 15), " and sd = ",
                 format(sd, digits = 15),
                 "; mean and sd must be small enough that the range is ",
+                "representable."), call. = FALSE)
+  }
+  # The window itself must fit in a double, not only its ends: the drawing
+  # rescales coordinates by (max - min), and that difference overflows for
+  # sd above about 2.2e307, which would emit an empty panel.
+  if (!is.finite(8 * sd)) {
+    stop(paste0("The normal plotting range (mean +/- 4 sd) spans more than the ",
+                "double range for sd = ", format(sd, digits = 15),
+                "; sd must be below about 2.2e307 so the plotted window is ",
                 "representable."), call. = FALSE)
   }
   invisible(TRUE)
@@ -844,6 +870,79 @@ vdist_beyond_text <- function(omitted) {
   }
   paste0(vdist_pct_text(omitted),
          "% of the shaded region lies outside the plotted range")
+}
+
+# A dark region narrower than about one device pixel cannot be seen, however
+# exact its area and caption. Such a region is marked with a visible strip in
+# the panel and named in the caption; the polygon itself, and therefore the
+# area check and the drawn geometry, is unchanged. A region wholly outside the
+# view is not marked: its omission is disclosed by vdist_beyond_text() instead.
+vdist_subpixel_region <- function(parts, view, rb, prob, omitted,
+                                  min_rel = 4e-3) {
+  if (!is.finite(prob) || prob <= 0 ||
+      !is.finite(omitted) || omitted > 1e-2) {
+    return(list(show = FALSE))
+  }
+  span <- diff(view)
+  if (!is.finite(span) || span <= 0) {
+    return(list(show = FALSE))
+  }
+  w <- 0
+  mid <- 0
+  for (p in parts) {
+    lo <- max(p[1], rb$lo, view[1])
+    hi <- min(p[2], rb$hi, view[2])
+    if (is.finite(lo) && is.finite(hi) && hi > lo) {
+      w   <- w + (hi - lo)
+      mid <- mid + ((lo + hi) / 2) * (hi - lo)
+    }
+  }
+  if (!is.finite(w) || w <= 0) {
+    return(list(show = FALSE))
+  }
+  rel <- w / span
+  if (rel >= min_rel) {
+    return(list(show = FALSE))
+  }
+  mid  <- mid / w
+  half <- max(rel, min_rel) * span / 2
+  list(show = TRUE,
+       xmin = max(view[1], mid - half),
+       xmax = min(view[2], mid + half))
+}
+
+vdist_subpixel_text <- function() {
+  paste("the shaded region is narrower than one pixel at this scale;",
+        "it is marked by the blue strip")
+}
+
+# The visible strip that marks a sub-pixel event. Added as its own layer so it
+# is never mistaken for the event polygon: it is not part of any area check.
+vdist_subpixel_layer <- function(data, ylim) {
+  s <- data$subpixel
+  if (!isTRUE(s$show)) {
+    return(NULL)
+  }
+  list(ggplot2::annotate("rect", xmin = s$xmin, xmax = s$xmax,
+                         ymin = 0, ymax = ylim[2], fill = "#0000CD"))
+}
+
+# Plot caption: the off-view disclosure and the sub-pixel note, when each
+# applies, joined into one true sentence.
+vdist_caption_text <- function(data) {
+  bits <- character(0)
+  b <- vdist_beyond_text(data$omitted)
+  if (!is.null(b)) {
+    bits <- c(bits, b)
+  }
+  if (isTRUE(data$subpixel$show)) {
+    bits <- c(bits, vdist_subpixel_text())
+  }
+  if (!length(bits)) {
+    return(NULL)
+  }
+  out <- paste(bits, collapse = "; ")
+  paste0(toupper(substring(out, 1L, 1L)), substring(out, 2L))
 }
 
 # ---------------------------------------------------------------------------
