@@ -1,3 +1,13 @@
+# vdiffr sketch variant for macOS only: the three sketches below draw one
+# refinement vertex fewer there (the polygon is the same shape within 0.02 px;
+# see docs-dev/fx9-report.md), and vdiffr compares the SVG the device produced.
+# The macOS renders live in `_snaps/darwin/`; every other platform keeps and
+# compares the original sketches, so the regression test is as strict as before
+# everywhere. (Same per-OS split as blorr.)
+mac_variant <- function() {
+  if (identical(Sys.info()[["sysname"]], "Darwin")) "darwin" else NULL
+}
+
 test_that("output from vdist_binom_plot is as expected", {
   skip_on_cran()
   p <- vdist_binom_plot(10, 0.3, print_plot = FALSE)
@@ -92,15 +102,23 @@ test_that("output from vdist_f_prob is as expected", {
   p18 <- vdist_f_prob(2.35, 5, 32, print_plot = FALSE)
   vdiffr::expect_doppelganger("f prob lower", p18)
 
+  # The shaded polygon is refined where the trapezoid rule is wrong; the last
+  # interval admitted at one refinement pass sits exactly on the threshold
+  # (its error equals the 97th percentile of the interval errors), so a
+  # platform whose p*()/q*() functions round that comparison the other way
+  # draws one vertex fewer. The two pictures are the same polygon within
+  # 0.06 px; only the vertex count differs, so the sketch is recorded for
+  # macOS separately, as blorr does. See docs-dev/fx9-report.md.
   p19 <- vdist_f_prob(1.5222, 9, 35, type = "upper", print_plot = FALSE)
-  vdiffr::expect_doppelganger("f prob upper", p19)
+  vdiffr::expect_doppelganger("f prob upper", p19, variant = mac_variant())
 })
 
 test_that("output from vdist_normal_plot is as expected", {
   skip_on_cran()
 
+  # one refinement vertex depends on a tie in vdist_region(), see f prob upper
   p20 <- vdist_normal_plot(print_plot = FALSE)
-  vdiffr::expect_doppelganger("normal plot 1", p20)
+  vdiffr::expect_doppelganger("normal plot 1", p20, variant = mac_variant())
 
   p21 <- vdist_normal_plot(mean = 2, sd = 0.6, print_plot = FALSE)
   vdiffr::expect_doppelganger("normal plot 2", p21)
@@ -155,8 +173,9 @@ test_that("output from vdist_t_perc is as expected", {
   p32 <- vdist_t_perc(probs = 0.35, df = 4, type = 'upper', print_plot = FALSE)
   vdiffr::expect_doppelganger("t perc upper", p32)
 
+  # one refinement vertex depends on a tie in vdist_region(), see f prob upper
   p33 <- vdist_t_perc(probs = 0.69, df = 7, type = 'both', print_plot = FALSE)
-  vdiffr::expect_doppelganger("t perc both", p33)
+  vdiffr::expect_doppelganger("t perc both", p33, variant = mac_variant())
 })
 
 test_that("output from vdist_t_prob is as expected", {

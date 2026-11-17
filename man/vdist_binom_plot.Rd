@@ -25,17 +25,22 @@ vdist_binom_perc(
 )
 }
 \arguments{
-\item{n}{Number of trials.}
+\item{n}{Number of trials (a single non-negative whole number).}
 
 \item{p}{Probability of success in each trial.}
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{s}{Number of successes (quantile value).}
+\item{s}{Number of successes (quantile value): whole numbers only. For
+\code{type = "interval"}, two values in increasing order.}
 
 \item{type}{Lower/upper/exact/interval.}
 
-\item{tp}{Tail probability for quantile calculation.}
+\item{tp}{Tail probability for quantile calculation, strictly between 0 and
+1. For \code{type = "lower"} the cutoff is the smallest \code{k} with
+\code{P(X <= k) >= tp} (as \code{qbinom()}); for \code{type = "upper"} it
+is the smallest \code{k} with \code{P(X > k) <= tp}, and the bars with
+\code{x > k} are shaded.}
 }
 \value{
 An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
@@ -44,6 +49,14 @@ An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 Visualize how changes in number of trials and the probability of
 success affect the shape of the binomial distribution. Compute & visualize
 probability from a given quantile and quantiles out of given probability.
+}
+\details{
+Every bar is one count while \code{n + 1} counts fit in the plotting
+grid (2001 bars). A wider support is drawn as at most 2001 equal-width bins
+of counts, each bar showing the exact probability of its bin, with a caption
+that discloses the grouping; the grid therefore has a bounded number of
+points whatever \code{n} is. Probabilities, quantiles and shaded masses always
+come from \code{dbinom()}, \code{pbinom()} and \code{qbinom()}.
 }
 \examples{
 # visualize binomial distribution

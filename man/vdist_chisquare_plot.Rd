@@ -28,7 +28,7 @@ vdist_chisquare_prob(
 )
 }
 \arguments{
-\item{df}{Degrees of freedom.}
+\item{df}{Degrees of freedom (at least 0.1; need not be a whole number).}
 
 \item{normal}{If \code{TRUE}, normal curve with same \code{mean} and
 \code{sd} as the chi square distribution is drawn.}
@@ -37,7 +37,8 @@ vdist_chisquare_prob(
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{probs}{Probability value.}
+\item{probs}{Probability value, strictly between 0 and 1 and within
+\code{[1e-6, 1 - 1e-6]}.}
 
 \item{type}{Lower tail or upper tail.}
 
@@ -50,6 +51,22 @@ An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 Visualize how changes in degrees of freedom affect the shape of
 the chi square distribution. Compute & visualize quantiles out of given
 probability and probability from a given quantile.
+}
+\details{
+Drawing contract: every probability, cutoff and caption is computed from the
+chi-square density, distribution and quantile functions, never from the
+drawn grid. The shading polygon starts at the support (zero), not at a
+quantile floor, so no probability is discarded for small \code{df}; it
+spans the whole event and its own area is checked against the exact event
+probability (within 1e-3). Where the density is unbounded at zero it is
+capped on the display axis only: the source-coordinate area and the printed
+probability always use the unclipped density. Captions use one rounding rule
+and are true at the precision they print. A shaded region too narrow to
+occupy a pixel at the plotted scale (for example the lower 5\% tail of
+\code{df = 0.1}) is marked with a visible strip in the panel and disclosed in
+the caption; its polygon and its checked area are unchanged. Every plotting
+grid has a bounded number of points, whatever the range or degrees of
+freedom.
 }
 \examples{
 # visualize chi square distribution

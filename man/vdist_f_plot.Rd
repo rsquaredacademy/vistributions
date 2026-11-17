@@ -25,16 +25,20 @@ vdist_f_prob(
 )
 }
 \arguments{
-\item{num_df}{Degrees of freedom associated with the numerator of f statistic.}
+\item{num_df}{Degrees of freedom associated with the numerator of f statistic
+(at least 1; need not be a whole number).}
 
-\item{den_df}{Degrees of freedom associated with the denominator of f statistic.}
+\item{den_df}{Degrees of freedom associated with the denominator of f statistic
+(positive; need not be a whole number).}
 
 \item{normal}{If \code{TRUE}, normal curve with same \code{mean} and
-\code{sd} as the F distribution is drawn.}
+\code{sd} as the F distribution is drawn. The overlay is omitted with a
+message when \code{den_df <= 4} (the variance is undefined).}
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{probs}{Probability value.}
+\item{probs}{Probability value, strictly between 0 and 1 and within
+\code{[1e-6, 1 - 1e-6]}.}
 
 \item{type}{Lower tail or upper tail.}
 
@@ -47,6 +51,29 @@ An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 Visualize how changes in degrees of freedom affect the
 shape of the F distribution. Compute & visualize quantiles out of given
 probability and probability from a given quantile.
+}
+\details{
+The F density must not be too concentrated to draw: the central
+99.9998\% probability mass must span a finite interval of at least 0.001.
+More concentrated densities (for example \code{num_df = den_df = 1e9}) stop
+with a clear error instead of returning an inaccurate shaded area. A tail
+that does not converge at double precision (for example \code{den_df = 0.01})
+is reported as a tail-overflow error, separately from concentration.
+Every probability, cutoff and caption is computed from the F density,
+distribution and quantile functions, never from the drawn grid: the shading
+polygon starts at the support and spans the whole event, and its own area is
+checked against the exact event probability (within 1e-3). Where the density
+is unbounded at zero it is capped on the display axis only; the area check
+and the printed probability always use the unclipped density.
+Very wide heavy-tail windows are drawn on a symmetric log axis so the shaded
+event stays visible. Captions use one rounding rule and are true at the
+precision they print. Quantiles are refined by root finding when the
+\code{stats} quantile does not invert its own distribution function, so equal
+degrees of freedom up to at least \code{1e8} plot accurately. A shaded
+region too narrow to occupy a pixel at the plotted scale is marked with a
+visible strip in the panel and disclosed in the caption; its polygon and its
+checked area are unchanged. Every plotting grid has a bounded number of
+points, whatever the degrees of freedom or the cutoff.
 }
 \examples{
 # visualize F distribution

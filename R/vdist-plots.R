@@ -12,28 +12,54 @@ bplot_plot_build <- function(data, n, p) {
 
   p <-
     ggplot(data$plot_data) +
-    geom_col(aes(x = n, y = df), fill = "blue") +
+    vdist_col_layer(data, "blue") +
     ylab("Probability") +
     xlab("No. of success") +
     ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
             subtitle = paste("Mean =", data$bm, ", Std. Dev. =", data$bsd)) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5)) +
-    scale_x_continuous(breaks = seq(0, n))
+    scale_x_continuous(breaks = vdist_count_breaks(n))
+
+  if (isTRUE(data$binned)) {
+    p <- p + labs(caption = vdist_binned_text())
+  }
 
   return(p)
 
+}
+
+# Bars of a count distribution. Individual counts keep the ordinary narrow bar;
+# a support too wide for individual bars is drawn from binned probabilities and
+# the bars then touch, so each bar shows the mass of its own bin.
+vdist_col_layer <- function(data, fill) {
+  n <- df <- NULL
+  if (isTRUE(data$binned)) {
+    geom_col(aes(x = n, y = df), fill = fill, width = data$plot_data$w)
+  } else {
+    geom_col(aes(x = n, y = df), fill = fill)
+  }
+}
+
+# Axis breaks for a count axis never number more than 31 ticks, so a large n
+# does not materialise one label per count.
+vdist_count_breaks <- function(n) {
+  if (n <= 30) seq(0, n) else ggplot2::waiver()
+}
+
+vdist_binned_text <- function() {
+  paste("Bars are grouped: each bar shows the probability of a range of counts,",
+        "because individual bars would be narrower than a pixel at this scale")
 }
 
 bprob_plot_build <- function(data, method, n, p, s) {
 
   plot <-
     ggplot(data$plot_data) +
-    geom_col(aes(x = n, y = df),
-             fill = data$cols) +
+    vdist_col_layer(data, data$cols) +
     ylab("Probability") +
     xlab(paste("No. of success\n", "Mean =", data$bm, ", Std. Dev. =", data$bsd)) +
-    scale_x_continuous(breaks = seq(0, n)) +
+    scale_x_continuous(breaks = vdist_count_breaks(n)) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
@@ -59,6 +85,10 @@ bprob_plot_build <- function(data, method, n, p, s) {
               subtitle = paste0("P(", s[1], " <= X <= ", s[2], ")", " = ", round(data$k, 3)))
   }
 
+  if (isTRUE(data$binned)) {
+    plot <- plot + labs(caption = vdist_binned_text())
+  }
+
   return(plot)
 }
 
@@ -66,11 +96,10 @@ bperc_plot_build <- function(data, method, n, p, tp) {
 
   plot <-
     ggplot(data$plot_data) +
-    geom_col(aes(x = n, y = df),
-             fill = data$cols) +
+    vdist_col_layer(data, data$cols) +
     ylab("Probability") +
     xlab("No. of success") +
-    scale_x_continuous(breaks = seq(0, n)) +
+    scale_x_continuous(breaks = vdist_count_breaks(n)) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
@@ -78,7 +107,7 @@ bperc_plot_build <- function(data, method, n, p, tp) {
     plot <-
       plot +
       ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
-              subtitle = paste0("P(X <= ", data$k, ") <= ", tp, ", but P(X <= ", (data$k + 1), ") > ", tp)
+              subtitle = paste0("P(X <= ", (data$k - 1), ") < ", tp, ", but P(X <= ", data$k, ") >= ", tp)
       )
   } else {
     plot <-
@@ -88,12 +117,17 @@ bperc_plot_build <- function(data, method, n, p, tp) {
       )
   }
 
+  if (isTRUE(data$binned)) {
+    plot <- plot + labs(caption = vdist_binned_text())
+  }
+
   return(plot)
 
 }
 
 cplot_plot_build <- function(data, df, range, normal) {
 
+  ydisp <- vdist_ylim_cap(data$ycap)
   pp <-
     ggplot(data$plot_data) +
     geom_line(aes(x, chi),
@@ -102,10 +136,10 @@ cplot_plot_build <- function(data, df, range, normal) {
     ggtitle(label    = "Chi Square Distribution",
             subtitle = paste("df =", df)) +
     ylab('') +
-    xlab(paste("Mean =", data$chim, " Std Dev. =", data$chisd)) +
+    xlab(paste("Mean =", fmt_num(df), " Std Dev. =", fmt_num(sqrt(2 * df)))) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5)) +
-    scale_x_continuous(breaks = seq(0, range, 2)) +
+    scale_x_continuous(breaks = data$breaks) +
     geom_polygon(data    = data$poly_data,
                  mapping = aes(x = y, y = z),
                  fill    = '#4682B4') +
@@ -113,7 +147,8 @@ cplot_plot_build <- function(data, df, range, normal) {
                mapping = aes(x = x, y = y),
                shape   = 4,
                color   = 'red',
-               size    = 3)
+               size    = 3) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   if (normal) {
 
@@ -131,11 +166,15 @@ cplot_plot_build <- function(data, df, range, normal) {
 
 cperc_plot_build <- function(data, method, probs, df) {
 
+  other_text <- data$other_text
+  ydisp      <- vdist_ylim_cap(data$ycap)
+  ytext      <- ydisp[2] * 0.97
+
   plot <-
     ggplot(data$plot_data) +
     geom_line(aes(x = x, y = y),
               color = "blue") +
-    xlab(paste("Mean =", data$chim, " Std Dev. =", data$chisd)) +
+    xlab(paste("Mean =", fmt_num(df), " Std Dev. =", fmt_num(sqrt(2 * df)))) +
     ylab('') +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
@@ -144,17 +183,17 @@ cperc_plot_build <- function(data, method, probs, df) {
     plot <-
       plot +
       ggtitle(label    = paste("Chi Square Distribution: df =", df),
-              subtitle = paste0("P(X < ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label   = paste0(probs * 100, "%"),
-               x       = data$pp - data$chisd,
-               y       = max(dchisq(data$l, df)) + 0.02,
+               label   = paste0(data$prob_text, "%"),
+               x       = vdist_clamp(data$pc - data$chisd, data$view),
+               y       = ytext,
                color   = "#0000CD",
                size    = 3) +
       annotate("text",
-               label   = paste0((1 - probs) * 100, "%"),
-               x       = data$pp + data$chisd,
-               y       = max(dchisq(data$l, df)) + 0.02,
+               label   = paste0(other_text, "%"),
+               x       = vdist_clamp(data$pc + data$chisd, data$view),
+               y       = ytext,
                color   = "#6495ED",
                size    = 3)
 
@@ -162,34 +201,38 @@ cperc_plot_build <- function(data, method, probs, df) {
     plot <-
       plot +
       ggtitle(label    = paste("Chi Square Distribution: df =", df),
-              subtitle = paste0("P(X > ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label   = paste0((1 - probs) * 100, "%"),
-               x       = data$pp - data$chisd,
-               y       = max(dchisq(data$l, df)) + 0.02,
+               label   = paste0(other_text, "%"),
+               x       = vdist_clamp(data$pc - data$chisd, data$view),
+               y       = ytext,
                color   = "#6495ED",
                size    = 3) +
       annotate("text",
-               label   = paste0(probs * 100, "%"),
-               x       = data$pp + data$chisd,
-               y       = max(dchisq(data$l, df)) + 0.02,
+               label   = paste0(data$prob_text, "%"),
+               x       = vdist_clamp(data$pc + data$chisd, data$view),
+               y       = ytext,
                color   = "#0000CD",
                size    = 3)
   }
 
+  dark <- 0
   for (i in seq_len(length(data$l1))) {
-    pol_data <- vdist_pol_chi(data$lc[data$l1[i]], data$lc[data$l2[i]], df)
+    pol_data <- vdist_pol_seg(data, i)
+    if (identical(data$col[i], "#0000CD")) {
+      dark <- dark + vdist_area(pol_data$x, pol_data$y)
+    }
     plot <-
       plot +
       geom_polygon(data    = pol_data,
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
-
+  vdist_check_region(dark, data$event_prob, "chi-square shaded region")
 
   plot <-
     plot +
-    geom_vline(xintercept = data$pp,
+    geom_vline(xintercept = data$pc,
                linetype   = 2,
                linewidth  = 1) +
     geom_point(data       = data$point_data,
@@ -198,7 +241,14 @@ cperc_plot_build <- function(data, method, probs, df) {
                color      = 'red',
                size       = 3) +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = seq(0, data$xm[2], by = 5))
+    scale_x_continuous(breaks = if (data$xm[2] <= 300) seq(0, data$xm[2], by = 5) else waiver()) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
+
+  plot <- plot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    plot <- plot + labs(caption = vdist_caption_text(data))
+  }
 
   return(plot)
 
@@ -206,11 +256,15 @@ cperc_plot_build <- function(data, method, probs, df) {
 
 cprob_plot_build <- function(data, method, perc, df) {
 
+  other_text <- data$other_text
+  ydisp      <- vdist_ylim_cap(data$ycap)
+  ytext      <- ydisp[2] * 0.97
+
   gplot <-
     ggplot(data$plot_data) +
     geom_line(aes(x = x, y = y),
               color = "blue") +
-    xlab(paste("Mean =", data$chim, " Std Dev. =", data$chisd)) +
+    xlab(paste("Mean =", fmt_num(df), " Std Dev. =", fmt_num(sqrt(2 * df)))) +
     ylab('') +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
@@ -220,17 +274,17 @@ cprob_plot_build <- function(data, method, perc, df) {
     gplot <-
       gplot +
       ggtitle(label    = paste("Chi Square Distribution: df =", df),
-              subtitle = paste0("P(X < ", perc, ") = ", data$pp * 100, "%")) +
+              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0(data$pp * 100, "%"),
-               x     = perc - data$chisd,
-               y     = max(dchisq(data$l, df)) + 0.02,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(data$pc - data$chisd, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
-               label = paste0((1 - data$pp) * 100, "%"),
-               x     = perc + data$chisd,
-               y     = max(dchisq(data$l, df)) + 0.02,
+               label = paste0(other_text, "%"),
+               x     = vdist_clamp(data$pc + data$chisd, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3)
 
@@ -238,34 +292,38 @@ cprob_plot_build <- function(data, method, perc, df) {
     gplot <-
       gplot +
       ggtitle(label    = paste("Chi Square Distribution: df =", df),
-              subtitle = paste0("P(X > ", perc, ") = ", data$pp * 100, "%")) +
+              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0((1 - data$pp) * 100, "%"),
-               x     = perc - data$chisd,
-               y     = max(dchisq(data$l, df)) + 0.02,
+               label = paste0(other_text, "%"),
+               x     = vdist_clamp(data$pc - data$chisd, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
-               label = paste0(data$pp * 100, "%"),
-               x     = perc + data$chisd,
-               y     = max(dchisq(data$l, df)) + 0.02,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(data$pc + data$chisd, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3)
   }
 
-
+  dark <- 0
   for (i in seq_len(length(data$l1))) {
-    pol_data <- vdist_pol_chi(data$lc[data$l1[i]], data$lc[data$l2[i]], df)
+    pol_data <- vdist_pol_seg(data, i)
+    if (identical(data$col[i], "#0000CD")) {
+      dark <- dark + vdist_area(pol_data$x, pol_data$y)
+    }
     gplot <-
       gplot +
       geom_polygon(data    = pol_data,
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
+  vdist_check_region(dark, data$event_prob, "chi-square shaded region")
 
   gplot <-
     gplot +
-    geom_vline(xintercept = perc,
+    geom_vline(xintercept = data$pc,
                linetype   = 2,
                linewidth = 1) +
     geom_point(data       = data$point_data,
@@ -274,18 +332,48 @@ cprob_plot_build <- function(data, method, perc, df) {
                color      = 'red',
                size       = 3) +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = seq(0, data$l[data$ln], by = 5))
+    scale_x_continuous(breaks = if (data$l[data$ln] <= 300) seq(0, data$l[data$ln], by = 5) else waiver()) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
+
+  gplot <- gplot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    gplot <- gplot + labs(caption = vdist_caption_text(data))
+  }
 
   return(gplot)
 }
 
-vdist_pol_chi <- function(l1, l2, df) {
-  x   <- c(l1, seq(l1, l2, 0.01), l2)
-  y   <- c(0, dchisq(seq(l1, l2, 0.01), df), 0)
-  data.frame(x = x, y = y)
+# Polygon of a continuous region. The builder in R/vdist-utils.R samples the
+# region on a support/tail-aware grid and refines it until its own area matches
+# the exact probability p(hi) - p(lo); this function only wraps the vertices.
+vdist_pol_cont <- function(spec, lo, hi, tol = 1e-5) {
+  # Only location-scale families are standardised in the region builder: for a
+  # distribution on a support boundary the affine map to z would collapse the
+  # many decades between the support and the body into one double, and the
+  # support-edge mass would be lost.
+  if (isTRUE(spec$standardise)) {
+    r <- vdist_region(lo, hi, spec$dfun, spec$pfun, spec$qfun, tol = tol,
+                      center = spec$center, scale = spec$scale)
+  } else {
+    r <- vdist_region(lo, hi, spec$dfun, spec$pfun, spec$qfun, tol = tol)
+  }
+  data.frame(x = r$x, y = r$y)
+}
+
+# One polygon of the event layout. The dark segments carry the probability and
+# are built to the area tolerance; the light background segments are only
+# geometry, so a looser tolerance keeps the plot cheap.
+vdist_pol_seg <- function(data, i, bounds = NULL) {
+  lc <- if (is.null(bounds)) data$lc else bounds
+  vdist_pol_cont(data$spec, lc[data$l1[i]], lc[data$l2[i]],
+                 tol = if (identical(data$col[i], "#0000CD")) 1e-5 else 1e-3)
 }
 
 fplot_plot_build <- function(data, num_df, den_df, normal) {
+
+  ydisp <-
+    vdist_ylim_cap(data$ycap)
 
   gplot <-
     ggplot(data$plot_data) +
@@ -299,14 +387,15 @@ fplot_plot_build <- function(data, num_df, den_df, normal) {
                shape   = 4,
                color   = 'red',
                size    = 3) +
-    xlab(paste("Mean =", data$fm, " Std Dev. =", data$fsd)) +
+    xlab(paste("Mean =", fmt_moment(data$fm), " Std Dev. =", fmt_moment(data$fsd))) +
     ylab('') +
     ggtitle(label    = 'f Distribution',
             subtitle = paste("Num df =", num_df, "  Den df =", den_df)) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5)) +
-    scale_x_continuous(breaks = c(-2:4)) +
-    scale_y_continuous(breaks = NULL)
+    scale_x_continuous(breaks = data$breaks) +
+    scale_y_continuous(breaks = NULL) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   if (normal && nrow(data$nline_data) > 0) {
     gplot <-
@@ -314,6 +403,9 @@ fplot_plot_build <- function(data, num_df, den_df, normal) {
       geom_line(data    = data$nline_data,
                 mapping = aes(x = x, y = y),
                 color   = '#FF4500')
+  } else if (normal) {
+    message(paste("Normal overlay omitted: the F distribution standard",
+                  "deviation is undefined when den_df <= 4."))
   }
 
   return(gplot)
@@ -321,32 +413,37 @@ fplot_plot_build <- function(data, num_df, den_df, normal) {
 
 fperc_plot_build <- function(data, probs, num_df, den_df, method) {
 
+  ydisp <- vdist_ylim_cap(data$ycap)
+  ytext <- ydisp[2] * 0.97
+
   gplot <-
     ggplot(data$plot_data) +
     geom_line(data    = data$plot_data,
               mapping = aes(x = x, y = y),
               color   = 'blue') +
-    xlab(paste("Mean =", data$fm, " Std Dev. =", data$fsd)) +
+    xlab(paste("Mean =", fmt_moment(data$fm), " Std Dev. =", fmt_moment(data$fsd))) +
     ylab('') +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
 
+  other_text <- data$other_text
+
   if (method == "lower") {
     gplot <-
       gplot +
       ggtitle(label    = 'f Distribution',
-              subtitle = paste0("P(X < ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0(probs * 100, "%"),
-               x     = data$pp - 0.2,
-               y     = max(df(data$l, num_df, den_df)) + 0.02,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(data$pc - 0.2, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
-               label = paste0((1 - probs) * 100, "%"),
-               x     = data$pp + 0.2,
-               y     = max(df(data$l, num_df, den_df)) + 0.02,
+               label = paste0(other_text, "%"),
+               x     = vdist_clamp(data$pc + 0.2, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3)
 
@@ -354,39 +451,44 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
     gplot <-
       gplot +
       ggtitle(label    = 'f Distribution',
-              subtitle = paste0("P(X > ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0((1 - probs) * 100, "%"),
-               x     = data$pp - 0.2,
-               y     = max(df(data$l, num_df, den_df)) + 0.02,
+               label = paste0(other_text, "%"),
+               x     = vdist_clamp(data$pc - 0.2, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
-               label = paste0(probs * 100, "%"),
-               x     = data$pp + 0.2,
-               y     = max(df(data$l, num_df, den_df)) + 0.02,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(data$pc + 0.2, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3)
   }
 
+  dark <- 0
   for (i in seq_len(length(data$l1))) {
-    poly_data <- vdist_pol_f(data$lc[data$l1[i]], data$lc[data$l2[i]], num_df, den_df)
+    poly_data <- vdist_pol_seg(data, i)
+    if (identical(data$col[i], "#0000CD")) {
+      dark <- dark + vdist_area(poly_data$x, poly_data$y)
+    }
     gplot <-
       gplot +
       geom_polygon(data    = poly_data,
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
+  vdist_check_region(dark, data$event_prob, "F shaded region")
 
   pln <- length(data$pp)
 
   for (i in seq_len(pln)) {
 
-    point_data <- data.frame(x = data$pp[i], y = 0)
+    point_data <- data.frame(x = data$pc[i], y = 0)
 
     gplot <-
       gplot +
-      geom_vline(xintercept = data$pp[i],
+      geom_vline(xintercept = data$pc[i],
                  linetype   = 2,
                  linewidth  = 1) +
       geom_point(data    = point_data,
@@ -399,40 +501,52 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = 0:5)
+    vdist_x_scale(data$view, breaks = data$breaks) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
+
+  gplot <- gplot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    gplot <- gplot + labs(caption = vdist_caption_text(data))
+  }
 
   return(gplot)
+
 }
 
 fprob_plot_build <- function(data, perc, num_df, den_df, method) {
+
+  ydisp <- vdist_ylim_cap(data$ycap)
+  ytext <- ydisp[2] * 0.97
 
   gplot <-
     ggplot(data$plot_data) +
     geom_line(data    = data$plot_data,
               mapping = aes(x = x, y = y),
               color   = 'blue') +
-    xlab(paste("Mean =", data$fm, " Std Dev. =", data$fsd)) +
+    xlab(paste("Mean =", fmt_moment(data$fm), " Std Dev. =", fmt_moment(data$fsd))) +
     ylab('') +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
   fsd_offset <- if (!is.na(data$fsd)) data$fsd else 0.5
+  other_text <- data$other_text
 
   if (method == "lower") {
     gplot <-
       gplot +
       ggtitle(label    = 'f Distribution',
-              subtitle = paste0("P(X < ", perc, ") = ", data$pp * 100, "%")) +
+              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0(data$pp * 100, "%"),
-               x     = perc - fsd_offset,
-               y     = max(df(data$l, num_df, den_df)) + 0.04,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(data$pc - fsd_offset, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
-               label = paste0(round((1 - data$pp) * 100, 2), "%"),
-               x     = perc + fsd_offset,
-               y     = max(df(data$l, num_df, den_df)) + 0.02,
+               label = paste0(other_text, "%"),
+               x     = vdist_clamp(data$pc + fsd_offset, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3)
 
@@ -440,39 +554,44 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
     gplot <-
       gplot +
       ggtitle(label    = 'f Distribution',
-              subtitle = paste0("P(X > ", perc, ") = ", data$pp * 100, "%")) +
+              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0(round((1 - data$pp) * 100, 2), "%"),
-               x     = perc - fsd_offset,
-               y     = max(df(data$l, num_df, den_df)) + 0.04,
+               label = paste0(other_text, "%"),
+               x     = vdist_clamp(data$pc - fsd_offset, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
-               label = paste0(data$pp * 100, "%"),
-               x     = perc + fsd_offset,
-               y     = max(df(data$l, num_df, den_df)) + 0.04,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(data$pc + fsd_offset, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3)
   }
 
+  dark <- 0
   for (i in seq_len(length(data$l1))) {
-    poly_data <- vdist_pol_f(data$lc[data$l1[i]], data$lc[data$l2[i]], num_df, den_df)
+    poly_data <- vdist_pol_seg(data, i)
+    if (identical(data$col[i], "#0000CD")) {
+      dark <- dark + vdist_area(poly_data$x, poly_data$y)
+    }
     gplot <-
       gplot +
       geom_polygon(data    = poly_data,
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
+  vdist_check_region(dark, data$event_prob, "F shaded region")
 
   pln <- length(data$pp)
 
   for (i in seq_len(pln)) {
 
-    point_data <- data.frame(x = perc[i], y = 0)
+    point_data <- data.frame(x = data$pc[i], y = 0)
 
     gplot <-
       gplot +
-      geom_vline(xintercept = perc[i],
+      geom_vline(xintercept = data$pc[i],
                  linetype   = 2,
                  linewidth  = 1) +
       geom_point(data    = point_data,
@@ -485,19 +604,23 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = 0:max(data$l))
+    vdist_x_scale(data$view, breaks = data$breaks) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
+
+  gplot <- gplot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    gplot <- gplot + labs(caption = vdist_caption_text(data))
+  }
 
   return(gplot)
 
 }
 
-vdist_pol_f <- function(l1, l2, num_df, den_df) {
-  x    <- c(l1, seq(l1, l2, 0.01), l2)
-  y    <- c(0, df(seq(l1, l2, 0.01), num_df, den_df), 0)
-  data.frame(x = x, y = y)
-}
 
 nplot_plot_build <- function(data, mean, sd) {
+
+  ydisp <- vdist_ylim_cap(data$ycap)
 
   gplot <-
     ggplot(data$plot_data) +
@@ -510,7 +633,7 @@ nplot_plot_build <- function(data, mean, sd) {
           plot.subtitle = element_text(hjust = 0.5))
 
   for (i in seq_len(length(data$l1))) {
-    poly_data <- vdist_pol_cord(data$ll[data$l1[i]], data$ll[data$l2[i]], mean, sd)
+    poly_data <- vdist_pol_seg(data, i, data$ll)
     gplot <-
       gplot +
       geom_polygon(data    = poly_data,
@@ -518,17 +641,17 @@ nplot_plot_build <- function(data, mean, sd) {
                    fill    = data$col[i])
   }
 
+  gplot <- gplot + coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
+
   return(gplot)
 
 }
 
-vdist_pol_cord <- function(l1, l2, mean, sd) {
-  x <- c(l1, seq(l1, l2, 0.01), l2)
-  y <- c(0, dnorm(seq(l1, l2, 0.01), mean, sd), 0)
-  data.frame(x = x, y = y)
-}
 
 nperc_plot_build <- function(data, probs, mean, sd, method) {
+
+  ydisp <- vdist_ylim_cap(data$ycap)
+  ytext <- ydisp[2] * 0.97
 
   gplot <-
     ggplot(data$plot_data) +
@@ -538,21 +661,23 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
+  other_text <- data$other_text
+
   if (method == "lower") {
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
-              subtitle = paste0("P(X < ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0(probs * 100, "%"),
-               x     = data$pp - sd,
-               y     = max(dnorm(data$x, mean, sd)) + 0.025,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(data$pc - sd, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
-               label = paste0((1 - probs) * 100, "%"),
-               x     = data$pp + sd,
-               y     = max(dnorm(data$x, mean, sd)) + 0.025,
+               label = paste0(other_text, "%"),
+               x     = vdist_clamp(data$pc + sd, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3)
 
@@ -560,62 +685,68 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
-              subtitle = paste0("P(X > ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0((1 - probs) * 100, "%"),
-               x     = data$pp - sd,
-               y     = max(dnorm(data$x, mean, sd)) + 0.025,
+               label = paste0(other_text, "%"),
+               x     = vdist_clamp(data$pc - sd, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
-               label = paste0(probs * 100, "%"),
-               x     = data$pp + sd,
-               y     = max(dnorm(data$x, mean, sd)) + 0.025,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(data$pc + sd, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3)
   } else {
+    tail_text <- vdist_pct_text(data$alpha)
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
-              subtitle = paste0("P(", data$pp[1], " < X < ", data$pp[2], ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(", data$cut_text[1], " < X < ", data$cut_text[2], ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0(probs * 100, "%"),
-               x     = mean,
-               y     = max(dnorm(data$x, mean, sd)) + 0.025,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(mean(data$pc), data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
-               label = paste0(data$alpha * 100, "%"),
-               x     = data$pp[1] - sd,
-               y     = max(dnorm(data$x, mean, sd)) + 0.025,
+               label = paste0(tail_text, "%"),
+               x     = vdist_clamp(data$pc[1] - sd, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
-               label = paste0(data$alpha * 100, "%"),
-               x     = data$pp[2] + sd,
-               y     = max(dnorm(data$x, mean, sd)) + 0.025,
+               label = paste0(tail_text, "%"),
+               x     = vdist_clamp(data$pc[2] + sd, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3)
   }
 
+  dark <- 0
   for (i in seq_len(length(data$l1))) {
-    poly_data <- vdist_pol_cord(data$lc[data$l1[i]], data$lc[data$l2[i]], mean, sd)
+    poly_data <- vdist_pol_seg(data, i)
+    if (identical(data$col[i], "#0000CD")) {
+      dark <- dark + vdist_area(poly_data$x, poly_data$y)
+    }
     gplot <-
       gplot +
       geom_polygon(data    = poly_data,
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
+  vdist_check_region(dark, data$event_prob, "normal shaded region")
 
-  pln <- length(data$pp)
+  pln <- length(data$pc)
 
   for (i in seq_len(pln)) {
 
-    point_data <- data.frame(x = data$pp[i], y = 0)
+    point_data <- data.frame(x = data$pc[i], y = 0)
 
     gplot <-
       gplot +
-      geom_vline(xintercept = data$pp[i],
+      geom_vline(xintercept = data$pc[i],
                  linetype   = 2,
                  linewidth  = 1) +
       geom_point(data    = point_data,
@@ -628,13 +759,23 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = data$l)
+    scale_x_continuous(breaks = data$breaks) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
+
+  gplot <- gplot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    gplot <- gplot + labs(caption = vdist_caption_text(data))
+  }
 
   return(gplot)
 }
 
 nprob_plot_build <- function(data, perc, mean, sd, method) {
 
+  ydisp <- vdist_ylim_cap(data$ycap)
+  ytext <- ydisp[2] * 0.97
+
   gplot <-
     ggplot(data$plot_data) +
     geom_line(aes(x = x, y = y)) +
@@ -643,21 +784,23 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
+  other_text <- data$other_text
+
   if (method == "lower") {
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
-              subtitle = paste0("P(X < ", perc, ") = ", data$pp * 100, "%")) +
+              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0(data$pp * 100, "%"),
-               x     = perc - sd,
-               y     = max(dnorm(data$x, mean, sd)) + 0.07,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(data$pc - sd, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
-               label = paste0((1 - data$pp) * 100, "%"),
-               x     = perc + sd,
-               y     = max(dnorm(data$x, mean, sd)) + 0.07,
+               label = paste0(other_text, "%"),
+               x     = vdist_clamp(data$pc + sd, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3)
 
@@ -665,62 +808,67 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
-              subtitle = paste0("P(X > ", perc, ") = ", data$pp * 100, "%")) +
+              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0((1 - data$pp) * 100, "%"),
-               x     = perc - sd,
-               y     = max(dnorm(data$x, mean, sd)) + 0.07,
+               label = paste0(other_text, "%"),
+               x     = vdist_clamp(data$pc - sd, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
-               label = paste0(data$pp * 100, "%"),
-               x     = perc + sd,
-               y     = max(dnorm(data$x, mean, sd)) + 0.07,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(data$pc + sd, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3)
   } else {
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
-              subtitle = paste0("P(", perc[1], " < X < ", perc[2], ") = ", (1 - (data$pp1 + data$pp2)) * 100, "%")) +
+              subtitle = paste0("P(", data$cut_text[1], " < X < ", data$cut_text[2], ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0((1 - (data$pp1 + data$pp2)) * 100, "%"),
-               x     = mean(perc),
-               y     = max(dnorm(data$x, mean, sd)) + 0.07,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(mean(data$pc), data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
-               label = paste0(data$pp[1] * 100, "%"),
-               x     = perc[1] - sd,
-               y     = max(dnorm(data$x, mean, sd)) + 0.07,
+               label = paste0(vdist_pct_text(data$pp1), "%"),
+               x     = vdist_clamp(data$pc[1] - sd, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
-               label = paste0(data$pp[2] * 100, "%"),
-               x     = perc[2] + sd,
-               y     = max(dnorm(data$x, mean, sd)) + 0.07,
+               label = paste0(vdist_pct_text(data$pp2), "%"),
+               x     = vdist_clamp(data$pc[2] + sd, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3)
   }
 
+  dark <- 0
   for (i in seq_len(length(data$l1))) {
-    poly_data <- vdist_pol_cord(data$lc[data$l1[i]], data$lc[data$l2[i]], mean, sd)
+    poly_data <- vdist_pol_seg(data, i)
+    if (identical(data$col[i], "#0000CD")) {
+      dark <- dark + vdist_area(poly_data$x, poly_data$y)
+    }
     gplot <-
       gplot +
       geom_polygon(data    = poly_data,
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
+  vdist_check_region(dark, data$event_prob, "normal shaded region")
 
-  pln <- length(data$pp)
+  pln <- length(data$pc)
 
   for (i in seq_len(pln)) {
 
-    point_data <- data.frame(x = perc[i], y = 0)
+    point_data <- data.frame(x = data$pc[i], y = 0)
 
     gplot <-
       gplot +
-      geom_vline(xintercept = perc[i],
+      geom_vline(xintercept = data$pc[i],
                  linetype   = 2,
                  linewidth  = 1) +
       geom_point(data    = point_data,
@@ -733,13 +881,22 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = data$l)
+    scale_x_continuous(breaks = data$breaks) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
+
+  gplot <- gplot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    gplot <- gplot + labs(caption = vdist_caption_text(data))
+  }
 
   return(gplot)
 
 }
 
 tplot_plot_build <- function(data, df) {
+
+  ydisp <- vdist_ylim_cap(data$ycap)
 
   gplot <-
     ggplot(data$plot_data) +
@@ -754,6 +911,7 @@ tplot_plot_build <- function(data, df) {
                  fill    = '#4682B4') +
     scale_y_continuous(breaks = NULL) +
     scale_x_continuous(breaks = -4:4) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
@@ -762,6 +920,9 @@ tplot_plot_build <- function(data, df) {
 }
 
 tperc_plot_build <- function(data, probs, df, method) {
+
+  ydisp <- vdist_ylim_cap(data$ycap)
+  ytext <- ydisp[2] * 0.97
 
   gplot <-
     ggplot(data$plot_data) +
@@ -772,21 +933,23 @@ tperc_plot_build <- function(data, probs, df, method) {
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
+  other_text <- data$other_text
+
   if (method == "lower") {
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(X < ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0(probs * 100, "%"),
-               x     = data$pp - 0.3,
-               y     = max(dt(data$l, df)) + 0.025,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(data$pc - 0.3, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
-               label = paste0((1 - probs) * 100, "%"),
-               x     = data$pp + 0.3,
-               y     = max(dt(data$l, df)) + 0.025,
+               label = paste0(other_text, "%"),
+               x     = vdist_clamp(data$pc + 0.3, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3)
 
@@ -794,62 +957,68 @@ tperc_plot_build <- function(data, probs, df, method) {
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(X > ", data$pp, ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0((1 - probs) * 100, "%"),
-               x     = data$pp - 0.3,
-               y     = max(dt(data$l, df)) + 0.025,
+               label = paste0(other_text, "%"),
+               x     = vdist_clamp(data$pc - 0.3, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
-               label = paste0(probs * 100, "%"),
-               x     = data$pp + 0.3,
-               y     = max(dt(data$l, df)) + 0.025,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(data$pc + 0.3, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3)
   } else {
+    tail_text <- vdist_pct_text(data$alpha)
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(", data$pp[1], " < X < ", data$pp[2], ") = ", probs * 100, "%")) +
+              subtitle = paste0("P(", data$cut_text[1], " < X < ", data$cut_text[2], ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0(probs * 100, "%"),
-               x     = mean(data$l),
-               y     = max(dt(data$l, df)) + 0.025,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(mean(data$pc), data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
-               label = paste0(data$alpha * 100, "%"),
-               x     = data$pp[1] - 0.3,
-               y     = max(dt(data$l, df)) + 0.025,
+               label = paste0(tail_text, "%"),
+               x     = vdist_clamp(data$pc[1] - 0.3, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
-               label = paste0(data$alpha * 100, "%"),
-               x     = data$pp[2] + 0.3,
-               y     = max(dt(data$l, df)) + 0.025,
+               label = paste0(tail_text, "%"),
+               x     = vdist_clamp(data$pc[2] + 0.3, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3)
   }
 
+  dark <- 0
   for (i in seq_len(length(data$l1))) {
-    poly_data <- vdist_pol_t(data$lc[data$l1[i]], data$lc[data$l2[i]], df)
+    poly_data <- vdist_pol_seg(data, i)
+    if (identical(data$col[i], "#0000CD")) {
+      dark <- dark + vdist_area(poly_data$x, poly_data$y)
+    }
     gplot <-
       gplot +
       geom_polygon(data    = poly_data,
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
+  vdist_check_region(dark, data$event_prob, "t shaded region")
 
-  pln <- length(data$pp)
+  pln <- length(data$pc)
 
   for (i in seq_len(pln)) {
 
-    point_data <- data.frame(x = data$pp[i], y = 0)
+    point_data <- data.frame(x = data$pc[i], y = 0)
 
     gplot <-
       gplot +
-      geom_vline(xintercept = data$pp[i],
+      geom_vline(xintercept = data$pc[i],
                  linetype   = 2,
                  linewidth  = 1) +
       geom_point(data    = point_data,
@@ -862,12 +1031,22 @@ tperc_plot_build <- function(data, probs, df, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = -5:5)
+    vdist_x_scale(data$view, breaks = data$breaks) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
+
+  gplot <- gplot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    gplot <- gplot + labs(caption = vdist_caption_text(data))
+  }
 
   return(gplot)
 }
 
 tprob_plot_build <- function(data, perc, df, method) {
+
+  ydisp <- vdist_ylim_cap(data$ycap)
+  ytext <- ydisp[2] * 0.97
 
   gplot <-
     ggplot(data$plot_data) +
@@ -877,40 +1056,47 @@ tprob_plot_build <- function(data, perc, df, method) {
     ylab('') +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5)) +
-    scale_x_continuous(breaks = min(data$l):max(data$l)) +
-    scale_y_continuous(breaks = NULL)
+    vdist_x_scale(data$view, breaks = data$breaks) +
+    scale_y_continuous(breaks = NULL) +
+    coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
+  dark <- 0
   for (i in seq_len(length(data$l1))) {
-    poly_data <- vdist_pol_t(data$lc[data$l1[i]], data$lc[data$l2[i]], df)
+    poly_data <- vdist_pol_seg(data, i)
+    if (identical(data$col[i], "#0000CD")) {
+      dark <- dark + vdist_area(poly_data$x, poly_data$y)
+    }
     gplot <-
       gplot +
       geom_polygon(data    = poly_data,
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
   }
+  vdist_check_region(dark, data$event_prob, "t shaded region")
 
+  other_text <- data$other_text
 
   if (method == "lower") {
 
-    point_data <- data.frame(x = perc, y = 0)
+    point_data <- data.frame(x = data$pc, y = 0)
 
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(X < ", perc, ") = ", data$pp * 100, "%")) +
+              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0(data$pp * 100, "%"),
-               x     = perc - 1,
-               y     = max(dt(data$l, df)) + 0.07,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(data$pc - 1, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
-               label = paste0((1 - data$pp) * 100, "%"),
-               x     = perc + 1,
-               y     = max(dt(data$l, df)) + 0.07,
+               label = paste0(other_text, "%"),
+               x     = vdist_clamp(data$pc + 1, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3) +
-      geom_vline(xintercept = perc,
+      geom_vline(xintercept = data$pc,
                  linetype   = 2,
                  linewidth  = 1) +
       geom_point(data    = point_data,
@@ -921,25 +1107,25 @@ tprob_plot_build <- function(data, perc, df, method) {
 
   } else if (method == "upper") {
 
-    point_data <- data.frame(x = perc, y = 0)
+    point_data <- data.frame(x = data$pc, y = 0)
 
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(X > ", perc, ") = ", data$pp * 100, "%")) +
+              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0((1 - data$pp) * 100, "%"),
-               x     = perc - 1,
-               y     = max(dt(data$l, df)) + 0.07,
+               label = paste0(other_text, "%"),
+               x     = vdist_clamp(data$pc - 1, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
-               label = paste0(data$pp * 100, "%"),
-               x     = perc + 1,
-               y     = max(dt(data$l, df)) + 0.07,
+               label = paste0(data$prob_text, "%"),
+               x     = vdist_clamp(data$pc + 1, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3) +
-      geom_vline(xintercept = perc,
+      geom_vline(xintercept = data$pc,
                  linetype   = 2,
                  linewidth  = 1) +
       geom_point(data    = point_data,
@@ -950,34 +1136,34 @@ tprob_plot_build <- function(data, perc, df, method) {
 
   } else if (method == "interval") {
 
-    point_data <- data.frame(x1 = perc, x2 = -perc, y = 0)
+    point_data <- data.frame(x1 = data$pc, x2 = -data$pc, y = 0)
 
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(", -perc, " < X < ", perc, ") = ", (1 - (data$pp1 + data$pp2)) * 100, "%")) +
+              subtitle = paste0("P(", -as.numeric(data$cut_text), " < X < ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0((1 - (data$pp1 + data$pp2)) * 100, "%"),
+               label = paste0(data$prob_text, "%"),
                x     = 0,
-               y     = max(dt(data$l, df)) + 0.07,
+               y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
-               label = paste0(data$pp[1] * 100, "%"),
-               x     = -perc - 1,
-               y     = max(dt(data$l, df)) + 0.07,
+               label = paste0(vdist_pct_text(data$pp1), "%"),
+               x     = vdist_clamp(-data$pc - 1, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
-               label = paste0(data$pp[2] * 100, "%"),
-               x     = perc + 1,
-               y     = max(dt(data$l, df)) + 0.07,
+               label = paste0(vdist_pct_text(data$pp2), "%"),
+               x     = vdist_clamp(data$pc + 1, data$view),
+               y     = ytext,
                color = "#6495ED",
                size  = 3) +
-      geom_vline(xintercept = perc,
+      geom_vline(xintercept = data$pc,
                  linetype   = 2,
                  linewidth  = 1) +
-      geom_vline(xintercept = -perc,
+      geom_vline(xintercept = -data$pc,
                  linetype   = 2,
                  linewidth  = 1) +
       geom_point(data    = point_data,
@@ -992,34 +1178,34 @@ tprob_plot_build <- function(data, perc, df, method) {
                  size    = 3)
   } else {
 
-    point_data <- data.frame(x1 = perc, x2 = -perc, y = 0)
+    point_data <- data.frame(x1 = data$pc, x2 = -data$pc, y = 0)
 
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(|X| > ", perc, ") = ", (data$pp1 + data$pp2) * 100, "%")) +
+              subtitle = paste0("P(|X| > ", data$cut_text, ") = ", data$prob_text, "%")) +
       annotate("text",
-               label = paste0((1 - (data$pp1 + data$pp2)) * 100, "%"),
+               label = paste0(other_text, "%"),
                x     = 0,
-               y     = max(dt(data$l, df)) + 0.07,
+               y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
-               label = paste0(data$pp[1] * 100, "%"),
-               x     = -perc - 1,
-               y     = max(dt(data$l, df)) + 0.07,
+               label = paste0(vdist_pct_text(data$pp1), "%"),
+               x     = vdist_clamp(-data$pc - 1, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
-               label = paste0(data$pp[2] * 100, "%"),
-               x     = perc + 1,
-               y     = max(dt(data$l, df)) + 0.07,
+               label = paste0(vdist_pct_text(data$pp2), "%"),
+               x     = vdist_clamp(data$pc + 1, data$view),
+               y     = ytext,
                color = "#0000CD",
                size  = 3) +
-      geom_vline(xintercept = perc,
+      geom_vline(xintercept = data$pc,
                  linetype   = 2,
                  linewidth  = 1) +
-      geom_vline(xintercept = -perc,
+      geom_vline(xintercept = -data$pc,
                  linetype   = 2,
                  linewidth  = 1) +
       geom_point(data    = point_data,
@@ -1034,13 +1220,14 @@ tprob_plot_build <- function(data, perc, df, method) {
                  size    = 3)
   }
 
+  gplot <- gplot + vdist_subpixel_layer(data, ydisp)
+
+  if (!is.null(vdist_caption_text(data))) {
+    gplot <- gplot + labs(caption = vdist_caption_text(data))
+  }
+
   return(gplot)
 
 }
 
 
-vdist_pol_t <- function(l1, l2, df) {
-  x    <- c(l1, seq(l1, l2, 0.01), l2)
-  y    <- c(0, dt(seq(l1, l2, 0.01), df), 0)
-  data.frame(x = x, y = y)
-}

@@ -23,15 +23,18 @@ vdist_t_prob(
 )
 }
 \arguments{
-\item{df}{Degrees of freedom.}
+\item{df}{Degrees of freedom (positive; need not be a whole number).}
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{probs}{Probability value.}
+\item{probs}{Probability value, strictly between 0 and 1 and within
+\code{[1e-10, 1 - 1e-10]}.}
 
 \item{type}{Lower tail, upper tail, interval or both.}
 
-\item{perc}{Quantile value.}
+\item{perc}{Quantile value. For \code{type = "interval"} and
+\code{type = "both"} the event is defined by \code{|perc|}, so a negative
+value gives the same result as its absolute value.}
 }
 \value{
 An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
@@ -41,11 +44,25 @@ Visualize how degrees of freedom affect the shape of t
 distribution, visualize quantiles out of given probability and
 probability from a given quantile.
 }
+\details{
+Drawing contract: every probability, cutoff and caption is computed from the
+t density, distribution and quantile functions, never from the drawn grid.
+The shaded polygon spans the whole event (clipped only by the panel) and is
+sampled on a grid spaced in probability, with a fixed number of points; its
+own area is checked against the exact event probability and kept within
+1e-3. Captions use one rounding rule and are true at the precision they
+print. A very wide window - for example a heavy tail with a small \code{df} -
+is drawn on a symmetric log axis so the shaded event stays visible; the
+printed probability and the area check always use the unclipped density.
+A shaded region too narrow to occupy a pixel at the plotted scale is marked
+with a visible strip in the panel and disclosed in the caption; its polygon
+and its checked area are unchanged. Every plotting grid has a bounded number
+of points, whatever the degrees of freedom or the cutoff.
+}
 \examples{
 # visualize t distribution
 vdist_t_plot()
 vdist_t_plot(6)
-vdist_t_plot(df = 8)
 
 # visualize quantiles out of given probability
 vdist_t_perc(probs = 0.95, df = 4, type = 'lower')
