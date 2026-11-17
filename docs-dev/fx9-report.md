@@ -217,11 +217,32 @@ vdiffr sketches (36 unchanged, 3 macOS variants) all pass on Windows.
 
 ## `R CMD check`
 
-`git archive HEAD` tarball, `R CMD check --as-cran --no-manual`:
+`git archive HEAD` tarball (`R CMD build`, so `inst/doc` is populated),
+`R CMD check --as-cran --no-manual`:
 
 ```text
-PLACEHOLDER_CHECK_OUTPUT
+* checking CRAN incoming feasibility ... [30s] NOTE
+Maintainer: 'Aravind Hebbali <aravindhebbali@rsquaredacademy.com>'
+
+New maintainer:
+  Aravind Hebbali <aravindhebbali@rsquaredacademy.com>
+Old maintainer(s):
+  Aravind Hebbali <hebbali.aravind@gmail.com>
+...
+* checking dependencies in R code ... OK
+* checking R code for possible problems ... OK
+* checking Rd files ... OK
+* checking examples ... OK
+* checking tests ...
+  Running 'testthat.R' [69s]
+ [69s] OK
+* checking package vignettes ... OK
+* checking re-building of vignette outputs ... OK
+Status: 1 NOTE
 ```
+
+0 errors, 0 warnings; the single NOTE is the maintainer note above (the
+maintainer address differs from the one CRAN has on file), no other note.
 
 ## Follow-ups
 
