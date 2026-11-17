@@ -16,6 +16,7 @@ Suggests:
     covr,
     knitr,
     png,
+    ragg,
     rmarkdown,
     testthat,
     vdiffr,
