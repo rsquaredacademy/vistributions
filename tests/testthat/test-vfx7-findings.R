@@ -57,12 +57,17 @@ marker_layers <- function(p) {
 dark_pixels <- function(p, width = 900, height = 500) {
   skip_if_not_installed("png")
   open_raster <- function(what) {
-    if (isTRUE(capabilities("cairo"))) {
-      grDevices::png(what, width = width, height = height, type = "cairo")
-    } else if (requireNamespace("ragg", quietly = TRUE)) {
+    # ragg first: it needs no X11. On macOS capabilities("cairo") can be TRUE
+    # while the cairo module fails to load without XQuartz (CI 41c2473), and
+    # png(type = "cairo") then writes no file at all.
+    if (requireNamespace("ragg", quietly = TRUE)) {
       ragg::agg_png(what, width = width, height = height)
+    } else if (isTRUE(capabilities("cairo"))) {
+      suppressWarnings(
+        grDevices::png(what, width = width, height = height, type = "cairo")
+      )
     } else {
-      skip("no cairo or ragg png device to measure pixels on")
+      skip("no ragg or cairo png device to measure pixels on")
     }
   }
   f <- tempfile(fileext = ".png")
@@ -82,6 +87,9 @@ dark_pixels <- function(p, width = 900, height = 500) {
   # keep a temporary device open for any later plot that prints without one
   if (grDevices::dev.cur() == 1L) {
     grDevices::pdf(file.path(tempdir(), "vistributions-test-plots.pdf"))
+  }
+  if (!file.exists(f) || file.size(f) == 0) {
+    skip("the png device could not write a file on this platform")
   }
   img <- png::readPNG(f)
   r <- img[, , 1]
