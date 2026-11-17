@@ -81,7 +81,25 @@ test_that("VFXX2-H3: a translated small-scale normal cutoff keeps its precision"
   expect_equal(subtitle(p), "P(X < 1.0000000000001645) = 95%")
   cutoff <- event_value(subtitle(p))
   expect_false(cutoff == 1)
-  expect_equal(pnorm(cutoff, 1, 1e-13), .95, tolerance = 1e-4)
+  # A 1e-4 tolerance on pnorm() is finer than double arithmetic can resolve
+  # here, so it is replaced by the representation-aware checks below.
+  #
+  # Derivation. Doubles near 1 are spaced eps = 2.22e-16 apart, i.e. 2.22e-3
+  # standard deviations when sd = 1e-13. pnorm() therefore moves in steps of
+  # about dnorm(1.645) * 2.22e-16 * 1.0000000000001645 = 2.29e-4 around .95:
+  # the two cutoffs either side of the printed one give .94982 and .95028.
+  # .94982 is exactly what macOS reports, i.e. its pnorm() is one ulp of x away
+  # from this platform's, which no tolerance below 2.3e-4 can distinguish from
+  # a wrong answer. What must be exact is the *cutoff*: it is printed with 17
+  # significant digits, so it must be the double nearest the exact quantile,
+  # within a few of its own representation steps. A cutoff that collapsed to 1
+  # (the original bug: |cutoff - 1| = 1.65e-13 = 745 steps) or that lost printed
+  # digits fails that; and the pnorm() check below then only has to tolerate
+  # the arithmetic's own spacing, not an arbitrary 1e-4.
+  xres <- 4 * .Machine$double.eps * abs(cutoff)
+  pres <- dnorm(cutoff, 1, 1e-13) * xres
+  expect_lte(abs(cutoff - qnorm(.95, 1, 1e-13)), xres)
+  expect_lte(abs(pnorm(cutoff, 1, 1e-13) - .95), pres + 1e-12)
   expect_equal(max(vlines(p)), qnorm(.95, 1, 1e-13))
 
   # the zero-centred case still prints its compact scientific value

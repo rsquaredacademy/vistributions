@@ -26,22 +26,70 @@ marker_layers <- function(p) {
 }
 
 # Dark-blue (#0000CD) pixels on a real png device, the measure the audit used.
+#
+# Two things made this measure platform-dependent without measuring anything
+# different:
+#
+#  * the device. `png()` defaults to `type = "quartz"` on macOS, which colour
+#    manages and antialiases, so the fill of #0000CD never lands within 0.02 of
+#    that exact colour and even an ordinary region counted 0 pixels there.
+#    Cairo rasterises the same colours on every platform (ragg is used when the
+#    build has no cairo). If the platform offers neither, the device cannot be
+#    compared at all, so the test skips instead of reporting an invisible
+#    region.
+#  * the classification. An antialiased #0000CD pixel keeps r == g and is blue
+#    dominated; the light fills (#6495ED and #4682B4) have g > r, and white or
+#    grey panel pixels are not blue dominated at all. Counting hue dominance
+#    instead of an exact RGB box therefore measures the same thing on every
+#    rasteriser. The thresholds are chosen so that a pixel counts only from
+#    about half coverage: #0000CD over white at coverage a is (1-a, 1-a,
+#    1-0.196a), so b - max(r, g) = 0.8a and requiring it above 0.40 is a > 0.5.
+#    A region narrower than one pixel therefore still counts 0, where an exact
+#    match would have been fooled by neither platform.
+#
+# The panel also contains other pure-blue ink: the density curve and the
+# percentage annotations are drawn in #0000CD (or #0000FF). Those are not the
+# shaded region, so they are removed before rendering and only the dark-filled
+# polygons/rectangles are drawn. Otherwise a plot whose region was entirely
+# invisible would still count curve and glyph pixels and the check would pass
+# for the wrong reason. The panel limits are fixed by coord_cartesian() in the
+# builders, so dropping layers does not move the pixels that remain.
 dark_pixels <- function(p, width = 900, height = 500) {
   skip_if_not_installed("png")
+  open_raster <- function(what) {
+    if (isTRUE(capabilities("cairo"))) {
+      grDevices::png(what, width = width, height = height, type = "cairo")
+    } else if (requireNamespace("ragg", quietly = TRUE)) {
+      ragg::agg_png(what, width = width, height = height)
+    } else {
+      skip("no cairo or ragg png device to measure pixels on")
+    }
+  }
   f <- tempfile(fileext = ".png")
-  grDevices::png(f, width = width, height = height)
+  on.exit(unlink(f), add = TRUE)
+
+  keep <- vapply(p$layers, function(l) {
+    inherits(l$geom, c("GeomPolygon", "GeomRect")) &&
+      identical(l$aes_params$fill, "#0000CD")
+  }, logical(1))
+  p$layers <- p$layers[keep]
+  # the axis titles are printed in #0000CD as well ("Mean = ... Std Dev. = ...")
+  p$labels[c("title", "subtitle", "caption", "x", "y")] <- NULL
+
+  open_raster(f)
   print(p)
   grDevices::dev.off()
   # keep a temporary device open for any later plot that prints without one
   if (grDevices::dev.cur() == 1L) {
     grDevices::pdf(file.path(tempdir(), "vistributions-test-plots.pdf"))
   }
-  on.exit(unlink(f), add = TRUE)
   img <- png::readPNG(f)
   r <- img[, , 1]
   g <- img[, , 2]
   b <- img[, , 3]
-  sum(abs(r) < 0.02 & abs(g) < 0.02 & abs(b - 205 / 255) < 0.02)
+  # a fill pixel: blue clearly above red and green, red and green equal (the
+  # fill is #0000CD, r = g = 0), and covered by at least half a pixel
+  sum(b - pmax(r, g) > 0.40 & abs(r - g) < 0.10)
 }
 
 # ---------------------------------------------------------------------------
@@ -112,7 +160,11 @@ test_that("a sub-pixel chi-square lower tail is visible on the device (VFXX6-M2)
     expect_length(marker_layers(p), 1)
     expect_match(p$labels$caption, "narrower than one pixel")
     expect_match(p$labels$caption, "marked by the blue strip")
-    expect_gt(dark_pixels(p), 0)
+    # At least 100 pixels, not merely one: the marker strip is ~3.6 device
+    # pixels wide over most of the data height (900 x 500 png), which paints
+    # ~900 #0000CD pixels; the sub-pixel event polygon alone paints 0-3 even
+    # at 50% coverage. So this still fails when the marker is not drawn.
+    expect_gt(dark_pixels(p), 100)
   }
 })
 
