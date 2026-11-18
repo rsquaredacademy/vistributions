@@ -12,9 +12,8 @@
 #'   two values in increasing order.
 #' @param type Lower/upper/exact/interval.
 #' @param tp Tail probability for quantile calculation, strictly between 0 and
-#'   1 and either equal to a cumulative-probability jump or more than 1e-12 away from it. For \code{type = "lower"} the cutoff is the smallest \code{k} with
-#'   \code{P(X <= k) >= tp} (as \code{qbinom()}); for \code{type = "upper"} it
-#'   is the smallest \code{k} with \code{P(X > k) <= tp}, and the bars with
+#'   1. The cutoff follows \code{qbinom()}, including its numerical fuzz
+#'   at cumulative jumps. For \code{type = "upper"} the bars with
 #'   \code{x > k} are shaded.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
@@ -138,14 +137,6 @@ vdist_binom_perc <- function(n = 10, p = 0.5, tp = 0.05, type = c("lower", "uppe
 	check_open_range(tp, "tp")
 
 	method <- match.arg(type)
-    k0 <- if (method == "lower") qbinom(tp, n, p) else
-      qbinom(tp, n, p, lower.tail = FALSE)
-    ks <- unique(pmax(0, pmin(n, c(k0 - 1, k0, k0 + 1))))
-    jumps <- if (method == "lower") pbinom(ks, n, p) else
-      pbinom(ks, n, p, lower.tail = FALSE)
-    if (!any(tp == jumps) && any(abs(tp - jumps) <= 1e-12)) {
-      stop("tp must be in (0, 1): choose a probability not within 1e-12 of P(X <= k) (or the corresponding upper-tail jump).", call. = FALSE)
-    }
 	data   <- bperc_data_prep(n, p, tp, method)
 	plot   <- bperc_plot_build(data, method, n, p, tp)
  

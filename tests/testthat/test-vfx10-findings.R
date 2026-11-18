@@ -85,8 +85,8 @@ test_that("H03: a binomial caption is rounded once, from the exact value", {
 # H04 -----------------------------------------------------------------------
 test_that("H04: a near-one binomial percentile is resolved in the small tail", {
   tp <- 1 - 2^-53
-  expect_error(vdist_binom_perc(1000, .5, tp, "lower", print_plot = FALSE),
-               "tp.*1e-12")
+  g <- vdist_binom_perc(1000, .5, tp, "lower", print_plot = FALSE)
+  expect_match(g$labels$subtitle, paste0("X <= ", qbinom(tp, 1000, .5)))
   expect_lt(abs(tp - pbinom(629, 1000, .5)), 1e-12)
 })
 
@@ -332,7 +332,7 @@ test_that("M06: a success count must be inside [0, n]", {
   expect_equal(subtitle(vdist_binom_prob(4, .5, 0, print_plot = FALSE)),
                "P(X <= 0) = 0.062")
   expect_equal(subtitle(vdist_binom_prob(4, .5, 4, print_plot = FALSE)),
-               "P(X <= 4) > 99.9999999999%")
+               "P(X <= 4) = 1.000")
 })
 
 # M07 -----------------------------------------------------------------------

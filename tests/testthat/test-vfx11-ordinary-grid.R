@@ -99,15 +99,9 @@ test_that("ordinary distribution grid matches base R", {
     for (tp in probs) for (type in c("lower","upper")) {
       lower <- type == "lower"
       k <- qbinom(tp,n,p,lower.tail=lower)
-      ks <- unique(pmax(0,pmin(n,k+c(-1,0,1))))
-      jumps <- pbinom(ks,n,p,lower.tail=lower)
-      if (!any(tp == jumps) && any(abs(tp-jumps) <= 1e-12)) {
-        expect_error(vdist_binom_perc(n,p,tp,type,FALSE),"tp.*1e-12")
-      } else {
-        truth <- pbinom(k,n,p,lower.tail=lower)
-        expect_equal(bars(vdist_binom_perc(n,p,tp,type,FALSE)),truth,tolerance=1e-10,
-                     info=paste("binomial percentile",n,p,tp,type))
-      }
+      truth <- pbinom(k,n,p,lower.tail=lower)
+      expect_equal(bars(vdist_binom_perc(n,p,tp,type,FALSE)),truth,tolerance=1e-10,
+                   info=paste("binomial percentile",n,p,tp,type))
     }
   }
 })

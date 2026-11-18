@@ -22,12 +22,14 @@
 #' Very wide heavy-tail windows are drawn on a symmetric log axis so the shaded
 #' event stays visible. Captions use one rounding rule and are true at the
 #' precision they print. When \code{qf()} fails to invert \code{pf()} to
-#' relative 1e-6, the equivalent F-beta quantile is used. Quantiles may also
+#' relative 1e-6 in the smaller tail, the equivalent F-beta quantile is used. Quantiles may also
 #' be refined by root finding, so equal
 #' degrees of freedom up to at least \code{1e8} plot accurately. A shaded
 #' region too narrow to occupy a pixel at the plotted scale is marked with a
 #' visible strip in the panel and disclosed in the caption; its polygon and its
-#' checked area are unchanged. Every plotting grid has a bounded number of
+#' checked area are unchanged. Upper-tail views retain the density body and
+#' disclose shaded mass outside the panel. A cutoff clipped to the panel edge
+#' is also disclosed. Every plotting grid has a bounded number of
 #' points, whatever the degrees of freedom or the cutoff.
 #'
 #' @param num_df Degrees of freedom associated with the numerator of f statistic

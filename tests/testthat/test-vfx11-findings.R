@@ -1,7 +1,7 @@
 test_that("supported domain limits are stable at the normal ratio and binomial jumps", {
   expect_error(vdist_normal_plot(1, 0.999e-10, FALSE), "sd / \\|mean\\|")
   expect_error(vdist_normal_perc(1e-12, print_plot = FALSE), "probs")
-  expect_error(vdist_binom_perc(1, .5, .5 + 2^-53, print_plot = FALSE), "tp.*1e-12")
+  expect_s3_class(vdist_binom_perc(1, .5, .5 + 2^-53, print_plot = FALSE), "ggplot")
   g <- vdist_binom_perc(1, .5, .5 + 2e-12, print_plot = FALSE)
   d <- ggplot2::layer_data(g, 1)
   expect_equal(sum(d$y[d$fill == "#0000CD"]), pbinom(1, 1, .5))

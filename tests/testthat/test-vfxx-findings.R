@@ -53,7 +53,7 @@ test_that("VFXX-H1: accepted near-integer trial counts are rounded once", {
   expect_equal(subtitle(vdist_binom_prob(n, .5, 3, "exact", print_plot = FALSE)),
                "P(X = 3) = 0.125")
   expect_equal(subtitle(vdist_binom_prob(n, .5, 3, "lower", print_plot = FALSE)),
-               "P(X <= 3) > 99.9999999999%")
+               "P(X <= 3) = 1.000")
   expect_equal(sum(shaded_mass(vdist_binom_prob(n, .5, 3, "lower", print_plot = FALSE))),
                pbinom(3, 3, .5))
 

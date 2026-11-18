@@ -39,9 +39,8 @@ two values in increasing order.}
 \item{type}{Lower/upper/exact/interval.}
 
 \item{tp}{Tail probability for quantile calculation, strictly between 0 and
-1 and either equal to a cumulative-probability jump or more than 1e-12 away from it. For \code{type = "lower"} the cutoff is the smallest \code{k} with
-\code{P(X <= k) >= tp} (as \code{qbinom()}); for \code{type = "upper"} it
-is the smallest \code{k} with \code{P(X > k) <= tp}, and the bars with
+1. The cutoff follows \code{qbinom()}, including its numerical fuzz
+at cumulative jumps. For \code{type = "upper"} the bars with
 \code{x > k} are shaded.}
 }
 \value{

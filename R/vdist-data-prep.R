@@ -62,20 +62,9 @@ bperc_data_prep <- function(n, p, tp, method) {
 
   n <- round(n)
 
-  # `tp` can be arbitrarily close to 1, where the lower-tail CDF saturates at
-  # the double 1 and qbinom() can no longer resolve the cutoff. Above 1/2 the
-  # same cutoff is found from the survival function, which is accurate in the
-  # small tail: the smallest k with P(X > k) <= 1 - tp is exactly the smallest
-  # k with P(X <= k) >= tp.
-  if (method == "lower" && tp > 0.5) {
-    k <- stats::qbinom(1 - tp, n, p, lower.tail = FALSE)
-  } else if (method == "lower") {
-    # smallest k with P(X <= k) >= tp; shade x <= k
-    k <- stats::qbinom(tp, n, p)
-  } else {
-    # smallest k with P(X > k) <= tp; shade the tail x > k (x >= k + 1)
-    k <- stats::qbinom(tp, n, p, lower.tail = FALSE)
-  }
+  # Use precisely the same tail and fuzz convention as qbinom().
+  k <- stats::qbinom(tp, n, p, lower.tail = method == "lower")
+  if (!is.finite(k)) stop("tp cannot be resolved by qbinom().", call. = FALSE)
   k <- min(max(k, 0), n)
 
   g      <- vdist_count_grid(n, k + 1)
@@ -340,8 +329,11 @@ vdist_cont_prep <- function(spec, parts, prob, view, method,
   if (!is.null(cut_draw)) pc <- vdist_clamp(cut_draw, view)
 
   omitted <- vdist_view_omitted(spec, parts, view, rb, prob)
+  cutoff_outside <- !is.null(cut_draw) && any(cut_draw < view[1] | cut_draw > view[2]) ||
+    any(cut < view[1] | cut > view[2])
 
-  list(spec       = spec,
+  list(cutoff_outside = cutoff_outside,
+       spec       = spec,
        plot_data  = plot_data,
        x          = x,
        l          = view,
@@ -595,7 +587,7 @@ fperc_data_prep <- function(probs, num_df, den_df, method) {
   } else {
     pfun_ev(cut)
   }, otherfun = function(v) pfun_ev(v, lower.tail = method != "lower"))
-  tail_hi <- vdist_tail_quantile(spec$qfun, 1e-4, lower.tail = FALSE)$q
+  tail_hi <- vdist_tail_quantile(spec$qfun, 1e-1, lower.tail = FALSE)$q
   hi <- if (max(cut) < 4) 4 else max(cut) * 1.25
   if (method == "upper") hi <- max(hi, tail_hi)
   hiq <- vdist_tail_quantile(spec$qfun, 1e-9, lower.tail = FALSE)$q
@@ -641,7 +633,7 @@ fprob_data_prep <- function(perc, num_df, den_df, method) {
                               displayed = disp$value, display_text = disp$text, otherfun = otherfun,
                               other = vdist_fmt_pct(otherfun(perc)))
 
-  tail_hi <- vdist_tail_quantile(spec$qfun, 1e-4, lower.tail = FALSE)$q
+  tail_hi <- vdist_tail_quantile(spec$qfun, 1e-1, lower.tail = FALSE)$q
   hi <- if (perc < 4) 4 else (perc * 1.25)
   if (method == "upper") hi <- max(hi, tail_hi)
   hiq <- vdist_tail_quantile(spec$qfun, 1e-9, lower.tail = FALSE)$q
@@ -919,9 +911,7 @@ tprob_data_prep <- function(perc, df, method) {
     prob <- vdist_prob_between(pfun, spec$dfun, -p, p)
     parts <- list(c(-p, p))
     disp <- vdist_fmt_pct(prob)
-    cut_text <- vdist_fmt_cutoff(p, Inf, function(v) {
-      vdist_prob_between(pfun, spec$dfun, -abs(v), abs(v))
-    }, prob)
+    cut_text <- vdist_fmt_interval(-p, p, Inf, pfun, prob, spec$dfun)[2]
     pp1 <- pfun(-p); pp2 <- pfun(p, lower.tail = FALSE)
   } else {
     p <- abs(perc)
@@ -929,7 +919,7 @@ tprob_data_prep <- function(perc, df, method) {
     other <- vdist_prob_between(pfun, spec$dfun, -p, p)
     parts <- list(c(-Inf, -p), c(p, Inf))
     disp <- vdist_fmt_pct(prob)
-    cut_text <- vdist_fmt_cutoff(p, Inf, function(v) 2 * pfun(-abs(v)), prob)
+    cut_text <- vdist_fmt_interval(-p, p, Inf, pfun, other, spec$dfun, total_tail = TRUE)[2]
     pp1 <- pfun(-p); pp2 <- pfun(p, lower.tail = FALSE)
   }
 

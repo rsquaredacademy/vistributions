@@ -755,23 +755,22 @@ vdist_check_central <- function(c1, c2, prob, target, what = "probability") {
 # complementary beta quantile separately to avoid cancellation near one.
 vdist_f_quantile <- function(p, num_df, den_df, lower.tail = TRUE) {
   q <- stats::qf(p, num_df, den_df, lower.tail = lower.tail)
-  got <- stats::pf(q, num_df, den_df, lower.tail = lower.tail)
+  # Compare the smaller tail directly; subtraction near one hides errors.
+  small_p <- ifelse(p > 0.5, 1 - p, p)
+  small_lower <- ifelse(p > 0.5, !lower.tail, lower.tail)
+  got <- mapply(function(x, lt) stats::pf(x, num_df, den_df, lower.tail = lt), q, small_lower)
   bad <- is.finite(p) & p > 0 & p < 1 &
-    (!is.finite(q) | !is.finite(got) | abs(got - p) > 1e-6 * p)
+    (!is.finite(q) | !is.finite(got) | abs(got - small_p) > 1e-6 * small_p)
   if (any(bad)) {
-    z <- stats::qbeta(p[bad], num_df / 2, den_df / 2,
-                      lower.tail = lower.tail)
-    complement <- stats::qbeta(p[bad], den_df / 2, num_df / 2,
-                               lower.tail = !lower.tail)
+    z <- stats::qbeta(p[bad], num_df / 2, den_df / 2, lower.tail = lower.tail)
+    complement <- stats::qbeta(p[bad], den_df / 2, num_df / 2, lower.tail = !lower.tail)
     candidate <- (den_df / num_df) * (z / complement)
     indeterminate <- is.nan(candidate) | is.infinite(candidate)
-    if (any(indeterminate)) {
-      candidate[indeterminate] <- exp(log(den_df) - log(num_df) +
-        log(z[indeterminate]) - log(complement[indeterminate]))
-    }
-    candidate_p <- stats::pf(candidate, num_df, den_df, lower.tail = lower.tail)
+    if (any(indeterminate)) candidate[indeterminate] <- exp(log(den_df) - log(num_df) +
+      log(z[indeterminate]) - log(complement[indeterminate]))
+    candidate_p <- mapply(function(x, lt) stats::pf(x, num_df, den_df, lower.tail = lt), candidate, small_lower[bad])
     improves <- is.finite(candidate) & is.finite(candidate_p) &
-      (!is.finite(got[bad]) | abs(candidate_p - p[bad]) < abs(got[bad] - p[bad]))
+      (!is.finite(got[bad]) | abs(candidate_p - small_p[bad]) < abs(got[bad] - small_p[bad]))
     indices <- which(bad)
     q[indices[improves]] <- candidate[improves]
   }
@@ -783,7 +782,7 @@ vdist_f_quantile <- function(p, num_df, den_df, lower.tail = TRUE) {
 # concentrated F overlay) keeps enough digits not to print as zero.
 fmt_moment <- function(x) {
   if (length(x) != 1 || is.na(x)) {
-    return("NA")
+    return("undefined")
   }
   if (abs(x) >= 0.01) {
     format(round(x, 3), digits = 15, trim = TRUE, decimal.mark = ".")
@@ -868,6 +867,7 @@ vdist_fmt_binom_prob <- function(p) {
   if (length(p) != 1L || !is.finite(p)) {
     return("NA")
   }
+  if (p == 1) return("1.000")
   if (p < 1e-12) {
     return("< 1e-10%")
   }
@@ -986,13 +986,21 @@ vdist_fmt_value <- function(x, scale, pfun, tol = 1e-6, displayed = NULL,
 # its own can reproduce its own tail probability and still produce a pair whose
 # interval probability rounds to a different displayed value; the pair must be
 # checked as the event the caption names.
-vdist_fmt_interval <- function(x1, x2, scale, pfun, target, dfun = NULL) {
+vdist_fmt_interval <- function(x1, x2, scale, pfun, target, dfun = NULL, total_tail = FALSE) {
   disp <- vdist_fmt_pct(target)
+  left <- vdist_fmt_pct(pfun(x1))
+  right <- vdist_fmt_pct(pfun(x2, lower.tail = FALSE))
+  tails <- vdist_fmt_pct(pfun(x1) + pfun(x2, lower.tail = FALSE))
   ok <- function(a, b) {
     a <- suppressWarnings(as.numeric(a))
     b <- suppressWarnings(as.numeric(b))
     is.finite(a) && is.finite(b) && is.finite(pfun(b)) && is.finite(pfun(a)) &&
-      vdist_pct_matches(vdist_prob_between(pfun, dfun, a, b), disp$value, disp$tol, disp$text)
+      vdist_pct_matches(vdist_prob_between(pfun, dfun, a, b), disp$value, disp$tol, disp$text) &&
+      vdist_pct_matches(pfun(a), left$value, left$tol, left$text) &&
+      identical(vdist_fmt_pct(pfun(a))$text, left$text) &&
+      vdist_pct_matches(pfun(b, lower.tail = FALSE), right$value, right$tol, right$text) &&
+      identical(vdist_fmt_pct(pfun(b, lower.tail = FALSE))$text, right$text) &&
+      (!total_tail || vdist_pct_matches(pfun(a) + pfun(b, lower.tail = FALSE), tails$value, tails$tol, tails$text))
   }
 
   s1 <- fmt_num(x1, scale)
@@ -1233,6 +1241,7 @@ vdist_subpixel_layer <- function(data, ylim) {
 # applies, joined into one true sentence.
 vdist_caption_text <- function(data) {
   bits <- character(0)
+  if (isTRUE(data$cutoff_outside)) bits <- c(bits, "The cutoff line is clipped to the plotted range")
   if (isTRUE(data$underflow)) bits <- c(bits, "the shaded region is too small to display")
   b <- vdist_beyond_text(data$omitted)
   if (!is.null(b)) {
