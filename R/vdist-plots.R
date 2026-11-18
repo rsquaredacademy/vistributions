@@ -724,7 +724,8 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
                color = "#0000CD",
                size  = 3)
   } else {
-    tail_text <- vdist_pct_text(data$alpha)
+    left_text <- vdist_pct_text(data$pp1)
+    right_text <- vdist_pct_text(data$pp2)
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
@@ -736,13 +737,13 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
                color = "#0000CD",
                size  = 3) +
       annotate("text",
-               label = paste0(tail_text, "%"),
+               label = paste0(left_text, "%"),
                x     = vdist_clamp(data$pc[1] - sd, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
-               label = paste0(tail_text, "%"),
+               label = paste0(right_text, "%"),
                x     = vdist_clamp(data$pc[2] + sd, data$view),
                y     = ytext,
                color = "#6495ED",
@@ -998,7 +999,8 @@ tperc_plot_build <- function(data, probs, df, method) {
                color = "#0000CD",
                size  = 3)
   } else {
-    tail_text <- vdist_pct_text(data$alpha)
+    left_text <- vdist_pct_text(data$pp1)
+    right_text <- vdist_pct_text(data$pp2)
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
@@ -1010,13 +1012,13 @@ tperc_plot_build <- function(data, probs, df, method) {
                color = "#0000CD",
                size  = 3) +
       annotate("text",
-               label = paste0(tail_text, "%"),
+               label = paste0(left_text, "%"),
                x     = vdist_clamp(data$pc[1] - 0.3, data$view),
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
-               label = paste0(tail_text, "%"),
+               label = paste0(right_text, "%"),
                x     = vdist_clamp(data$pc[2] + 0.3, data$view),
                y     = ytext,
                color = "#6495ED",

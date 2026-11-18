@@ -758,6 +758,7 @@ nperc_data_prep <- function(probs, mean, sd, method) {
   out <- vdist_cont_prep(spec, parts, prob, view, method, cut_draw = cut)
   out$alpha     <- alpha
   out$pp1       <- pfun_ev(cut[1])
+  out$pp2       <- if (length(cut) == 2L) pfun_ev(cut[2], lower.tail = FALSE) else NULL
   out$cut_text  <- cap$cut_text
   out$prob_text <- cap$prob_text
   out$other_text <- cap$other_text
@@ -880,6 +881,7 @@ tperc_data_prep <- function(probs, df, method) {
   out <- vdist_cont_prep(spec, parts, prob, view, method)
   out$alpha     <- alpha
   out$pp1       <- pfun(cut[1])
+  out$pp2       <- if (length(cut) == 2L) pfun(cut[2], lower.tail = FALSE) else NULL
   out$cut_text  <- cap$cut_text
   out$prob_text <- cap$prob_text
   out$other_text <- cap$other_text
