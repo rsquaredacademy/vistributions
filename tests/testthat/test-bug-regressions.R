@@ -97,7 +97,7 @@ test_that("TC-BUG-14: vdist_binom_prob upper tail shades strictly x >= s (BUG-14
   prep <- vistributions:::bprob_data_prep(n = 10, p = 0.3, s = 4, method = "upper")
   expect_equal(prep$cols[prep$plot_data$n == 3], "#6495ED")
   expect_equal(prep$cols[prep$plot_data$n == 4], "#0000CD")
-  expected_prob <- round(stats::pbinom(3, 10, 0.3, lower.tail = FALSE), 3)
+  expected_prob <- stats::pbinom(3, 10, 0.3, lower.tail = FALSE)
   expect_equal(prep$k, expected_prob)
 })
 

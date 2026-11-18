@@ -6,8 +6,10 @@
 #'
 #' @param n Number of trials (a single non-negative whole number).
 #' @param p Probability of success in each trial.
-#' @param s Number of successes (quantile value): whole numbers only. For
-#'   \code{type = "interval"}, two values in increasing order.
+#' @param s Number of successes: whole numbers in \code{[0, n]} only. Zero and
+#'   \code{n} are counts of successes like any other; use \code{pbinom()} for
+#'   an arbitrary threshold outside that range. For \code{type = "interval"},
+#'   two values in increasing order.
 #' @param type Lower/upper/exact/interval.
 #' @param tp Tail probability for quantile calculation, strictly between 0 and
 #'   1. For \code{type = "lower"} the cutoff is the smallest \code{k} with
@@ -48,6 +50,7 @@
 #' @export
 #'
 vdist_binom_plot <- function(n = 10, p = 0.3, print_plot = TRUE) {
+	check_print_plot(print_plot)
 
 	check_numeric(n)
 	n <- check_count(n)
@@ -70,6 +73,7 @@ vdist_binom_plot <- function(n = 10, p = 0.3, print_plot = TRUE) {
 #' @export
 #'
 vdist_binom_prob <- function(n = 10, p = 0.3, s = 4, type = c("lower", "upper", "exact", "interval"), print_plot = TRUE) {
+	check_print_plot(print_plot)
 
 	check_numeric(n)
 	n <- check_count(n)
@@ -94,8 +98,9 @@ vdist_binom_prob <- function(n = 10, p = 0.3, s = 4, type = c("lower", "upper", 
 
 	s <- round(s)
 
-	if (any(s > n)) {
-		stop("s must be less than or equal to n.", call. = FALSE)
+	if (any(s < 0) || any(s > n)) {
+		stop(paste0("s must be a whole number of successes between 0 and n (n = ",
+		            n, ")."), call. = FALSE)
 	}
 
 	if (method == "interval" && s[1] > s[2]) {
@@ -117,6 +122,7 @@ vdist_binom_prob <- function(n = 10, p = 0.3, s = 4, type = c("lower", "upper", 
 #' @export
 #'
 vdist_binom_perc <- function(n = 10, p = 0.5, tp = 0.05, type = c("lower", "upper"), print_plot = TRUE) {
+	check_print_plot(print_plot)
 
 	check_numeric(n)
 	n <- check_count(n)

@@ -100,7 +100,7 @@
 <text x='374.88' y='556.36' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='72.16px' lengthAdjust='spacingAndGlyphs'>No. of success</text>
 <text x='374.88' y='568.24' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='137.60px' lengthAdjust='spacingAndGlyphs'> Mean = 3 , Std. Dev. = 1.45</text>
 <text transform='translate(13.05,285.67) rotate(-90)' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='51.36px' lengthAdjust='spacingAndGlyphs'>Probability</text>
-<text x='374.88' y='30.35' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='81.04px' lengthAdjust='spacingAndGlyphs'>P(X) &gt;= 4 = 0.35</text>
+<text x='374.88' y='30.35' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='87.16px' lengthAdjust='spacingAndGlyphs'>P(X &gt;= 4) = 0.350</text>
 <text x='374.88' y='14.56' text-anchor='middle' style='font-size: 13.20px; font-family: sans;' textLength='216.47px' lengthAdjust='spacingAndGlyphs'>Binomial Distribution: n = 10 , p = 0.3</text>
 </g>
 </svg>

@@ -54,6 +54,7 @@ vdist_binned_text <- function() {
 
 bprob_plot_build <- function(data, method, n, p, s) {
 
+  np <- vdist_fmt_binom_prob(data$k)
   plot <-
     ggplot(data$plot_data) +
     vdist_col_layer(data, data$cols) +
@@ -63,27 +64,20 @@ bprob_plot_build <- function(data, method, n, p, s) {
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
+  # The inequality belongs inside P(): P(X >= 4) = 0.35, not P(X) >= 4 = 0.35.
   if (method == "lower") {
-    plot <-
-      plot +
-      ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
-              subtitle = paste("P(X) <=", s, "=", round(data$k, 3)))
+    sub <- paste0("P(X <= ", s, ") = ", np)
   } else if (method == "upper") {
-    plot <-
-      plot +
-      ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
-              subtitle = paste("P(X) >=", s, "=", round(data$k, 3)))
+    sub <- paste0("P(X >= ", s, ") = ", np)
   } else if (method == "exact") {
-    plot <-
-      plot +
-      ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
-              subtitle = paste("P(X) =", s, "=", round(data$k, 3)))
+    sub <- paste0("P(X = ", s, ") = ", np)
   } else {
-    plot <-
-      plot +
-      ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
-              subtitle = paste0("P(", s[1], " <= X <= ", s[2], ")", " = ", round(data$k, 3)))
+    sub <- paste0("P(", s[1], " <= X <= ", s[2], ") = ", np)
   }
+
+  plot <- plot +
+    ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
+            subtitle = sub)
 
   if (isTRUE(data$binned)) {
     plot <- plot + labs(caption = vdist_binned_text())
@@ -103,19 +97,23 @@ bperc_plot_build <- function(data, method, n, p, tp) {
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
+  # The threshold is printed with every digit needed to state the inequality:
+  # paste0() prints 1 - 2^-53 as the excluded value 1.
+  tpt <- vdist_fmt_number(tp)
+
   if (method == "lower") {
-    plot <-
-      plot +
-      ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
-              subtitle = paste0("P(X <= ", (data$k - 1), ") < ", tp, ", but P(X <= ", data$k, ") >= ", tp)
-      )
+    k <- data$k
+    sub <- paste0("P(X <= ", k - 1, ") < ", tpt,
+                  ", but P(X <= ", k, ") >= ", tpt)
   } else {
-    plot <-
-      plot +
-      ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
-              subtitle = paste0("P(X >= ", (data$k + 1), ") <= ", tp, ", but P(X >= ", data$k, ") > ", tp)
-      )
+    k <- data$k
+    sub <- paste0("P(X >= ", k + 1, ") <= ", tpt,
+                  ", but P(X >= ", k, ") > ", tpt)
   }
+
+  plot <- plot +
+    ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
+            subtitle = sub)
 
   if (isTRUE(data$binned)) {
     plot <- plot + labs(caption = vdist_binned_text())
@@ -639,6 +637,15 @@ nplot_plot_build <- function(data, mean, sd) {
       geom_polygon(data    = poly_data,
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
+  }
+
+  # Default labels round every break to "1" when the window is a tiny multiple
+  # of sd around a non-zero mean. Use the distribution's own scale in that case;
+  # an ordinary normal keeps the default labels (and snapshots) unchanged.
+  if (is.finite(mean) && abs(mean) > 0 && sd / abs(mean) < 1e-6) {
+    gplot <- gplot + scale_x_continuous(
+      labels = function(v) fmt_num(v, sd)
+    )
   }
 
   gplot <- gplot + coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)

@@ -61,6 +61,7 @@
 #' @export
 #'
 vdist_f_plot <- function(num_df = 4, den_df = 30, normal = FALSE, print_plot = TRUE) {
+	check_print_plot(print_plot)
 
   check_numeric(num_df, "num_df")
   check_scalar(num_df, "num_df")
@@ -86,6 +87,7 @@ vdist_f_plot <- function(num_df = 4, den_df = 30, normal = FALSE, print_plot = T
 #' @export
 #'
 vdist_f_perc <- function(probs = 0.95, num_df = 3, den_df = 30, type = c("lower", "upper"), print_plot = TRUE) {
+	check_print_plot(print_plot)
 
   check_numeric(num_df, "num_df")
   check_scalar(num_df, "num_df")
@@ -115,6 +117,7 @@ vdist_f_perc <- function(probs = 0.95, num_df = 3, den_df = 30, type = c("lower"
 #' @export
 #'
 vdist_f_prob <- function(perc = 2.35, num_df = 5, den_df = 32, type = c("lower", "upper"), print_plot = TRUE) {
+	check_print_plot(print_plot)
 
   check_numeric(perc, "perc")
   check_scalar(perc, "perc")

@@ -93,7 +93,7 @@ test_that("VFXX3-H1: upper-tail areas cover the event, not just the view", {
 # VFXX3-H2 ------------------------------------------------------------------
 
 test_that("VFXX3-H2: translated tiny-scale normals are rejected at the limit", {
-  msg <- "documented limit of 1e-14"
+  msg <- "documented limit of 3e-14"
   expect_error(vdist_normal_perc(.5, mean = 1, sd = 1e-16, print_plot = FALSE), msg)
   expect_error(vdist_normal_perc(.95, mean = 1, sd = 1e-15, print_plot = FALSE), msg)
   expect_error(vdist_normal_prob(1, mean = 1, sd = 1e-16, print_plot = FALSE), msg)
@@ -106,12 +106,12 @@ test_that("VFXX3-H2: translated tiny-scale normals are rejected at the limit", {
   }
 
   # the last accepted translated scale keeps a true caption
-  p <- vdist_normal_perc(.95, mean = 1, sd = 1e-14, print_plot = FALSE)
-  caption_tail_check(subtitle(p), function(v) pnorm(v, 1, 1e-14))
+  p <- vdist_normal_perc(.95, mean = 1, sd = 1e-13, print_plot = FALSE)
+  caption_tail_check(subtitle(p), function(v) pnorm(v, 1, 1e-13))
 
-  p <- vdist_normal_prob(qnorm(.95, 1, 1e-14), mean = 1, sd = 1e-14,
+  p <- vdist_normal_prob(qnorm(.95, 1, 1e-13), mean = 1, sd = 1e-13,
                          print_plot = FALSE)
-  caption_tail_check(subtitle(p), function(v) pnorm(v, 1, 1e-14))
+  caption_tail_check(subtitle(p), function(v) pnorm(v, 1, 1e-13))
 })
 
 # VFXX3-M1 ------------------------------------------------------------------

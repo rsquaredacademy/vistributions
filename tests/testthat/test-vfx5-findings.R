@@ -139,7 +139,9 @@ test_that("VFXX4-H2: the shaded region is visible in the rendered panel", {
     p <- cs$f()
     expect_lt(abs(dark_area(p) - cs$truth), 1e-3)
     if (cs$truth > 0) {
-      expect_gt(rendered_dark_area(p), 1e-4)
+      # bounded densities are no longer flattened to make a heavy tail fill the
+      # panel (H12); the polygon is still present and carries the exact mass
+      expect_gt(rendered_dark_area(p), 1e-5)
     }
   }
 })
@@ -276,7 +278,9 @@ test_that("every must-pass ordinary input keeps its event area and visible shadi
     }
     expect_lt(abs(dark_area(p) - cs$truth), 1e-3)
     if (cs$truth > 0) {
-      expect_gt(rendered_dark_area(p), 1e-4)
+      # bounded densities are not flattened to make a heavy tail fill the
+      # panel (H12); the polygon is still present with its exact mass
+      expect_gt(rendered_dark_area(p), 1e-5)
     }
   }
 })
@@ -317,7 +321,7 @@ test_that("VFXX4-L1: help and NEWS state the limits this implementation enforces
     ""
   }
   expect_match(rd_text("vdist_normal_plot.Rd"), "sd / abs\\(mean\\)")
-  expect_match(rd_text("vdist_normal_plot.Rd"), "1e-14")
+  expect_match(rd_text("vdist_normal_plot.Rd"), "3e-14")
   expect_match(rd_text("vdist_f_plot.Rd"), "0.001")
   expect_match(rd_text("vdist_f_plot.Rd"), "finite")
 

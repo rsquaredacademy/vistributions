@@ -10,8 +10,11 @@
 #'   values select \code{type = "both"} automatically.
 #' @param sd Standard deviation of the normal distribution. It must be positive.
 #'   When \code{mean} is nonzero, \code{sd / abs(mean)} must be at least
-#'   \code{1e-14}; below that limit the cutoff cannot be represented as a double
-#'   and all three normal functions stop with a numerical-resolution error.
+#'   \code{3e-14}: below that limit the whole plotted window (\code{mean +/-
+#'   4 sd}) is indistinguishable from a zero-width range at the display's own
+#'   tolerance, every vertex lands on the same screen position, and all three
+#'   normal functions stop with a numerical-resolution error that names this
+#'   limit.
 #'   A near-zero mean is not a resolution failure: the ratio may overflow to
 #'   infinity (\code{mean = 1e-308, sd = 10}) while the distribution is still
 #'   perfectly resolvable, and it is drawn normally. Zero-centred
@@ -71,6 +74,7 @@
 #' @export
 #'
 vdist_normal_plot <- function(mean = 0, sd = 1, print_plot = TRUE) {
+	check_print_plot(print_plot)
 
   check_numeric(mean, "mean")
   check_scalar(mean, "mean")
@@ -95,6 +99,7 @@ vdist_normal_plot <- function(mean = 0, sd = 1, print_plot = TRUE) {
 #' @export
 #'
 vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", "upper", "both"), print_plot = TRUE) {
+	check_print_plot(print_plot)
 
   check_numeric(mean, "mean")
   check_scalar(mean, "mean")
@@ -124,6 +129,7 @@ vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", 
 #' @export
 #'
 vdist_normal_prob <- function(perc = 3, mean = 0, sd = 1, type = c("lower", "upper", "both"), print_plot = TRUE) {
+	check_print_plot(print_plot)
 
   method <- match.arg(type)
 

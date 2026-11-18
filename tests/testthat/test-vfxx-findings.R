@@ -45,15 +45,15 @@ test_that("VFXX-H1: accepted near-integer trial counts are rounded once", {
 
   # exact probability of the rounded distribution, not the truncated one
   pe <- vdist_binom_prob(n, .5, 2, "exact", print_plot = FALSE)
-  expect_equal(subtitle(pe), "P(X) = 2 = 0.375")
+  expect_equal(subtitle(pe), "P(X = 2) = 0.375")
   expect_equal(sum(shaded_mass(pe)), dbinom(2, 3, .5))
   expect_equal(sum(shaded_mass(pe)), .375)
 
   # s = n is now accepted instead of failing against the truncated n
   expect_equal(subtitle(vdist_binom_prob(n, .5, 3, "exact", print_plot = FALSE)),
-               "P(X) = 3 = 0.125")
+               "P(X = 3) = 0.125")
   expect_equal(subtitle(vdist_binom_prob(n, .5, 3, "lower", print_plot = FALSE)),
-               "P(X) <= 3 = 1")
+               "P(X <= 3) = 1")
   expect_equal(sum(shaded_mass(vdist_binom_prob(n, .5, 3, "lower", print_plot = FALSE))),
                pbinom(3, 3, .5))
 

@@ -70,7 +70,7 @@ test_that("H4: binomial counts must be whole numbers", {
   expect_error(vdist_binom_plot(n = -1, p = .5), "n must be a single non-negative whole number")
   # whole numbers stored as doubles, and n = 0, still work
   p <- vdist_binom_prob(10, .5, s = 3, type = "exact", print_plot = FALSE)
-  expect_equal(subtitle(p), paste("P(X) = 3 =", round(dbinom(3, 10, .5), 3)))
+  expect_equal(subtitle(p), paste0("P(X = 3) = ", sprintf("%.3f", dbinom(3, 10, .5))))
   expect_s3_class(vdist_binom_plot(n = 0, p = .5, print_plot = FALSE), "ggplot")
 })
 
@@ -80,7 +80,8 @@ test_that("H4: binomial probabilities match stats for each event type", {
   expect_equal(sum(shaded_mass(vdist_binom_prob(10, .5, 3, "lower", print_plot = FALSE))),
                pbinom(3, 10, .5))
   expect_equal(subtitle(vdist_binom_prob(10, .5, 3, "upper", print_plot = FALSE)),
-               paste("P(X) >= 3 =", round(pbinom(2, 10, .5, lower.tail = FALSE), 3)))
+               paste0("P(X >= 3) = ",
+                      sprintf("%.3f", pbinom(2, 10, .5, lower.tail = FALSE))))
 })
 
 test_that("H4: binomial summary sd is computed from n, p exactly", {

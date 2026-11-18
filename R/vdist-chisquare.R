@@ -53,6 +53,7 @@
 #' @export
 #'
 vdist_chisquare_plot <- function(df = 3, normal = FALSE, xaxis_range = 25, print_plot = TRUE) {
+	check_print_plot(print_plot)
 
   check_numeric(df, "df")
   check_scalar(df, "df")
@@ -78,6 +79,7 @@ vdist_chisquare_plot <- function(df = 3, normal = FALSE, xaxis_range = 25, print
 #' @export
 #'
 vdist_chisquare_perc <- function(probs = 0.95, df = 3, type = c("lower", "upper"), print_plot = TRUE) {
+	check_print_plot(print_plot)
 
   check_numeric(probs, "probs")
   check_scalar(probs, "probs")
@@ -104,6 +106,7 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3, type = c("lower", "upper"
 #' @export
 #'
 vdist_chisquare_prob <- function(perc = 13, df = 11, type = c("lower", "upper"), print_plot = TRUE) {
+	check_print_plot(print_plot)
 
   check_numeric(df, "df")
   check_scalar(df, "df")
