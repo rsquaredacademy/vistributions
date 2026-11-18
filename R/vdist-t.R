@@ -4,7 +4,11 @@
 #' distribution, visualize quantiles out of given probability and
 #' probability from a given quantile.
 #'
-#' @param df Degrees of freedom (positive; need not be a whole number).
+#' @param df Degrees of freedom, at least 0.05 (need not be a whole number).
+#'   Very small degrees of freedom make the tails so heavy that an ordinary
+#'   probability covers quantiles hundreds of orders of magnitude away, which
+#'   cannot be plotted at double precision; values below the documented floor
+#'   are rejected with an error naming \code{df}.
 #' @param probs Probability value, strictly between 0 and 1 and within
 #'   \code{(1e-12, 1 - 1e-12)}.
 #' @param perc Quantile value. For \code{type = "interval"} and
@@ -61,6 +65,7 @@ vdist_t_plot <- function(df = 3, print_plot = TRUE) {
   check_numeric(df, "df")
   check_scalar(df, "df")
   check_positive(df, "df")
+  vdist_check_t_df(df)
 
   data <- tplot_data_prep(df)
   plot <- tplot_plot_build(data, df)
@@ -84,6 +89,7 @@ vdist_t_perc <- function(probs = 0.95, df = 4, type = c("lower", "upper", "both"
   check_numeric(df, "df")
   check_scalar(df, "df")
   check_positive(df, "df")
+  vdist_check_t_df(df)
   check_probability(probs, "probs", "t")
 
   method  <- match.arg(type)
@@ -109,6 +115,7 @@ vdist_t_prob <- function(perc = 1.6, df = 7, type = c("lower", "upper", "interva
   check_numeric(df, "df")
   check_scalar(df, "df")
   check_positive(df, "df")
+  vdist_check_t_df(df)
   method <- match.arg(type)
 
   # symmetric events (interval, both) are defined by |perc|: use it throughout

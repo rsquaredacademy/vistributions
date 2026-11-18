@@ -122,9 +122,9 @@ vdist_binom_plot(10, 0.3)
 #### Calculate and visualize quantiles out of given probability
 
 ##### Input
-- p: a single aggregated probability of multiple trials
 - n: the number of trials
-- tp: the probability of success in a trial
+- p: the probability of success in each trial
+- tp: the tail probability used to compute the quantile
 - type: lower/upper tail
 
 

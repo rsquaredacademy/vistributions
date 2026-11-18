@@ -92,6 +92,44 @@ vdist_check_f_num_df <- function(num_df) {
   invisible(num_df)
 }
 
+# t degrees of freedom. Very small df makes the tails so heavy that the event
+# bounds (the 1e-10 quantiles) are hundreds of orders of magnitude away and the
+# shaded polygon of an ordinary probability cannot be resolved at double
+# precision: the smallest df at which the ordinary values 0.05, 0.5 and 0.95
+# plot for both `vdist_t_prob()` and `vdist_t_perc()` is about 0.031 (0.031
+# still fails its area check, 0.0315 works). The floor is documented as 0.05,
+# which is the smallest value that also plots the 0.999 percentile, and values
+# below it are rejected with a message naming `df` rather than the probability.
+vdist_t_df_floor <- 0.05
+
+vdist_check_t_df <- function(df) {
+  if (df < vdist_t_df_floor) {
+    stop(paste0("df must be at least ", vdist_t_df_floor,
+                " for the t distribution; smaller degrees of freedom cannot be ",
+                "plotted at double precision. Use df between ", vdist_t_df_floor,
+                " and Inf."), call. = FALSE)
+  }
+  invisible(df)
+}
+
+# Largest chi-square xaxis_range whose plot still passes its area check. The
+# trapezoid sum over a window this wide is accurate to within 1e-6 relative
+# error up to a range of about 1e28 for every df; 1e10 is documented with a
+# wide margin and is far beyond any chi-square body (the support scale is df).
+vdist_chisquare_range_max <- 1e10
+
+vdist_check_chisquare_range <- function(xaxis_range) {
+  if (xaxis_range > vdist_chisquare_range_max) {
+    stop(paste0("xaxis_range must not exceed ",
+                format(vdist_chisquare_range_max, scientific = TRUE),
+                "; a wider window cannot be drawn within the documented ",
+                "plotting contract. Use xaxis_range between 0 and ",
+                format(vdist_chisquare_range_max, scientific = TRUE), "."),
+         call. = FALSE)
+  }
+  invisible(xaxis_range)
+}
+
 check_probability <- function(val, var = "probs", dist = "normal") {
   lim <- vdist_prob_range(dist)
   if (val <= lim[1] || val >= lim[2]) {
@@ -206,7 +244,7 @@ vdist_contract <- function(dist = NULL) {
     prob_lo       = c(1e-12, 1e-12, 1e-12, 1e-12, NA_real_),
     prob_hi       = c(1 - 1e-12, 1 - 1e-12, 1 - 1e-12, 1 - 1e-12, NA_real_),
     parameter     = c("sd / |mean| >= 1e-10 (mean != 0)",
-                      "df > 0",
+                      "df >= 0.05",
                       "df >= 0.1",
                       "num_df >= 1, den_df > 0",
                       "n a whole number in [0, 2^31 - 1], 0 <= p <= 1"),
@@ -521,6 +559,33 @@ vdist_check_normal_range <- function(mean, sd) {
 # view. Captions keep the true, unclipped event.
 vdist_clamp <- function(x, l) {
   pmin(pmax(x, l[1]), l[length(l)])
+}
+
+# Two annotation positions on either side of a cutoff, in the units the panel is
+# drawn in. The separation has to be a share of the panel, not a fixed number of
+# data units: the t percentile with df = 0.1 has its cutoff at the right edge of
+# a window about 1.6e9 wide drawn on the symmetric log axis used for wide
+# windows, where 0.3 data units is 0.2% of the panel and the two labels (95% and
+# 5%) overprint. The positions are therefore chosen on the axis the labels are
+# rendered on: the transformed axis for a wide window, the data axis otherwise.
+# When the clamped offset falls below the minimum share of the view, the pair is
+# widened to a readable share instead, keeping both labels inside the panel.
+# Ordinary windows keep the requested offset, so their annotations do not move.
+vdist_label_pair <- function(x, view, offset = 0.3,
+                            min_frac = 0.025, frac = 0.08) {
+  tr <- if (vdist_wide_window(view)) scales::pseudo_log_trans() else NULL
+  fw <- if (is.null(tr)) base::identity else tr$transform
+  bw <- if (is.null(tr)) base::identity else tr$inverse
+  v  <- fw(view)
+  x  <- fw(x)
+  lo <- vdist_clamp(x - offset, v)
+  hi <- vdist_clamp(x + offset, v)
+  span <- v[2] - v[1]
+  if (!is.finite(span) || span <= 0 || hi - lo >= min_frac * span) {
+    return(bw(c(lo, hi)))
+  }
+  d <- frac * span / 2
+  bw(c(vdist_clamp(x - d, v), vdist_clamp(x + d, v)))
 }
 
 # a single non-negative whole number (number of trials). Values within 1e-8 of
@@ -863,6 +928,11 @@ vdist_pct_matches <- function(p, target, tol, text = NULL) {
 # as a false zero. Rounding a value that was already rounded to five places
 # (0.0034978 -> 0.0035 -> 0.004) is what produced caption digits outside the
 # correct rounding interval.
+#
+# Above 0.9995 a three-decimal rounding would print 1.000 for an event that can
+# still fail (P(X >= 1) = 0.9999568 at n = 1000, p = .01), which asserts
+# certainty. Such a value is shown as the bound "> 0.999" instead, the mirror of
+# the "< 1e-10%" floor at the low end; an exact 1 keeps its "1.000".
 vdist_fmt_binom_prob <- function(p) {
   if (length(p) != 1L || !is.finite(p)) {
     return("NA")
@@ -875,7 +945,11 @@ vdist_fmt_binom_prob <- function(p) {
     return("> 99.9999999999%")
   }
   if (p >= 1e-3) {
-    return(sprintf("%.3f", p))
+    out <- sprintf("%.3f", p)
+    if (out == "1.000") {
+      return("> 0.999")
+    }
+    return(out)
   }
   format(p, scientific = TRUE, digits = 3, trim = TRUE, decimal.mark = ".")
 }

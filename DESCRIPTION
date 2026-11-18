@@ -25,6 +25,6 @@ License: MIT + file LICENSE
 URL: https://github.com/rsquaredacademy/vistributions, https://vistributions.rsquaredacademy.com
 BugReports: https://github.com/rsquaredacademy/vistributions/issues
 Encoding: UTF-8
-RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.1.1

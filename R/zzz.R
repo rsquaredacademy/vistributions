@@ -1,7 +1,28 @@
 #' @import stats
 .onAttach <- function(...) {
 
-  if (!interactive() || runif(1) > 0.2) return()
+  if (!interactive()) return()
+
+  # A startup tip owns no randomness of the caller: the draw below runs on a
+  # copy of the seed and the caller's .Random.seed is put back exactly as it was
+  # (or removed again when the session had none) when the function exits, so
+  # `library(vistributions)` never moves the random stream.
+  seed <- if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+    get(".Random.seed", envir = globalenv(), inherits = FALSE)
+  } else {
+    NULL
+  }
+  on.exit({
+    if (is.null(seed)) {
+      if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+        rm(".Random.seed", envir = globalenv())
+      }
+    } else {
+      assign(".Random.seed", seed, envir = globalenv())
+    }
+  }, add = TRUE)
+
+  if (runif(1) > 0.2) return()
 
   tips <- c(
     "Learn more about vistributions at https://github.com/rsquaredacademy/vistributions/",

@@ -384,7 +384,7 @@ cplot_data_prep <- function(df, range, lower = 0) {
 
   list(plot_data  = data.frame(x = x, chi = y),
        poly_data  = data.frame(y = reg$x, z = reg$y),
-       point_data = data.frame(x = df, y = min(y)),
+       point_data = data.frame(x = df, y = 0),
        nline_data = data.frame(x = x, y = dnorm(x, df, sqrt(2 * df))),
        chim       = chim,
        chisd      = chisd,
@@ -467,6 +467,13 @@ cprob_data_prep <- function(perc, df, method) {
   tail_hi <- vdist_tail_quantile(spec$qfun, 1e-4, lower.tail = FALSE)$q
   hi <- if (perc < 25) 25 else (perc + (3 * chisd))
   if (method == "upper") hi <- max(hi, tail_hi)
+  # A cutoff far below the body of a high-df distribution would leave the whole
+  # panel in a negligible left tail: df = 200 with perc = 13 on [0, 25] draws a
+  # flat panel 40 orders of magnitude below the body at 200. The body is part of
+  # the picture, so the view is widened to the mean and a few standard
+  # deviations when it contains none of it. Windows that already show the body
+  # (every ordinary df) are unchanged.
+  if (hi < chim - 4 * chisd) hi <- chim + 4 * chisd
   hiq <- vdist_tail_quantile(spec$qfun, 1e-9, lower.tail = FALSE)$q
   hi <- min(max(hi, perc + chisd, 1), max(hiq, 1))
   view <- c(0, hi)

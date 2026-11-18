@@ -953,37 +953,39 @@ tperc_plot_build <- function(data, probs, df, method) {
   other_text <- data$other_text
 
   if (method == "lower") {
+    pos <- vdist_label_pair(data$pc, data$view)
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
               subtitle = paste0("P(X < ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc - 0.3, data$view),
+               x     = pos[1],
                y     = ytext,
                color = "#0000CD",
                size  = 3) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc + 0.3, data$view),
+               x     = pos[2],
                y     = ytext,
                color = "#6495ED",
                size  = 3)
 
   } else if (method == "upper") {
+    pos <- vdist_label_pair(data$pc, data$view)
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
               subtitle = paste0("P(X > ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
       annotate("text",
                label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc - 0.3, data$view),
+               x     = pos[1],
                y     = ytext,
                color = "#6495ED",
                size  = 3) +
       annotate("text",
                label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc + 0.3, data$view),
+               x     = pos[2],
                y     = ytext,
                color = "#0000CD",
                size  = 3)

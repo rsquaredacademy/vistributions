@@ -23,7 +23,11 @@ vdist_t_prob(
 )
 }
 \arguments{
-\item{df}{Degrees of freedom (positive; need not be a whole number).}
+\item{df}{Degrees of freedom, at least 0.05 (need not be a whole number).
+Very small degrees of freedom make the tails so heavy that an ordinary
+probability covers quantiles hundreds of orders of magnitude away, which
+cannot be plotted at double precision; values below the documented floor
+are rejected with an error naming \code{df}.}
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 

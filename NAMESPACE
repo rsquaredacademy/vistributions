@@ -18,6 +18,8 @@ export(vdist_t_plot)
 export(vdist_t_prob)
 import(ggplot2)
 import(stats)
-importFrom(utils,install.packages)
-importFrom(utils,menu)
-importFrom(utils,packageVersion)
+importFrom(utils,
+  install.packages,
+  menu,
+  packageVersion
+)

@@ -345,10 +345,13 @@ test_that("M07: the test entry points do not require the suggested packages", {
 
 # M08 -----------------------------------------------------------------------
 test_that("M08: the resolution error states the real probability range", {
-  err <- tryCatch(vdist_t_perc(1e-10, .02, print_plot = FALSE),
+  # df below the documented floor is rejected for its own reason (see M2.1),
+  # so the probability-range message is checked at a valid df.
+  err <- tryCatch(vdist_t_perc(1e-13, 1, print_plot = FALSE),
                   error = function(e) conditionMessage(e))
   expect_match(err, "0\\.9999999999")
-  expect_match(err, "1e-10")
+  expect_match(err, "1e-12")
+  expect_match(err, "probs")
 })
 
 # L01 -----------------------------------------------------------------------
