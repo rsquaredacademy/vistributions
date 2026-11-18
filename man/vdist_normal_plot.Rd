@@ -29,8 +29,11 @@ vdist_normal_prob(
 
 \item{sd}{Standard deviation of the normal distribution. It must be positive.
 When \code{mean} is nonzero, \code{sd / abs(mean)} must be at least
-\code{1e-14}; below that limit the cutoff cannot be represented as a double
-and all three normal functions stop with a numerical-resolution error.
+\code{3e-14}: below that limit the whole plotted window (\code{mean +/-
+4 sd}) is indistinguishable from a zero-width range at the display's own
+tolerance, every vertex lands on the same screen position, and all three
+normal functions stop with a numerical-resolution error that names this
+limit.
 A near-zero mean is not a resolution failure: the ratio may overflow to
 infinity (\code{mean = 1e-308, sd = 10}) while the distribution is still
 perfectly resolvable, and it is drawn normally. Zero-centred

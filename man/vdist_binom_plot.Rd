@@ -31,8 +31,10 @@ vdist_binom_perc(
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{s}{Number of successes (quantile value): whole numbers only. For
-\code{type = "interval"}, two values in increasing order.}
+\item{s}{Number of successes: whole numbers in \code{[0, n]} only. Zero and
+\code{n} are counts of successes like any other; use \code{pbinom()} for
+an arbitrary threshold outside that range. For \code{type = "interval"},
+two values in increasing order.}
 
 \item{type}{Lower/upper/exact/interval.}
 
