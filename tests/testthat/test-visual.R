@@ -8,6 +8,10 @@ mac_variant <- function() {
   if (identical(Sys.info()[["sysname"]], "Darwin")) "darwin" else NULL
 }
 
+# vdiffr is in Suggests as well: skip_on_cran() does not skip for a package that
+# is simply absent, so a non-CRAN check without vdiffr must skip explicitly.
+skip_if_not_installed("vdiffr")
+
 test_that("output from vdist_binom_plot is as expected", {
   skip_on_cran()
   p <- vdist_binom_plot(10, 0.3, print_plot = FALSE)
