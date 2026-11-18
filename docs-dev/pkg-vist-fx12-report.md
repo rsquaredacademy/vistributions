@@ -28,3 +28,14 @@ The prior under-floor and rejected-input dispositions outside these findings rem
 - `git diff --check`: clean. Neither audit file was added to the commits, no branch was switched, and no push or GitHub command was used.
 
 The archive check and suite run on Windows R 4.6.1. macOS arm64 CI remains an external verification rather than a claimed local result. The requested exact opus jump scan cannot be reproduced without its unpublished input list; the reconstruction and exact Gemini scan above are retained for review and rerunning.
+
+## Round 13
+
+The round-12 caption comparison was incorrect at cumulative jumps. The binomial percentile subtitle now states the `qbinom()` convention with fixed operators, while the selected `qbinom()` cutoff and `pbinom()` shaded event remain unchanged. R's `?Binomial` defines the quantile as the smallest k for which F(k) >= the lower-tail probability. Thus the lower-tail condition is `P(X <= k - 1) < tp, but P(X <= k) >= tp`. For `lower.tail = FALSE`, substitute `1 - tp`: the equivalent condition is `P(X >= k + 1) <= tp, but P(X >= k) > tp`. These are the mathematical convention; `qbinom()` applies numerical fuzz at jumps, so floating-point `pbinom()` results need not satisfy the printed relations literally at or extremely close to a jump. This corrects the round-12 claim above that comparing doubles produced an appropriate caption. NEWS and the roxygen-generated help page now state both tail conventions and the fuzz qualification.
+
+Regression coverage checks both operators and their k values, the selected cutoff against `qbinom()`, and shaded bar mass against `pbinom()` for both tails across n = 1, 2, 5, 9, 10, 20, 100, 1000 and p = .01, .1, .3, .5, .9, .99, including sampled cumulative jumps and complements, intermediate probabilities, and near-one targets. It also exercises the four audit examples through the public plotting function.
+
+- Windows R 4.6.1, disposable archive-based copy, `NOT_CRAN=true`: `devtools::test()` returned 11,461 passes, zero failures, errors, warnings or skips; both `sum(r$failed)` and `sum(r$error)` are 0.
+- `devtools::document()` using the repository-recorded roxygen2 7.3.3: a second run made no generated-file changes.
+- Clean `git archive HEAD` of implementation commit `82507ef`, followed by `R CMD build` and `R CMD check --as-cran --no-manual`: 0 errors, 0 warnings, 1 NOTE (the CRAN incoming maintainer e-mail change). Locale variables were set to `C` for the Windows R installation.
+- `git diff --check`: clean. Audit files were left untracked; no push, GitHub command, or branch switch was used.
