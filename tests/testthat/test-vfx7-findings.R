@@ -137,17 +137,15 @@ test_that("a near-zero normal mean is drawn, not rejected (VFXX6-M1)", {
 test_that("a genuinely unresolvable normal is still rejected (VFXX6-M1)", {
   for (sd in c(1e-15, 1e-16)) {
     expect_error(vdist_normal_plot(mean = 1, sd = sd, print_plot = FALSE),
-                 "documented limit of 3e-14")
+                 "sd / \\|mean\\| must be at least 1e-10")
     expect_error(vdist_normal_perc(.95, mean = 1, sd = sd, print_plot = FALSE),
-                 "documented limit of 3e-14")
+                 "sd / \\|mean\\| must be at least 1e-10")
     expect_error(vdist_normal_prob(1, mean = 1, sd = sd, print_plot = FALSE),
-                 "documented limit of 3e-14")
+                 "sd / \\|mean\\| must be at least 1e-10")
   }
   # the ratio underflows to zero for a huge mean: the message must stay true
   expect_error(vdist_normal_plot(mean = 1e300, sd = 1e-10, print_plot = FALSE),
-               "below the documented limit of 3e-14")
-  expect_error(vdist_normal_plot(mean = 1e300, sd = 1e-10, print_plot = FALSE),
-               "1e-310")
+               "sd / \\|mean\\| must be at least 1e-10")
 })
 
 # ---------------------------------------------------------------------------
@@ -300,6 +298,6 @@ test_that("the documented guarantees match the fixed behaviour", {
     ""
   }
   expect_match(rd("vdist_normal_plot.Rd"), "near-zero mean")
-  expect_match(rd("vdist_chisquare_plot.Rd"), "occupy a pixel")
+  expect_match(rd("vdist_chisquare_plot.Rd"), "occupy a\\s+pixel")
   expect_match(rd("vdist_binom_plot.Rd"), "bounded")
 })

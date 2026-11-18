@@ -7,7 +7,11 @@ binomial distributions with ggplot2.
 
 Run inside an R session (no Makefile/scripts):
 
-`devtools``::`[`test`](https://devtools.r-lib.org/reference/test.html)`(``)`` ``# run testthat suite`` ``devtools``::`[`check`](https://devtools.r-lib.org/reference/check.html)`(``)`` ``# full R CMD check before finishing work`` ``devtools``::`[`document`](https://devtools.r-lib.org/reference/document.html)`(``)`` ``# regenerate man/*.Rd and NAMESPACE from roxygen comments`` ``pkgdown``::`[`build_site`](https://pkgdown.r-lib.org/reference/build_site.html)`(``)`` ``# rebuilds docs/ (committed to git)`
+\
+`devtools``::`[`test`](https://devtools.r-lib.org/reference/test.html)`(``)``        ``# run testthat suite`\
+`devtools``::`[`check`](https://devtools.r-lib.org/reference/check.html)`(``)``       ``# full R CMD check before finishing work`\
+`devtools``::`[`document`](https://devtools.r-lib.org/reference/document.html)`(``)``    ``# regenerate man/*.Rd and NAMESPACE from roxygen comments`\
+`pkgdown``::`[`build_site`](https://pkgdown.r-lib.org/reference/build_site.html)`(``)``   ``# rebuilds docs/ (committed to git)`
 
 ## Branches / CI
 

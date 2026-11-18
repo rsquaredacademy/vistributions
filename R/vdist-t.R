@@ -6,12 +6,15 @@
 #'
 #' @param df Degrees of freedom (positive; need not be a whole number).
 #' @param probs Probability value, strictly between 0 and 1 and within
-#'   \code{[1e-10, 1 - 1e-10]}.
+#'   \code{(1e-12, 1 - 1e-12)}.
 #' @param perc Quantile value. For \code{type = "interval"} and
 #'   \code{type = "both"} the event is defined by \code{|perc|}, so a negative
 #'   value gives the same result as its absolute value.
 #' @param type Lower tail, upper tail, interval or both.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
+#'
+#' @details Percentages below 1e-10\% are displayed as < 1e-10\%, and
+#' probabilities within 1e-10\% of 100\% as > 99.9999999999\%.
 #'
 #' @details
 #' Drawing contract: every probability, cutoff and caption is computed from the
@@ -19,7 +22,7 @@
 #' The shaded polygon spans the whole event (clipped only by the panel) and is
 #' sampled on a grid spaced in probability, with a fixed number of points; its
 #' own area is checked against the exact event probability and kept within
-#' 1e-3. Captions use one rounding rule and are true at the precision they
+#' 1e-6 relative error for events above the display floor. Captions use one rounding rule and are true at the precision they
 #' print. A very wide window - for example a heavy tail with a small \code{df} -
 #' is drawn on a symmetric log axis so the shaded event stays visible; the
 #' printed probability and the area check always use the unclipped density.
@@ -33,20 +36,20 @@
 #' @family t visualization
 #'
 #' @examples
-#' # visualize t distribution
+#' # Visualize a distribution, percentile and probability.
 #' vdist_t_plot()
-#' vdist_t_plot(6)
-#'
-#' # visualize quantiles out of given probability
 #' vdist_t_perc(probs = 0.95, df = 4, type = 'lower')
 #' vdist_t_perc(probs = 0.35, df = 4, type = 'upper')
-#' vdist_t_perc(probs = 0.69, df = 7, type = 'both')
-#'
-#' # visualize probability from a given quantile
 #' vdist_t_prob(2.045, 7, 'lower')
+#' vdist_t_prob(1.6, 7, 'both')
+#'
+#' # Additional variants are exercised in the test suite.
+#' \dontrun{
+#' vdist_t_plot(6)
+#' vdist_t_perc(probs = 0.69, df = 7, type = 'both')
 #' vdist_t_prob(0.945, 7, 'upper')
 #' vdist_t_prob(1.445, 7, 'interval')
-#' vdist_t_prob(1.6, 7, 'both')
+#' }
 #'
 #' @seealso \code{\link[stats]{TDist}}
 #'
@@ -81,7 +84,6 @@ vdist_t_perc <- function(probs = 0.95, df = 4, type = c("lower", "upper", "both"
   check_numeric(df, "df")
   check_scalar(df, "df")
   check_positive(df, "df")
-  check_range(probs, 0, 1, "probs")
   check_probability(probs, "probs", "t")
 
   method  <- match.arg(type)

@@ -10,7 +10,7 @@ probability and probability from a given quantile.
 vdist_chisquare_plot(
   df = 3,
   normal = FALSE,
-  xaxis_range = 25,
+  xaxis_range = NULL,
   print_plot = TRUE
 )
 
@@ -33,7 +33,7 @@ vdist_chisquare_prob(
 
 - df:
 
-  Degrees of freedom.
+  Degrees of freedom (at least 0.1; need not be a whole number).
 
 - normal:
 
@@ -42,7 +42,8 @@ vdist_chisquare_prob(
 
 - xaxis_range:
 
-  The upper range of the X axis.
+  Upper X axis limit; by default the view spans four standard deviations
+  around df, clipped at zero.
 
 - print_plot:
 
@@ -50,7 +51,8 @@ vdist_chisquare_prob(
 
 - probs:
 
-  Probability value.
+  Probability value, strictly between 0 and 1 and within
+  `(1e-12, 1 - 1e-12)`.
 
 - type:
 
@@ -63,6 +65,26 @@ vdist_chisquare_prob(
 ## Value
 
 An object of class `ggplot` (invisibly if `print_plot = TRUE`).
+
+## Details
+
+Percentages below 1e-10% are displayed as \< 1e-10%, and probabilities
+within 1e-10% of 100% as \> 99.9999999999%.
+
+Drawing contract: every probability, cutoff and caption is computed from
+the chi-square density, distribution and quantile functions, never from
+the drawn grid. The shading polygon starts at the support (zero), not at
+a quantile floor, so no probability is discarded for small `df`; it
+spans the whole event and its own area is checked against the exact
+event probability (within 1e-6 relative error above the display floor).
+Where the density is unbounded at zero it is capped on the display axis
+only: the source-coordinate area and the printed probability always use
+the unclipped density. Captions use one rounding rule and are true at
+the precision they print. A shaded region too narrow to occupy a pixel
+at the plotted scale (for example the lower 5% tail of `df = 0.1`) is
+marked with a visible strip in the panel and disclosed in the caption;
+its polygon and its checked area are unchanged. Every plotting grid has
+a bounded number of points, whatever the range or degrees of freedom.
 
 ## See also
 

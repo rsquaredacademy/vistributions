@@ -9,7 +9,7 @@
 vdist_chisquare_plot(
   df = 3,
   normal = FALSE,
-  xaxis_range = 25,
+  xaxis_range = NULL,
   print_plot = TRUE
 )
 
@@ -33,12 +33,12 @@ vdist_chisquare_prob(
 \item{normal}{If \code{TRUE}, normal curve with same \code{mean} and
 \code{sd} as the chi square distribution is drawn.}
 
-\item{xaxis_range}{The upper range of the X axis.}
+\item{xaxis_range}{Upper X axis limit; by default the view spans four standard deviations around df, clipped at zero.}
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
 \item{probs}{Probability value, strictly between 0 and 1 and within
-\code{[1e-6, 1 - 1e-6]}.}
+\code{(1e-12, 1 - 1e-12)}.}
 
 \item{type}{Lower tail or upper tail.}
 
@@ -53,12 +53,15 @@ the chi square distribution. Compute & visualize quantiles out of given
 probability and probability from a given quantile.
 }
 \details{
+Percentages below 1e-10\% are displayed as < 1e-10\%, and
+probabilities within 1e-10\% of 100\% as > 99.9999999999\%.
+
 Drawing contract: every probability, cutoff and caption is computed from the
 chi-square density, distribution and quantile functions, never from the
 drawn grid. The shading polygon starts at the support (zero), not at a
 quantile floor, so no probability is discarded for small \code{df}; it
 spans the whole event and its own area is checked against the exact event
-probability (within 1e-3). Where the density is unbounded at zero it is
+probability (within 1e-6 relative error above the display floor). Where the density is unbounded at zero it is
 capped on the display axis only: the source-coordinate area and the printed
 probability always use the unclipped density. Captions use one rounding rule
 and are true at the precision they print. A shaded region too narrow to

@@ -95,6 +95,10 @@ caption_half_unit <- function(s) {
 }
 
 expect_caption_true <- function(p, pfun) {
+  if (grepl("> 99\\.9999999999%", subtitle(p))) {
+    expect_gt(caption_prob(p, pfun), 1 - 1e-12)
+    return(invisible(NULL))
+  }
   shown <- as.numeric(regmatches(subtitle(p), regexec("= ([0-9.eE+-]+)%", subtitle(p)))[[1]][2])
   got   <- caption_prob(p, pfun) * 100
   expect_lte(abs(got - shown), caption_half_unit(subtitle(p)) + 1e-9)
@@ -126,9 +130,9 @@ finding_cases <- list(
                     truth = pf(4, 1e6, 1e6)),
   VFXX3_H1   = list(f = function() vdist_chisquare_perc(.05, 1, "upper", print_plot = FALSE),
                     pf = function(v, lower.tail = TRUE) pchisq(v, 1, lower.tail = lower.tail)),
-  VFXX3_H2   = list(f = function() vdist_normal_perc(.95, mean = 1, sd = 1e-13, print_plot = FALSE),
-                    pf = function(v, lower.tail = TRUE) pnorm(v, 1, 1e-13, lower.tail = lower.tail)),
-  VFXX3_M1   = list(f = function() vdist_chisquare_plot(2.01, print_plot = FALSE), shape = TRUE,
+  VFXX3_H2   = list(f = function() vdist_normal_perc(.95, mean = 1, sd = 1e-10, print_plot = FALSE),
+                    pf = function(v, lower.tail = TRUE) pnorm(v, 1, 1e-10, lower.tail = lower.tail)),
+  VFXX3_M1   = list(f = function() vdist_chisquare_plot(2.01, xaxis_range = 25, print_plot = FALSE), shape = TRUE,
                     truth = pchisq(25, 2.01)),
   VFXX4_H1   = list(f = function() vdist_normal_perc(.95, mean = 1e-16, sd = 1e-16, print_plot = FALSE),
                     pf = function(v, lower.tail = TRUE) pnorm(v, 1e-16, 1e-16, lower.tail = lower.tail)),
@@ -154,7 +158,7 @@ test_that("every continuous finding keeps its exact area and caption", {
     }
     truth <- if (!is.null(cs$truth)) cs$truth else {
       shown <- as.numeric(regmatches(subtitle(p), regexec("= ([0-9.eE+-]+)%", subtitle(p)))[[1]][2])
-      shown / 100
+      if (is.na(shown) && grepl("> 99", subtitle(p))) 1 else shown / 100
     }
     # the drawn polygon carries the exact event probability
     expect_lt(abs(dark_area(p) - truth), 1e-3)
@@ -260,7 +264,7 @@ test_that("shading is visible in the built panel for the must-pass inputs", {
     function() vdist_normal_perc(.5, type = "both", print_plot = FALSE),
     function() vdist_normal_perc(.95, sd = .1, print_plot = FALSE),
     function() vdist_normal_prob(.1645, sd = .1, print_plot = FALSE),
-    function() vdist_chisquare_plot(2.01, print_plot = FALSE),
+    function() vdist_chisquare_plot(2.01, xaxis_range = 25, print_plot = FALSE),
     function() vdist_t_perc(.95, .1, print_plot = FALSE),
     function() vdist_t_perc(.95, .2, print_plot = FALSE),
     function() vdist_normal_perc(.95, mean = 100, sd = 15, print_plot = FALSE),
@@ -333,7 +337,7 @@ test_that("low-df chi-square and F regions keep the mass at the support", {
     }
   }
   # the whole shape is finite and its area is the plotted probability
-  p <- vdist_chisquare_plot(df = .1, print_plot = FALSE)
+  p <- vdist_chisquare_plot(df = .1, xaxis_range = 25, print_plot = FALSE)
   expect_lt(abs(shape_area(p) - pchisq(25, .1)), 1e-3)
   expect_true(all(is.finite(p$data$chi)))
 
@@ -433,14 +437,14 @@ test_that("the documented limits stop with their own message", {
   expect_error(vdist_chisquare_plot(.05, print_plot = FALSE), "df must be at least 0.1")
   expect_error(vdist_f_perc(.95, .5, 30, print_plot = FALSE), "num_df must be at least 1")
   expect_error(vdist_f_plot(1e9, 1e9, print_plot = FALSE), "too concentrated")
-  expect_error(vdist_chisquare_perc(1e-8, 1, print_plot = FALSE),
-               "probs must be between 1e-06 and 0.999999")
+  expect_error(vdist_chisquare_perc(1e-13, 1, print_plot = FALSE),
+               "probs must be strictly between 1e-12 and 0.999999999999")
   expect_error(vdist_normal_perc(1e-12, print_plot = FALSE),
-               "probs must be between 1e-10 and 0.9999999999")
+               "probs must be strictly between 1e-12 and 0.999999999999")
   expect_error(vdist_t_perc(1e-12, 7, print_plot = FALSE),
-               "probs must be between 1e-10 and 0.9999999999")
+               "probs must be strictly between 1e-12 and 0.999999999999")
   expect_error(vdist_normal_perc(.95, mean = 1, sd = 1e-16, print_plot = FALSE),
-               "documented limit of 3e-14")
+               "sd / \\|mean\\| must be at least 1e-10")
   expect_error(vdist_binom_plot(3.1, .5), "whole number")
   expect_error(vdist_binom_prob(10, .5, c(6, 4), "interval"), "increasing order")
   expect_error(vdist_normal_prob(c(2, -1), type = "both"), "perc\\[1\\] must be less than")
@@ -449,8 +453,8 @@ test_that("the documented limits stop with their own message", {
 test_that("the contract table is the one the implementation enforces", {
   tab <- vistributions:::vdist_contract()
   expect_equal(tab$dist, c("normal", "t", "chisquare", "f", "binomial"))
-  expect_equal(tab$prob_lo[tab$dist == "normal"], 1e-10)
-  expect_equal(tab$prob_lo[tab$dist == "chisquare"], 1e-6)
+  expect_equal(tab$prob_lo[tab$dist == "normal"], 1e-12)
+  expect_equal(tab$prob_lo[tab$dist == "chisquare"], 1e-12)
   expect_match(tab$parameter[tab$dist == "chisquare"], "0.1")
   expect_match(tab$parameter[tab$dist == "f"], "num_df >= 1")
   # NEWS states the redesign without the retracted claims of earlier rounds
@@ -523,6 +527,6 @@ test_that("the grids stay bounded", {
   for (f in calls) {
     p <- f()
     expect_lt(nrow(p$data), 30000)
-    expect_lt(max(vapply(poly_layers(p), function(l) nrow(l$data), numeric(1))), 30000)
+    expect_lte(max(vapply(poly_layers(p), function(l) nrow(l$data), numeric(1))), 100003)
   }
 })

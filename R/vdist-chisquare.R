@@ -6,13 +6,16 @@
 #'
 #' @param df Degrees of freedom (at least 0.1; need not be a whole number).
 #' @param probs Probability value, strictly between 0 and 1 and within
-#'   \code{[1e-6, 1 - 1e-6]}.
+#'   \code{(1e-12, 1 - 1e-12)}.
 #' @param perc Quantile value.
 #' @param type Lower tail or upper tail.
 #' @param normal If \code{TRUE}, normal curve with same \code{mean} and
 #' \code{sd} as the chi square distribution is drawn.
-#' @param xaxis_range The upper range of the X axis.
+#' @param xaxis_range Upper X axis limit; by default the view spans four standard deviations around df, clipped at zero.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
+#'
+#' @details Percentages below 1e-10\% are displayed as < 1e-10\%, and
+#' probabilities within 1e-10\% of 100\% as > 99.9999999999\%.
 #'
 #' @details
 #' Drawing contract: every probability, cutoff and caption is computed from the
@@ -20,7 +23,7 @@
 #' drawn grid. The shading polygon starts at the support (zero), not at a
 #' quantile floor, so no probability is discarded for small \code{df}; it
 #' spans the whole event and its own area is checked against the exact event
-#' probability (within 1e-3). Where the density is unbounded at zero it is
+#' probability (within 1e-6 relative error above the display floor). Where the density is unbounded at zero it is
 #' capped on the display axis only: the source-coordinate area and the printed
 #' probability always use the unclipped density. Captions use one rounding rule
 #' and are true at the precision they print. A shaded region too narrow to
@@ -52,19 +55,21 @@
 #'
 #' @export
 #'
-vdist_chisquare_plot <- function(df = 3, normal = FALSE, xaxis_range = 25, print_plot = TRUE) {
+vdist_chisquare_plot <- function(df = 3, normal = FALSE, xaxis_range = NULL, print_plot = TRUE) {
 	check_print_plot(print_plot)
 
   check_numeric(df, "df")
   check_scalar(df, "df")
   check_positive(df, "df")
   vdist_check_chisquare_df(df)
+  default_range <- is.null(xaxis_range)
+  if (default_range) xaxis_range <- df + 4 * sqrt(2 * df)
   check_numeric(xaxis_range, "xaxis_range")
   check_scalar(xaxis_range, "xaxis_range")
   check_positive(xaxis_range, "xaxis_range")
   check_logical(normal)
 
-  data <- cplot_data_prep(df, xaxis_range)
+  data <- cplot_data_prep(df, xaxis_range, if (default_range) max(0, df - 4 * sqrt(2 * df)) else 0)
   plot <- cplot_plot_build(data, df, xaxis_range, normal)
 
 	if (print_plot) {
@@ -87,7 +92,6 @@ vdist_chisquare_perc <- function(probs = 0.95, df = 3, type = c("lower", "upper"
   check_scalar(df, "df")
   check_positive(df, "df")
   vdist_check_chisquare_df(df)
-  check_range(probs, 0, 1, "probs")
   check_probability(probs, "probs", "chisquare")
 
   method <- match.arg(type)

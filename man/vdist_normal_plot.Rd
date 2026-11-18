@@ -29,11 +29,7 @@ vdist_normal_prob(
 
 \item{sd}{Standard deviation of the normal distribution. It must be positive.
 When \code{mean} is nonzero, \code{sd / abs(mean)} must be at least
-\code{3e-14}: below that limit the whole plotted window (\code{mean +/-
-4 sd}) is indistinguishable from a zero-width range at the display's own
-tolerance, every vertex lands on the same screen position, and all three
-normal functions stop with a numerical-resolution error that names this
-limit.
+\code{1e-10}; smaller ratios are rejected.
 A near-zero mean is not a resolution failure: the ratio may overflow to
 infinity (\code{mean = 1e-308, sd = 10}) while the distribution is still
 perfectly resolvable, and it is drawn normally. Zero-centred
@@ -49,7 +45,9 @@ come from double precision and are reported by a specific error.}
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
 \item{probs}{Probability value, strictly between 0 and 1 and within
-\code{[1e-10, 1 - 1e-10]}.}
+\code{(1e-12, 1 - 1e-12)}. For \code{type = "both"}, the
+representable endpoints must enclose the requested mass to relative
+error at most 1e-6, or a numerical-resolution error is reported.}
 
 \item{type}{Lower tail, upper tail or both.}
 
@@ -66,11 +64,18 @@ shape of the normal distribution. Compute & visualize quantiles out of given
 probability  and probability from a given quantile.
 }
 \details{
+Percentages below 1e-10\% are displayed as < 1e-10\%, and
+probabilities within 1e-10\% of 100\% as > 99.9999999999\%.
+
+Supported values: for a central interval the representable endpoints
+must enclose \code{probs} to within 1e-6 relative error. If not, increase
+\code{sd} or choose a larger \code{probs}; ordinary inputs are unaffected.
+
 Drawing contract: every probability, cutoff and caption is computed from the
 normal density, distribution and quantile functions, never from the drawn
 grid. The shaded polygon spans the whole event and is sampled on a grid
 spaced in probability and in standardised units; its own area is checked
-against the exact event probability and kept within 1e-3. A percentage is
+against the exact event probability and kept within 1e-6 relative error for events above the display floor. A percentage is
 printed at a precision whose rounding interval contains the exact
 probability, and the printed cutoffs reproduce that displayed percentage.
 Because the normal is a location-scale family, multiplying \code{mean} and

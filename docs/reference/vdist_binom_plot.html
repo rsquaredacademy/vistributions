@@ -3,7 +3,7 @@
 success affect the shape of the binomial distribution. Compute &amp;amp; visualize
 probability from a given quantile and quantiles out of given probability."><meta property="og:description" content="Visualize how changes in number of trials and the probability of
 success affect the shape of the binomial distribution. Compute &amp;amp; visualize
-probability from a given quantile and quantiles out of given probability."><meta property="og:image" content="https://vistributions.rsquaredacademy.com/logo.png"><!-- Rsquared site-kit v1.0.1: GA4 + region-based consent. Kit files are vendored in pkgdown/assets/site-kit/. --><link rel="stylesheet" href="/site-kit/rsa-consent.css"><script src="/site-kit/rsa-analytics.js" data-ga-id="G-2QSPEL5WM6" async></script></head><body>
+probability from a given quantile and quantiles out of given probability."><meta property="og:image" content="https://vistributions.rsquaredacademy.com/logo.png"><!-- Rsquared site-kit v1.2.0: GA4 + region-based consent + email sign-up. Kit files are vendored in pkgdown/assets/site-kit/. --><link rel="stylesheet" href="/site-kit/rsa-consent.css"><script src="/site-kit/rsa-analytics.js" data-ga-id="G-2QSPEL5WM6" async></script><link rel="stylesheet" href="/site-kit/rsa-signup.css"><script src="/site-kit/rsa-signup.js" defer></script></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -11,7 +11,7 @@ probability from a given quantile and quantiles out of given probability."><meta
 
     <a class="navbar-brand me-2" href="../index.html">vistributions</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,7 +75,7 @@ probability from a given quantile and quantiles out of given probability.</p>
 
 
 <dl><dt id="arg-n">n<a class="anchor" aria-label="anchor" href="#arg-n"></a></dt>
-<dd><p>Number of trials.</p></dd>
+<dd><p>Number of trials (a single non-negative whole number).</p></dd>
 
 
 <dt id="arg-p">p<a class="anchor" aria-label="anchor" href="#arg-p"></a></dt>
@@ -87,7 +87,10 @@ probability from a given quantile and quantiles out of given probability.</p>
 
 
 <dt id="arg-s">s<a class="anchor" aria-label="anchor" href="#arg-s"></a></dt>
-<dd><p>Number of successes (quantile value).</p></dd>
+<dd><p>Number of successes: whole numbers in <code>[0, n]</code> only. Zero and
+<code>n</code> are counts of successes like any other; use <code><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">pbinom()</a></code> for
+an arbitrary threshold outside that range. For <code>type = "interval"</code>,
+two values in increasing order.</p></dd>
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
@@ -95,12 +98,27 @@ probability from a given quantile and quantiles out of given probability.</p>
 
 
 <dt id="arg-tp">tp<a class="anchor" aria-label="anchor" href="#arg-tp"></a></dt>
-<dd><p>Tail probability for quantile calculation.</p></dd>
+<dd><p>Tail probability for quantile calculation, strictly between 0 and
+1 and either equal to a cumulative-probability jump or more than 1e-12 away from it. For <code>type = "lower"</code> the cutoff is the smallest <code>k</code> with
+<code>P(X &lt;= k) &gt;= tp</code> (as <code><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">qbinom()</a></code>); for <code>type = "upper"</code> it
+is the smallest <code>k</code> with <code>P(X &gt; k) &lt;= tp</code>, and the bars with
+<code>x &gt; k</code> are shaded.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An object of class <code>ggplot</code> (invisibly if <code>print_plot = TRUE</code>).</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Probabilities below 1e-10% (including underflows) are shown as
+&lt; 1e-10%, with the corresponding upper display &gt; 99.9999999999%.</p>
+<p>Every bar is one count while <code>n + 1</code> counts fit in the plotting
+grid (2001 bars). A wider support is drawn in approximately 2001 bins
+of counts; event boundaries can split up to two bins, each bar showing the exact probability of its bin, with a caption
+that discloses the grouping; the grid therefore has a bounded number of
+points whatever <code>n</code> is. Probabilities, quantiles and shaded masses always
+come from <code><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">dbinom()</a></code>, <code><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">pbinom()</a></code> and <code><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">qbinom()</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -141,7 +159,7 @@ probability from a given quantile and quantiles out of given probability.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0. <a href="https://www.rsquaredacademy.com/privacy-policy.html" class="external-link">Privacy</a> · <a href="#" data-rsa-analytics-optout>Turn off analytics</a></p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1. <a href="https://www.rsquaredacademy.com/privacy-policy.html" class="external-link">Privacy</a> · <a href="#" data-rsa-analytics-optout>Turn off analytics</a></p>
 </div>
 
     </footer></div>

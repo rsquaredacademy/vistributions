@@ -130,7 +130,7 @@ test_that("H6: shading matches the reported cutoff (lower and upper)", {
   up <- vdist_binom_perc(10, .5, .05, "upper", print_plot = FALSE)
   expect_equal(sum(shaded_mass(up)), pbinom(8, 10, .5, lower.tail = FALSE))
   # exact equality boundary: P(X <= 0) = 0.5^10 exactly
-  eq <- vdist_binom_perc(10, .5, .5^10, "lower", print_plot = FALSE)
+  eq <- vdist_binom_perc(10, .5, pbinom(0, 10, .5), "lower", print_plot = FALSE)
   expect_equal(sum(shaded_mass(eq)), .5^10)
 })
 
@@ -189,7 +189,7 @@ test_that("M2: the shaded region keeps its area at small scales", {
 # M3 ------------------------------------------------------------------------
 
 test_that("M3: probs of 0 or 1 are rejected with a clear message", {
-  msg <- "probs must be greater than 0 and less than 1."
+  msg <- "probs must be strictly between 1e-12 and 0.999999999999"
   expect_error(vdist_normal_perc(1), msg)
   expect_error(vdist_normal_perc(0), msg)
   expect_error(vdist_t_perc(1), msg)
@@ -211,8 +211,8 @@ test_that("L3: missing, empty and vector inputs get package errors", {
 })
 
 test_that("L3: cutoffs outside the support give probability 0, not an error", {
-  expect_equal(subtitle(vdist_f_prob(-1, print_plot = FALSE)), "P(X < -1) = 0%")
-  expect_equal(subtitle(vdist_chisquare_prob(-1, print_plot = FALSE)), "P(X < -1) = 0%")
+  expect_equal(subtitle(vdist_f_prob(-1, print_plot = FALSE)), "P(X < -1) < 1e-10%")
+  expect_equal(subtitle(vdist_chisquare_prob(-1, print_plot = FALSE)), "P(X < -1) < 1e-10%")
   p <- vdist_chisquare_prob(-1, 5, "upper", print_plot = FALSE)
-  expect_equal(subtitle(p), "P(X > -1) = 100%")
+  expect_equal(subtitle(p), "P(X > -1) > 99.9999999999%")
 })

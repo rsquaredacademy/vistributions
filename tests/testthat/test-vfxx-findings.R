@@ -53,7 +53,7 @@ test_that("VFXX-H1: accepted near-integer trial counts are rounded once", {
   expect_equal(subtitle(vdist_binom_prob(n, .5, 3, "exact", print_plot = FALSE)),
                "P(X = 3) = 0.125")
   expect_equal(subtitle(vdist_binom_prob(n, .5, 3, "lower", print_plot = FALSE)),
-               "P(X <= 3) = 1")
+               "P(X <= 3) > 99.9999999999%")
   expect_equal(sum(shaded_mass(vdist_binom_prob(n, .5, 3, "lower", print_plot = FALSE))),
                pbinom(3, 3, .5))
 
@@ -195,5 +195,5 @@ test_that("VFXX-L1: an empty perc gives a package error, not an internal one", {
                "perc must have one or two values.")
   # equal endpoints are still a valid (empty) interval
   expect_equal(subtitle(vdist_normal_prob(c(1, 1), print_plot = FALSE)),
-               "P(1 < X < 1) = 0%")
+               "P(1 < X < 1) < 1e-10%")
 })

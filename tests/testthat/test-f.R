@@ -25,7 +25,7 @@ test_that("vdist_f_perc returns appropriate error messages", {
 
   expect_error(vdist_f_perc(den_df = as.factor(3)), "den_df must be numeric.")
 
-  expect_error(vdist_f_perc(1.02), "probs must be between 0 and 1 only.")
+  expect_error(vdist_f_perc(1.02), "probs must be strictly between 1e-12 and 0.999999999999")
 
 })
 

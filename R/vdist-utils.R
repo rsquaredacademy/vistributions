@@ -94,9 +94,8 @@ vdist_check_f_num_df <- function(num_df) {
 
 check_probability <- function(val, var = "probs", dist = "normal") {
   lim <- vdist_prob_range(dist)
-  check_open_range(val, var)
-  if (val < lim[1] || val > lim[2]) {
-    stop(paste0(var, " must be between ", format(lim[1], scientific = TRUE),
+  if (val <= lim[1] || val >= lim[2]) {
+    stop(paste0(var, " must be strictly between ", format(lim[1], scientific = TRUE),
                 " and ", format(lim[2], scientific = FALSE, digits = 15),
                 " for guaranteed numerical accuracy."), call. = FALSE)
   }
@@ -204,9 +203,9 @@ vdist_check_density <- function(y, what = "density") {
 vdist_contract <- function(dist = NULL) {
   tab <- data.frame(
     dist          = c("normal", "t", "chisquare", "f", "binomial"),
-    prob_lo       = c(1e-10, 1e-10, 1e-6, 1e-6, NA_real_),
-    prob_hi       = c(1 - 1e-10, 1 - 1e-10, 1 - 1e-6, 1 - 1e-6, NA_real_),
-    parameter     = c("sd / |mean| >= 3e-14 (mean != 0)",
+    prob_lo       = c(1e-12, 1e-12, 1e-12, 1e-12, NA_real_),
+    prob_hi       = c(1 - 1e-12, 1 - 1e-12, 1 - 1e-12, 1 - 1e-12, NA_real_),
+    parameter     = c("sd / |mean| >= 1e-10 (mean != 0)",
                       "df > 0",
                       "df >= 0.1",
                       "num_df >= 1, den_df > 0",
@@ -262,11 +261,11 @@ vdist_check_area <- function(x, y, target, what = "shaded region") {
 # shading polygon spans the whole event (the panel only clips the drawing), so
 # the area is a direct, independent check of the sampling grid.
 vdist_check_region <- function(area, target, what = "shaded region") {
-  if (!is.finite(area) || abs(area - target) > 1e-3) {
+  if (!is.finite(area) || (target >= 1e-12 && abs(area - target) > 1e-6 * target)) {
     stop(paste0("The ", what, " area (", format(area, digits = 8),
                 ") does not match the probability of its event (",
                 format(target, digits = 8),
-                ") within 1e-3; the density is too concentrated for the ",
+                ") within 1e-6 relative error; the density is too concentrated for the ",
                 "documented plotting contract."), call. = FALSE)
   }
   invisible(area)
@@ -322,7 +321,16 @@ vdist_region_grid <- function(lo, hi, pfun, qfun, n) {
   }
   # uniform points across the region (in standardised units, see vdist_region)
   xu  <- seq(lo, hi, length.out = n)
-  x  <- sort(unique(c(lo, xp, xu, hi)))
+  # Uniform spacing cannot resolve a heavy-tail interval spanning many orders
+  # of magnitude. Keep a geometric grid in x as well as the CDF and linear grids.
+  xlog <- numeric(0)
+  if ((lo > 0 && hi > 0) || (lo < 0 && hi < 0)) {
+    ends <- sort(abs(c(lo, hi)))
+    if (ends[1] > 0 && log(ends[2]) - log(ends[1]) > log(1e4)) {
+      xlog <- sign(lo) * exp(seq(log(ends[1]), log(ends[2]), length.out = n))
+    }
+  }
+  x  <- sort(unique(c(lo, xp, xu, xlog, hi)))
   x  <- x[is.finite(x) & x >= lo & x <= hi]
   x
 }
@@ -338,8 +346,8 @@ vdist_region_grid <- function(lo, hi, pfun, qfun, n) {
 # p(hi) - p(lo). The refinement is therefore driven by the region's own scale
 # and its exact probability, not by a step in data units.
 vdist_region <- function(lo, hi, dfun, pfun, qfun,
-                         n = 65L, tol = 1e-5, max_pts = 20001L,
-                         max_pass = 200L, frac = 0.03,
+                         n = 65L, tol = 1e-5, max_pts = 100001L,
+                         max_pass = 200L, frac = 0.10,
                          center = 0, scale = 1) {
   if (!is.finite(lo) || !is.finite(hi)) {
     stop("The shading region is not finite; choose parameters inside the ",
@@ -359,14 +367,21 @@ vdist_region <- function(lo, hi, dfun, pfun, qfun,
   if (!is.finite(zlo) || !is.finite(zhi) || zhi <= zlo) {
     return(list(x = c(lo, hi), y = c(0, 0), area = 0, n = 0L))
   }
-  pfun_z <- function(z) pfun(ctr + scl * z)
+  pfun_z <- function(z, lower.tail = TRUE) pfun(ctr + scl * z, lower.tail = lower.tail)
   dfun_z <- function(z) scl * dfun(ctr + scl * z)
   qfun_z <- function(p) (qfun(p) - ctr) / scl
 
   p_lo   <- pfun_z(zlo)
   p_hi   <- pfun_z(zhi)
-  target <- p_hi - p_lo
+  target <- vdist_prob_between(pfun_z, dfun_z, zlo, zhi)
+  tol <- min(tol, target * 2e-7)
   x <- vdist_region_grid(zlo, zhi, pfun_z, qfun_z, n)
+  # In a translated, narrow distribution, z values that map to the same
+  # source-coordinate double must not be treated as different vertices.
+  # Snap to the exact x values that the plot will actually draw.
+  translated <- ctr != 0 && scl / abs(ctr) < 1e-6
+  snap <- function(z) if (translated) ((ctr + scl * z) - ctr) / scl else z
+  if (translated) x <- sort(unique(snap(x)))
   if (length(x) < 2) {
     return(list(x = c(lo, hi), y = c(0, 0), area = 0, n = 0L))
   }
@@ -393,22 +408,33 @@ vdist_region <- function(lo, hi, dfun, pfun, qfun,
   pass <- 0L
   while (qz(abs(a - target)) > tol && length(x) < max_pts && pass < max_pass) {
     pass <- pass + 1L
-    err <- ((y[-1] + y[-length(y)]) / 2) * diff(x) -
-      (pfun_z(x[-1]) - pfun_z(x[-length(x)]))
+    cdf <- pfun_z(x)
+    interval_mass <- cdf[-1] - cdf[-length(cdf)]
+    upper <- cdf[-1] > 0.5
+    if (any(upper)) {
+      survival <- pfun_z(x, lower.tail = FALSE)
+      interval_mass[upper] <- (survival[-length(survival)] - survival[-1])[upper]
+    }
+    err <- ((y[-1] + y[-length(y)]) / 2) * diff(x) - interval_mass
     ae  <- abs(qz(err))
     k   <- max(4L, ceiling(frac * length(x)))
-    thr <- max(tol * 1e-2, as.numeric(stats::quantile(
-      ae, max(0, 1 - k / length(x)), names = FALSE, type = 1)))
+    thr <- as.numeric(stats::quantile(
+      ae, max(0, 1 - k / length(x)), names = FALSE, type = 1))
     idx <- which(ae >= thr & ae > 0)
     if (!length(idx)) {
       idx <- which.max(ae)
+    }
+    if (length(idx) > max_pts - length(x)) {
+      idx <- idx[order(ae[idx], decreasing = TRUE)[seq_len(max_pts - length(x))]]
     }
     mid <- (x[idx] + x[idx + 1]) / 2
     mid <- mid[is.finite(mid) & mid > x[idx] & mid < x[idx + 1]]
     if (!length(mid)) {
       break
     }
-    x <- sort(c(x, mid))
+    next_x <- sort(unique(c(x, snap(mid))))
+    if (length(next_x) == length(x)) break
+    x <- next_x
     y <- fix(x, dfun_z(x))
     a <- poly_area()
   }
@@ -455,26 +481,9 @@ vdist_region <- function(lo, hi, dfun, pfun, qfun,
 vdist_check_normal_resolution <- function(mean, sd) {
   if (abs(mean) > 0) {
     ratio <- sd / abs(mean)
-    # Compare on the log scale. The ratio itself overflows to Inf for a
-    # near-zero mean (mean = 1e-308, sd = 10) and underflows to 0 for a mean
-    # close to the largest double; only a genuinely tiny ratio is rejected.
-    # log(sd) - log(|mean|) is the same comparison without either overflow.
-    lratio <- log(sd) - log(abs(mean))
-    # A panel needs its x range to be distinguishable from zero at the
-    # display's own tolerance (about 1000 * eps * |mean|). Below sd/|mean| =
-    # 3e-14 the whole window is treated as a zero-width range and every vertex
-    # lands on the same screen position.
-    if (is.finite(lratio) && lratio < log(3e-14)) {
-      shown <- if (is.finite(ratio)) {
-        format(ratio, scientific = TRUE, digits = 3)
-      } else {
-        "0 (underflow)"
-      }
-      stop(paste0("The normal cutoff cannot be represented numerically: ",
-                  "sd / |mean| = ", shown,
-                  " is below the documented limit of 3e-14. Use a larger sd ",
-                  "relative to the mean (scaling mean and sd together is ",
-                  "always allowed)."), call. = FALSE)
+    if (ratio < 1e-10) {
+      stop("sd / |mean| must be at least 1e-10 when mean is nonzero.",
+           call. = FALSE)
     }
   }
   invisible(TRUE)
@@ -561,8 +570,12 @@ fmt_num <- function(x, scale = Inf) {
     if (abs(xk[i]) >= 1e15) {
       # a very large cutoff keeps only significant digits; printing it as a
       # fixed number would emit meaningless integer digits
-      format(signif(xk[i], 6), scientific = TRUE, trim = TRUE,
-             decimal.mark = ".")
+      ratio <- sk[i] / abs(xk[i])
+      digits <- if (is.finite(ratio) && ratio > 0 && ratio < 1e-6) {
+        min(17, max(6, ceiling(-log10(ratio)) + 3))
+      } else 6
+      format(signif(xk[i], digits), digits = digits, scientific = TRUE,
+             trim = TRUE, decimal.mark = ".")
     } else if (dec[i] > 17) {
       format(signif(xk[i], 4), scientific = TRUE, trim = TRUE,
              decimal.mark = ".")
@@ -605,7 +618,7 @@ vdist_grid <- function(from, to, pfun, qfun, n = vdist_n_points,
   p_to   <- pfun(to)
 
   if (!is.finite(p_from) || !is.finite(p_to) || p_to <= p_from) {
-    return(sort(unique(c(from, to))))
+    return(vdist_seq(from, to, n))
   }
 
   # See vdist_region_grid(): only a view entirely below 1e-12 of probability
@@ -616,7 +629,7 @@ vdist_grid <- function(from, to, pfun, qfun, n = vdist_n_points,
   phi <- min(max(p_to, lo_eps), hi_eps)
 
   if (phi <= plo) {
-    return(sort(unique(c(from, to))))
+    return(vdist_seq(from, to, n))
   }
 
   p <- stats::plogis(seq(stats::qlogis(plo), stats::qlogis(phi),
@@ -699,14 +712,15 @@ vdist_prob_between <- function(pfun, dfun, a, b) {
   }
   pb <- pfun(b)
   pa <- pfun(a)
-  if (is.finite(pb) && pb > 0.5 && pb >= pa) {
-    d <- pfun(a, lower.tail = FALSE) - pfun(b, lower.tail = FALSE)
-    if (is.finite(d) && d >= 0) {
-      return(d)
-    }
+  if (is.finite(pb) && pb > 0.5) {
+    left <- pfun(a, lower.tail = FALSE)
+    right <- pfun(b, lower.tail = FALSE)
+  } else {
+    left <- pb
+    right <- pa
   }
-  d <- pb - pa
-  if (is.finite(d) && d > 1e-12 * max(pa, 1 - pb, 1e-300)) {
+  d <- left - right
+  if (is.finite(d) && d > 1e-8 * max(abs(left), abs(right))) {
     return(d)
   }
   if (!is.null(dfun)) {
@@ -727,15 +741,41 @@ vdist_prob_between <- function(pfun, dfun, a, b) {
 # location and scale.
 vdist_check_central <- function(c1, c2, prob, target, what = "probability") {
   if (c1 == c2 || !is.finite(prob) || prob <= 0 ||
-      prob < target * (1 - 1e-3)) {
-    stop(paste0("The requested central ", what, " of ", format(target, digits = 15),
-                " cannot be represented numerically at this location and ",
-                "scale: the two quantiles are the same double (",
-                format(c1, digits = 17, decimal.mark = "."), "). Use a larger ",
-                "sd or a probability inside the documented range 1e-10 to ",
-                "1 - 1e-10."), call. = FALSE)
+      abs(prob - target) > target * 1e-6) {
+    stop(paste0("probs requests a central probability of ",
+                format(target, digits = 15),
+                " that cannot be represented at this scale with the given sd; ",
+                "choose a larger sd or probs."), call. = FALSE)
   }
   invisible(prob)
+}
+
+# Retain qf when it inverts pf to the requested relative precision. When it
+# does not, compute the same quantile using the F-beta identity. Evaluate the
+# complementary beta quantile separately to avoid cancellation near one.
+vdist_f_quantile <- function(p, num_df, den_df, lower.tail = TRUE) {
+  q <- stats::qf(p, num_df, den_df, lower.tail = lower.tail)
+  got <- stats::pf(q, num_df, den_df, lower.tail = lower.tail)
+  bad <- is.finite(p) & p > 0 & p < 1 &
+    (!is.finite(q) | !is.finite(got) | abs(got - p) > 1e-6 * p)
+  if (any(bad)) {
+    z <- stats::qbeta(p[bad], num_df / 2, den_df / 2,
+                      lower.tail = lower.tail)
+    complement <- stats::qbeta(p[bad], den_df / 2, num_df / 2,
+                               lower.tail = !lower.tail)
+    candidate <- (den_df / num_df) * (z / complement)
+    indeterminate <- is.nan(candidate) | is.infinite(candidate)
+    if (any(indeterminate)) {
+      candidate[indeterminate] <- exp(log(den_df) - log(num_df) +
+        log(z[indeterminate]) - log(complement[indeterminate]))
+    }
+    candidate_p <- stats::pf(candidate, num_df, den_df, lower.tail = lower.tail)
+    improves <- is.finite(candidate) & is.finite(candidate_p) &
+      (!is.finite(got[bad]) | abs(candidate_p - p[bad]) < abs(got[bad] - p[bad]))
+    indices <- which(bad)
+    q[indices[improves]] <- candidate[improves]
+  }
+  q
 }
 
 # Display a distribution moment: ordinary values keep the historical three
@@ -765,6 +805,12 @@ fmt_moment <- function(x) {
 vdist_fmt_pct <- function(p) {
   if (length(p) != 1L || !is.finite(p)) {
     return(list(text = "NA", value = NA_real_, tol = Inf))
+  }
+  if (p >= 0 && p < 1e-12) {
+    return(list(text = "< 1e-10", value = p, tol = 1e-12))
+  }
+  if (p <= 1 && p > 1 - 1e-12) {
+    return(list(text = "> 99.9999999999", value = p, tol = 1e-12))
   }
   if (p == 0) {
     return(list(text = "0", value = 0, tol = 0.005))
@@ -803,6 +849,15 @@ vdist_pct_text <- function(p) {
   vdist_fmt_pct(p)$text
 }
 
+# A displayed bound is an inequality, not a rounding interval. A cutoff must
+# keep the probability on the correct side of that bound.
+vdist_pct_matches <- function(p, target, tol, text = NULL) {
+  if (!is.finite(p)) return(FALSE)
+  if (!is.null(text) && startsWith(text, "<")) return(p < 1e-12)
+  if (!is.null(text) && startsWith(text, ">")) return(p > 1 - 1e-12)
+  abs(p - target) <= tol
+}
+
 # A binomial caption probability: rounded exactly once, from the exact value.
 # Ordinary probabilities keep the historical three decimals; a probability
 # below 1e-3 is printed in the package's scientific-notation style rather than
@@ -813,11 +868,11 @@ vdist_fmt_binom_prob <- function(p) {
   if (length(p) != 1L || !is.finite(p)) {
     return("NA")
   }
-  if (p <= 0) {
-    return("0")
+  if (p < 1e-12) {
+    return("< 1e-10%")
   }
-  if (p >= 1) {
-    return("1")
+  if (p > 1 - 1e-12) {
+    return("> 99.9999999999%")
   }
   if (p >= 1e-3) {
     return(sprintf("%.3f", p))
@@ -856,7 +911,7 @@ vdist_fmt_cutoff <- function(x, scale, pfun, target) {
   disp <- vdist_fmt_pct(target)
   ok <- function(s) {
     v <- suppressWarnings(as.numeric(s))
-    is.finite(v) && is.finite(pfun(v)) && abs(pfun(v) - disp$value) <= disp$tol
+    is.finite(v) && vdist_pct_matches(pfun(v), disp$value, disp$tol, disp$text)
   }
 
   current <- fmt_num(x, scale)
@@ -889,7 +944,8 @@ vdist_fmt_cutoff <- function(x, scale, pfun, target) {
 # at the original coordinate by at most `tol`. Used for probability captions,
 # where the printed cutoff defines the event and must therefore keep the
 # probability that is printed beside it.
-vdist_fmt_value <- function(x, scale, pfun, tol = 1e-6, displayed = NULL) {
+vdist_fmt_value <- function(x, scale, pfun, tol = 1e-6, displayed = NULL,
+                            otherfun = NULL, other = NULL, display_text = NULL) {
   # `displayed` is the probability the caption prints. The printed cutoff must
   # keep *that* probability at the displayed precision, not merely stay within
   # half a display unit of the unrounded value: the two CDF values can straddle
@@ -897,7 +953,8 @@ vdist_fmt_value <- function(x, scale, pfun, tol = 1e-6, displayed = NULL) {
   target <- if (is.null(displayed)) pfun(x) else displayed
   ok <- function(s) {
     v <- suppressWarnings(as.numeric(s))
-    is.finite(v) && is.finite(pfun(v)) && abs(pfun(v) - target) <= tol
+    is.finite(v) && vdist_pct_matches(pfun(v), target, tol, display_text) &&
+      (is.null(otherfun) || vdist_pct_matches(otherfun(v), other$value, other$tol, other$text))
   }
 
   current <- fmt_num(x, scale)
@@ -935,7 +992,7 @@ vdist_fmt_interval <- function(x1, x2, scale, pfun, target, dfun = NULL) {
     a <- suppressWarnings(as.numeric(a))
     b <- suppressWarnings(as.numeric(b))
     is.finite(a) && is.finite(b) && is.finite(pfun(b)) && is.finite(pfun(a)) &&
-      abs(vdist_prob_between(pfun, dfun, a, b) - disp$value) <= disp$tol
+      vdist_pct_matches(vdist_prob_between(pfun, dfun, a, b), disp$value, disp$tol, disp$text)
   }
 
   s1 <- fmt_num(x1, scale)
@@ -1032,7 +1089,16 @@ vdist_density_cap <- function(dfun, lo, hi, pfun = NULL, qfun = NULL) {
     sing <- any(!is.finite(edge_y))
   }
   if (sing) {
-    body <- min(body, uni)
+    # For a distribution overwhelmingly concentrated at the support edge,
+    # the mass median itself can be an enormous spike. In that case use the
+    # visible uniform-x body; a wide F tail instead needs the mass median.
+    if (!is.null(qfun) && is.finite(uni) && uni > 0) {
+      q50 <- qfun(0.5)
+      q90 <- qfun(0.9)
+      if (is.finite(q50) && is.finite(q90) && q50 > 0 && q90 / q50 > 1e4) {
+        body <- min(body, uni)
+      }
+    }
     if (is.finite(body) && body > 0 && mx > 20 * body) body else mx
   } else {
     # No singularity: the tallest point of a bounded density is its body and
@@ -1167,6 +1233,7 @@ vdist_subpixel_layer <- function(data, ylim) {
 # applies, joined into one true sentence.
 vdist_caption_text <- function(data) {
   bits <- character(0)
+  if (isTRUE(data$underflow)) bits <- c(bits, "the shaded region is too small to display")
   b <- vdist_beyond_text(data$omitted)
   if (!is.null(b)) {
     bits <- c(bits, b)
@@ -1210,11 +1277,21 @@ vdist_region_bounds <- function(spec, ev_lo, ev_hi, prob = NULL) {
   # the region has zero width (or the event lies wholly beyond it).
   tp <- spec$tail
   if (!is.null(prob) && is.finite(prob) && prob > 0) {
-    tp <- min(tp, prob * 1e-6)
+    tp <- min(tp, prob * 1e-8)
   }
   tp <- max(tp, 1e-300)
   qlo <- vdist_tail_quantile(spec$qfun, tp, lower.tail = TRUE)$q
   qhi <- vdist_tail_quantile(spec$qfun, tp, lower.tail = FALSE)$q
+  # Some base quantiles do not invert their own CDF for very large degrees of
+  # freedom. A bad tail bound can discard visible mass even for an event of 1.
+  if (is.finite(qlo) && spec$pfun(qlo) > tp * 10) {
+    refined <- vdist_refine_quantile(qlo, spec$pfun, tp)
+    if (!is.null(refined)) qlo <- refined
+  }
+  if (is.finite(qhi) && spec$pfun(qhi, lower.tail = FALSE) > tp * 10) {
+    refined <- vdist_refine_quantile(qhi, function(x) spec$pfun(x, lower.tail = FALSE), tp)
+    if (!is.null(refined)) qhi <- refined
+  }
 
   lo <- ev_lo
   hi <- ev_hi

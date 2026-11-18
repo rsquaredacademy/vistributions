@@ -3,7 +3,7 @@
 shape of the normal distribution. Compute &amp;amp; visualize quantiles out of given
 probability  and probability from a given quantile."><meta property="og:description" content="Visualize how changes in mean and standard deviation affect the
 shape of the normal distribution. Compute &amp;amp; visualize quantiles out of given
-probability  and probability from a given quantile."><meta property="og:image" content="https://vistributions.rsquaredacademy.com/logo.png"><!-- Rsquared site-kit v1.0.1: GA4 + region-based consent. Kit files are vendored in pkgdown/assets/site-kit/. --><link rel="stylesheet" href="/site-kit/rsa-consent.css"><script src="/site-kit/rsa-analytics.js" data-ga-id="G-2QSPEL5WM6" async></script></head><body>
+probability  and probability from a given quantile."><meta property="og:image" content="https://vistributions.rsquaredacademy.com/logo.png"><!-- Rsquared site-kit v1.2.0: GA4 + region-based consent + email sign-up. Kit files are vendored in pkgdown/assets/site-kit/. --><link rel="stylesheet" href="/site-kit/rsa-consent.css"><script src="/site-kit/rsa-analytics.js" data-ga-id="G-2QSPEL5WM6" async></script><link rel="stylesheet" href="/site-kit/rsa-signup.css"><script src="/site-kit/rsa-signup.js" defer></script></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -11,7 +11,7 @@ probability  and probability from a given quantile."><meta property="og:image" c
 
     <a class="navbar-brand me-2" href="../index.html">vistributions</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,7 +79,20 @@ probability  and probability from a given quantile.</p>
 
 
 <dt id="arg-sd">sd<a class="anchor" aria-label="anchor" href="#arg-sd"></a></dt>
-<dd><p>Standard deviation of the normal distribution.</p></dd>
+<dd><p>Standard deviation of the normal distribution. It must be positive.
+When <code>mean</code> is nonzero, <code>sd / abs(mean)</code> must be at least
+<code>1e-10</code>; smaller ratios are rejected.
+A near-zero mean is not a resolution failure: the ratio may overflow to
+infinity (<code>mean = 1e-308, sd = 10</code>) while the distribution is still
+perfectly resolvable, and it is drawn normally. Zero-centred
+distributions have no translation and may use any positive
+<code>sd</code>. The comparison is a ratio, so multiplying <code>mean</code> and
+<code>sd</code> by the same factor (a change of units, for example from metres to
+millimetres) never changes the result. Independently, the density must be
+finite (<code>sd</code> at least about <code>1e-308</code>) and the plotted window
+<code>mean +/- 4 sd</code> must be representable: both its ends and its width
+must fit in a double (<code>sd</code> below about <code>2.2e307</code>). Both limits
+come from double precision and are reported by a specific error.</p></dd>
 
 
 <dt id="arg-print-plot">print_plot<a class="anchor" aria-label="anchor" href="#arg-print-plot"></a></dt>
@@ -87,7 +100,10 @@ probability  and probability from a given quantile.</p>
 
 
 <dt id="arg-probs">probs<a class="anchor" aria-label="anchor" href="#arg-probs"></a></dt>
-<dd><p>Probability value.</p></dd>
+<dd><p>Probability value, strictly between 0 and 1 and within
+<code>(1e-12, 1 - 1e-12)</code>. For <code>type = "both"</code>, the
+representable endpoints must enclose the requested mass to relative
+error at most 1e-6, or a numerical-resolution error is reported.</p></dd>
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
@@ -95,12 +111,39 @@ probability  and probability from a given quantile.</p>
 
 
 <dt id="arg-perc">perc<a class="anchor" aria-label="anchor" href="#arg-perc"></a></dt>
-<dd><p>Quantile value.</p></dd>
+<dd><p>Quantile value(s): a single value for a lower or upper tail, or
+two values in nondecreasing order for the interval between them. Two
+values select <code>type = "both"</code> automatically.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An object of class <code>ggplot</code> (invisibly if <code>print_plot = TRUE</code>).</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Percentages below 1e-10% are displayed as &lt; 1e-10%, and
+probabilities within 1e-10% of 100% as &gt; 99.9999999999%.</p>
+<p>Supported values: for a central interval the representable endpoints
+must enclose <code>probs</code> to within 1e-6 relative error. If not, increase
+<code>sd</code> or choose a larger <code>probs</code>; ordinary inputs are unaffected.</p>
+<p>Drawing contract: every probability, cutoff and caption is computed from the
+normal density, distribution and quantile functions, never from the drawn
+grid. The shaded polygon spans the whole event and is sampled on a grid
+spaced in probability and in standardised units; its own area is checked
+against the exact event probability and kept within 1e-6 relative error for events above the display floor. A percentage is
+printed at a precision whose rounding interval contains the exact
+probability, and the printed cutoffs reproduce that displayed percentage.
+Because the normal is a location-scale family, multiplying <code>mean</code> and
+<code>sd</code> by the same factor changes only the axis labels: the shaded
+proportion, the probability caption and the standardised picture are the
+same. A part of the shaded region that lies outside the plotted window is
+disclosed in a plot caption. A shaded region too narrow to occupy a pixel at
+the plotted scale (for example an extreme percentile of a concentrated
+distribution) is marked with a visible strip in the panel and disclosed in
+the caption; its polygon and its checked area are unchanged. Every plotting
+grid has a bounded number of points, whatever the mean and standard
+deviation.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -142,7 +185,7 @@ probability  and probability from a given quantile.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0. <a href="https://www.rsquaredacademy.com/privacy-policy.html" class="external-link">Privacy</a> · <a href="#" data-rsa-analytics-optout>Turn off analytics</a></p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1. <a href="https://www.rsquaredacademy.com/privacy-policy.html" class="external-link">Privacy</a> · <a href="#" data-rsa-analytics-optout>Turn off analytics</a></p>
 </div>
 
     </footer></div>

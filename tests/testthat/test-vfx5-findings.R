@@ -321,7 +321,7 @@ test_that("VFXX4-L1: help and NEWS state the limits this implementation enforces
     ""
   }
   expect_match(rd_text("vdist_normal_plot.Rd"), "sd / abs\\(mean\\)")
-  expect_match(rd_text("vdist_normal_plot.Rd"), "3e-14")
+  expect_match(rd_text("vdist_normal_plot.Rd"), "1e-10")
   expect_match(rd_text("vdist_f_plot.Rd"), "0.001")
   expect_match(rd_text("vdist_f_plot.Rd"), "finite")
 

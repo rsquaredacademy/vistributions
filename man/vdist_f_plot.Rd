@@ -38,7 +38,9 @@ message when \code{den_df <= 4} (the variance is undefined).}
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
 \item{probs}{Probability value, strictly between 0 and 1 and within
-\code{[1e-6, 1 - 1e-6]}.}
+\code{(1e-12, 1 - 1e-12)}. The computed quantile must invert the
+corresponding F tail to within 1e-6 relative error; otherwise a numerical
+resolution error is reported.}
 
 \item{type}{Lower tail or upper tail.}
 
@@ -53,6 +55,9 @@ shape of the F distribution. Compute & visualize quantiles out of given
 probability and probability from a given quantile.
 }
 \details{
+Percentages below 1e-10\% are displayed as < 1e-10\%, and
+probabilities within 1e-10\% of 100\% as > 99.9999999999\%.
+
 The F density must not be too concentrated to draw: the central
 99.9998\% probability mass must span a finite interval of at least 0.001.
 More concentrated densities (for example \code{num_df = den_df = 1e9}) stop
@@ -62,13 +67,14 @@ is reported as a tail-overflow error, separately from concentration.
 Every probability, cutoff and caption is computed from the F density,
 distribution and quantile functions, never from the drawn grid: the shading
 polygon starts at the support and spans the whole event, and its own area is
-checked against the exact event probability (within 1e-3). Where the density
+checked against the exact event probability (within 1e-6 relative error above the display floor). Where the density
 is unbounded at zero it is capped on the display axis only; the area check
 and the printed probability always use the unclipped density.
 Very wide heavy-tail windows are drawn on a symmetric log axis so the shaded
 event stays visible. Captions use one rounding rule and are true at the
-precision they print. Quantiles are refined by root finding when the
-\code{stats} quantile does not invert its own distribution function, so equal
+precision they print. When \code{qf()} fails to invert \code{pf()} to
+relative 1e-6, the equivalent F-beta quantile is used. Quantiles may also
+be refined by root finding, so equal
 degrees of freedom up to at least \code{1e8} plot accurately. A shaded
 region too narrow to occupy a pixel at the plotted scale is marked with a
 visible strip in the panel and disclosed in the caption; its polygon and its

@@ -31,7 +31,7 @@ vdist_binom_perc(
 
 - n:
 
-  Number of trials.
+  Number of trials (a single non-negative whole number).
 
 - p:
 
@@ -43,7 +43,11 @@ vdist_binom_perc(
 
 - s:
 
-  Number of successes (quantile value).
+  Number of successes: whole numbers in `[0, n]` only. Zero and `n` are
+  counts of successes like any other; use
+  [`pbinom()`](https://rdrr.io/r/stats/Binomial.html) for an arbitrary
+  threshold outside that range. For `type = "interval"`, two values in
+  increasing order.
 
 - type:
 
@@ -51,11 +55,32 @@ vdist_binom_perc(
 
 - tp:
 
-  Tail probability for quantile calculation.
+  Tail probability for quantile calculation, strictly between 0 and 1
+  and either equal to a cumulative-probability jump or more than 1e-12
+  away from it. For `type = "lower"` the cutoff is the smallest `k` with
+  `P(X <= k) >= tp` (as
+  [`qbinom()`](https://rdrr.io/r/stats/Binomial.html)); for
+  `type = "upper"` it is the smallest `k` with `P(X > k) <= tp`, and the
+  bars with `x > k` are shaded.
 
 ## Value
 
 An object of class `ggplot` (invisibly if `print_plot = TRUE`).
+
+## Details
+
+Probabilities below 1e-10% (including underflows) are shown as \<
+1e-10%, with the corresponding upper display \> 99.9999999999%.
+
+Every bar is one count while `n + 1` counts fit in the plotting grid
+(2001 bars). A wider support is drawn in approximately 2001 bins of
+counts; event boundaries can split up to two bins, each bar showing the
+exact probability of its bin, with a caption that discloses the
+grouping; the grid therefore has a bounded number of points whatever `n`
+is. Probabilities, quantiles and shaded masses always come from
+[`dbinom()`](https://rdrr.io/r/stats/Binomial.html),
+[`pbinom()`](https://rdrr.io/r/stats/Binomial.html) and
+[`qbinom()`](https://rdrr.io/r/stats/Binomial.html).
 
 ## See also
 

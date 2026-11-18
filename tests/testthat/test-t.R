@@ -11,7 +11,7 @@ test_that("vdist_t_prob throws the appropriate errors", {
 })
 
 test_that("vdist_t_perc throws the appropriate errors", {
-  expect_error(vdist_t_perc(1.5), "probs must be between 0 and 1 only.")
+  expect_error(vdist_t_perc(1.5), "probs must be strictly between 1e-12 and 0.999999999999")
   expect_error(vdist_t_perc("0.95"), "probs must be numeric.")
   expect_error(vdist_t_perc(TRUE), "probs must be numeric.")
   expect_error(vdist_t_perc(0.95, "10"), "df must be numeric.")

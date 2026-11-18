@@ -210,7 +210,7 @@ vdist_spec <- function(family, ...) {
         stats::pf(x, a$num_df, a$den_df, lower.tail = lower.tail)
       },
       qfun    = function(p, lower.tail = TRUE) {
-        stats::qf(p, a$num_df, a$den_df, lower.tail = lower.tail)
+        vdist_f_quantile(p, a$num_df, a$den_df, lower.tail = lower.tail)
       },
       support = c(0, Inf),
       center  = NA_real_,
@@ -227,9 +227,11 @@ vdist_spec <- function(family, ...) {
 # cutoff chosen so that its own p*() value falls inside the printed
 # percentage's rounding interval.
 vdist_caption <- function(cut, prob, pfun_ev, scale = Inf, other = NULL,
-                          dfun = NULL) {
+                          dfun = NULL, otherfun = NULL) {
   disp <- vdist_fmt_pct(prob)
-  cut_text <- if (length(cut) == 1L) {
+  cut_text <- if (length(cut) == 1L && !is.null(otherfun)) {
+    vdist_fmt_value(cut, scale, pfun_ev, disp$tol, disp$value, otherfun, vdist_fmt_pct(other), disp$text)
+  } else if (length(cut) == 1L) {
     vdist_fmt_cutoff(cut, scale, pfun_ev, prob)
   } else {
     vdist_fmt_interval(cut[1], cut[2], scale, pfun_ev, prob, dfun)
@@ -292,7 +294,7 @@ vdist_cont_prep <- function(spec, parts, prob, view, method,
   # Relative, not an absolute milliprobability: an absolute bound would allow
   # an event of probability 1e-10 to lose all of its mass and still pass.
   if (!is.finite(cover) || !is.finite(prob) ||
-      cover < prob * (1 - 1e-4) - 1e-12) {
+      prob >= 1e-12 && cover < prob * (1 - 1e-6)) {
     stop(paste0("The shaded part of the ", spec$family, " distribution ",
                 "cannot be represented numerically: only ",
                 format(cover / max(prob, 1e-300) * 100, digits = 4),
@@ -355,6 +357,7 @@ vdist_cont_prep <- function(spec, parts, prob, view, method,
        col        = col,
        event_prob = prob,
        omitted    = omitted,
+       underflow  = isTRUE(prob == 0),
        subpixel   = vdist_subpixel_region(parts, view, rb, prob, omitted),
        ycap       = vdist_density_cap(spec$dfun, view[1], view[2],
                                       spec$pfun, spec$qfun),
@@ -365,7 +368,7 @@ vdist_cont_prep <- function(spec, parts, prob, view, method,
 # Chi-square
 # ---------------------------------------------------------------------------
 
-cplot_data_prep <- function(df, range) {
+cplot_data_prep <- function(df, range, lower = 0) {
 
   chim  <- round(df, 3)
   chisd <- round(sqrt(2 * df), 3)
@@ -375,12 +378,12 @@ cplot_data_prep <- function(df, range) {
     stop("xaxis_range must be greater than the start of the chi-square support.",
          call. = FALSE)
   }
-  reg <- vdist_region(0, range, spec$dfun, spec$pfun, spec$qfun, n = 65L)
-  vdist_check_region(reg$area, spec$pfun(range),
+  reg <- vdist_region(lower, range, spec$dfun, spec$pfun, spec$qfun, n = 65L)
+  vdist_check_region(reg$area, spec$pfun(range) - spec$pfun(lower),
 
                      "chi-square plot")
 
-  x <- vdist_grid(0, range, spec$pfun, spec$qfun, quantile = TRUE,
+  x <- vdist_grid(lower, range, spec$pfun, spec$qfun, quantile = TRUE,
                   n = 1001L, uniform = TRUE)
   y <- spec$dfun(x)
   ok <- is.finite(y)
@@ -393,9 +396,9 @@ cplot_data_prep <- function(df, range) {
        nline_data = data.frame(x = x, y = dnorm(x, df, sqrt(2 * df))),
        chim       = chim,
        chisd      = chisd,
-       view       = c(0, range),
+       view       = c(lower, range),
        breaks     = if (range <= 100) seq(0, range, 2) else ggplot2::waiver(),
-       ycap       = vdist_density_cap(spec$dfun, 0, range,
+       ycap       = vdist_density_cap(spec$dfun, lower, range,
                                       spec$pfun, spec$qfun))
 }
 
@@ -426,7 +429,7 @@ cperc_data_prep <- function(probs, df, method) {
     pfun_ev(cut, lower.tail = FALSE)
   } else {
     pfun_ev(cut)
-  })
+  }, otherfun = function(v) pfun_ev(v, lower.tail = method != "lower"))
   tail_hi <- vdist_tail_quantile(spec$qfun, 1e-4, lower.tail = FALSE)$q
   hi <- max(chim + 5 * chisd, cut + chisd,
             if (method == "upper") tail_hi else -Inf)
@@ -464,8 +467,10 @@ cprob_data_prep <- function(perc, df, method) {
     parts   <- list(c(perc, Inf))
   }
   disp <- vdist_fmt_pct(prob)
+  otherfun <- function(v) pfun(v, lower.tail = method != "lower")
   cut_text <- vdist_fmt_value(perc, Inf, pfun_ev, tol = disp$tol,
-                              displayed = disp$value)
+                              displayed = disp$value, display_text = disp$text, otherfun = otherfun,
+                              other = vdist_fmt_pct(otherfun(perc)))
 
   tail_hi <- vdist_tail_quantile(spec$qfun, 1e-4, lower.tail = FALSE)$q
   hi <- if (perc < 25) 25 else (perc + (3 * chisd))
@@ -559,7 +564,7 @@ fperc_data_prep <- function(probs, num_df, den_df, method) {
   vdist_check_f_concentration(num_df, den_df)
 
   if (method == "lower") {
-    cut <- vdist_check_quantile(qf(probs, num_df, den_df),
+    cut <- vdist_check_quantile(vdist_f_quantile(probs, num_df, den_df),
                                 function(v) pf(v, num_df, den_df), probs,
                                 "F quantile", "f")
     pfun_ev <- function(v, lower.tail = TRUE) {
@@ -569,7 +574,7 @@ fperc_data_prep <- function(probs, num_df, den_df, method) {
     parts <- list(c(-Inf, cut))
     cap_ev <- pfun_ev
   } else {
-    cut <- vdist_check_quantile(qf(probs, num_df, den_df, lower.tail = FALSE),
+    cut <- vdist_check_quantile(vdist_f_quantile(probs, num_df, den_df, lower.tail = FALSE),
                                 function(v) pf(v, num_df, den_df, lower.tail = FALSE),
                                 probs, "F quantile", "f")
     pfun_ev <- function(v, lower.tail = TRUE) {
@@ -580,11 +585,16 @@ fperc_data_prep <- function(probs, num_df, den_df, method) {
     cap_ev <- function(v, lower.tail = TRUE) pfun_ev(v, lower.tail = FALSE)
   }
 
+  if (!is.finite(prob) || abs(prob - probs) > 1e-6 * probs) {
+    stop("probs cannot be resolved by the F quantile at these degrees of freedom; choose a less extreme probs value.",
+         call. = FALSE)
+  }
+
   cap <- vdist_caption(cut, prob, cap_ev, other = if (method == "lower") {
     pfun_ev(cut, lower.tail = FALSE)
   } else {
     pfun_ev(cut)
-  })
+  }, otherfun = function(v) pfun_ev(v, lower.tail = method != "lower"))
   tail_hi <- vdist_tail_quantile(spec$qfun, 1e-4, lower.tail = FALSE)$q
   hi <- if (max(cut) < 4) 4 else max(cut) * 1.25
   if (method == "upper") hi <- max(hi, tail_hi)
@@ -626,8 +636,10 @@ fprob_data_prep <- function(perc, num_df, den_df, method) {
     parts <- list(c(perc, Inf))
   }
   disp <- vdist_fmt_pct(prob)
+  otherfun <- function(v) pfun(v, lower.tail = method != "lower")
   cut_text <- vdist_fmt_value(perc, Inf, pfun_ev, tol = disp$tol,
-                              displayed = disp$value)
+                              displayed = disp$value, display_text = disp$text, otherfun = otherfun,
+                              other = vdist_fmt_pct(otherfun(perc)))
 
   tail_hi <- vdist_tail_quantile(spec$qfun, 1e-4, lower.tail = FALSE)$q
   hi <- if (perc < 4) 4 else (perc * 1.25)
@@ -718,7 +730,8 @@ nperc_data_prep <- function(probs, mean, sd, method) {
     prob <- pfun_ev(cut)
     parts <- list(c(-Inf, cut))
     cap <- vdist_caption(cut, prob, pfun_ev, sd,
-                         other = pfun_ev(cut, lower.tail = FALSE))
+                         other = pfun_ev(cut, lower.tail = FALSE),
+                         otherfun = function(v) pfun_ev(v, lower.tail = FALSE))
     alpha <- NULL
   } else if (method == "upper") {
     cut  <- vdist_check_quantile(qnorm(probs, mean, sd, lower.tail = FALSE),
@@ -728,7 +741,7 @@ nperc_data_prep <- function(probs, mean, sd, method) {
     parts <- list(c(cut, Inf))
     cap <- vdist_caption(cut, prob,
                          function(v, lower.tail = TRUE) pfun_ev(v, lower.tail = FALSE),
-                         sd, other = pfun_ev(cut))
+                         sd, other = pfun_ev(cut), otherfun = function(v) pfun_ev(v))
     alpha <- NULL
   } else {
     alpha <- (1 - probs) / 2
@@ -773,9 +786,10 @@ nprob_data_prep <- function(perc, mean, sd, method) {
     prob <- pfun_ev(perc)
     parts <- list(if (method == "lower") c(-Inf, perc) else c(perc, Inf))
     disp <- vdist_fmt_pct(prob)
-    cut_text <- vdist_fmt_value(perc, sd, pfun_ev, tol = disp$tol,
-                                displayed = disp$value)
     other <- if (method == "lower") pfun(perc, lower.tail = FALSE) else pfun(perc)
+    other_disp <- vdist_fmt_pct(other)
+    cut_text <- vdist_fmt_value(perc, sd, pfun_ev, tol = disp$tol,
+                                displayed = disp$value, display_text = disp$text, otherfun = function(v) if (method == "lower") pfun(v, lower.tail = FALSE) else pfun(v), other = other_disp)
     pp1 <- NULL; pp2 <- NULL
   } else {
     prob <- vdist_prob_between(pfun, spec$dfun, perc[1], perc[2])
@@ -833,7 +847,8 @@ tperc_data_prep <- function(probs, df, method) {
     cut <- vdist_check_quantile(qt(probs, df), pfun, probs, "t quantile", "t")
     prob <- pfun(cut)
     parts <- list(c(-Inf, cut))
-    cap <- vdist_caption(cut, prob, pfun, other = pfun(cut, lower.tail = FALSE))
+    cap <- vdist_caption(cut, prob, pfun, other = pfun(cut, lower.tail = FALSE),
+                         otherfun = function(v) pfun(v, lower.tail = FALSE))
     alpha <- NULL
   } else if (method == "upper") {
     cut <- vdist_check_quantile(qt(probs, df, lower.tail = FALSE),
@@ -843,7 +858,7 @@ tperc_data_prep <- function(probs, df, method) {
     parts <- list(c(cut, Inf))
     cap <- vdist_caption(cut, prob,
                          function(v, lower.tail = TRUE) pfun(v, lower.tail = FALSE),
-                         other = pfun(cut))
+                         other = pfun(cut), otherfun = function(v) pfun(v))
     alpha <- NULL
   } else {
     alpha <- (1 - probs) / 2
@@ -893,9 +908,11 @@ tprob_data_prep <- function(perc, df, method) {
     prob  <- pfun_ev(perc)
     parts <- list(if (method == "lower") c(-Inf, perc) else c(perc, Inf))
     disp  <- vdist_fmt_pct(prob)
-    cut_text <- vdist_fmt_value(perc, Inf, pfun_ev, tol = disp$tol,
-                                displayed = disp$value)
     other <- if (method == "lower") pfun(perc, lower.tail = FALSE) else pfun(perc)
+    cut_text <- vdist_fmt_value(perc, Inf, pfun_ev, tol = disp$tol,
+                                displayed = disp$value, display_text = disp$text,
+                                otherfun = function(v) pfun(v, lower.tail = method != "lower"),
+                                other = vdist_fmt_pct(other))
     pp1 <- NULL; pp2 <- NULL
   } else if (method == "interval") {
     p <- abs(perc)

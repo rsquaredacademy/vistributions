@@ -39,7 +39,7 @@ two values in increasing order.}
 \item{type}{Lower/upper/exact/interval.}
 
 \item{tp}{Tail probability for quantile calculation, strictly between 0 and
-1. For \code{type = "lower"} the cutoff is the smallest \code{k} with
+1 and either equal to a cumulative-probability jump or more than 1e-12 away from it. For \code{type = "lower"} the cutoff is the smallest \code{k} with
 \code{P(X <= k) >= tp} (as \code{qbinom()}); for \code{type = "upper"} it
 is the smallest \code{k} with \code{P(X > k) <= tp}, and the bars with
 \code{x > k} are shaded.}
@@ -53,9 +53,12 @@ success affect the shape of the binomial distribution. Compute & visualize
 probability from a given quantile and quantiles out of given probability.
 }
 \details{
+Probabilities below 1e-10\% (including underflows) are shown as
+< 1e-10\%, with the corresponding upper display > 99.9999999999\%.
+
 Every bar is one count while \code{n + 1} counts fit in the plotting
-grid (2001 bars). A wider support is drawn as at most 2001 equal-width bins
-of counts, each bar showing the exact probability of its bin, with a caption
+grid (2001 bars). A wider support is drawn in approximately 2001 bins
+of counts; event boundaries can split up to two bins, each bar showing the exact probability of its bin, with a caption
 that discloses the grouping; the grid therefore has a bounded number of
 points whatever \code{n} is. Probabilities, quantiles and shaded masses always
 come from \code{dbinom()}, \code{pbinom()} and \code{qbinom()}.
