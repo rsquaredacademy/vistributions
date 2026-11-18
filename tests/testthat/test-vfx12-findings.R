@@ -8,20 +8,15 @@ test_that("binomial jump cutoffs follow qbinom and shade its event", {
     expect_equal(sum(bars$y[bars$fill == "#0000CD"]),
                  pbinom(k,n,p,lower.tail=lower), tolerance=1e-12)
     expect_match(g$labels$subtitle, paste0(if (lower) "X <= " else "X >= ", k), fixed=TRUE)
-    re <- "P\\(X (<=|>=) (-?[0-9]+)\\) (<=|>=|<|>|=) ([^, ]+)"
-    clauses <- regmatches(g$labels$subtitle, gregexpr(re, g$labels$subtitle, perl=TRUE))[[1]]
-    expect_length(clauses, 2)
-    for (clause in clauses) {
-      v <- regmatches(clause, regexec(re, clause, perl=TRUE))[[1]]
-      j <- as.numeric(v[3]) - as.integer(v[2] == ">=")
-      invert <- tp > .5
-      actual <- pbinom(j,n,p,lower.tail=if (invert) v[2] != "<=" else v[2] == "<=")
-      target <- if (invert) 1-tp else tp
-      op <- v[4]
-      if (invert) op <- switch(op, "<"=">", ">"="<", "<="=">=", ">="="<=", "="="=")
-      expect_true(switch(op, "<"=actual<target, ">"=actual>target,
-                         "<="=actual<=target, ">="=actual>=target, "="=actual==target))
+    expected <- if (lower) {
+      paste0("P(X <= ", k - 1, ") < ")
+    } else {
+      paste0("P(X >= ", k + 1, ") <= ")
     }
+    expect_match(g$labels$subtitle, expected, fixed = TRUE)
+    expected <- if (lower) paste0("but P(X <= ", k, ") >= ") else
+      paste0("but P(X >= ", k, ") > ")
+    expect_match(g$labels$subtitle, expected, fixed = TRUE)
   }
 })
 

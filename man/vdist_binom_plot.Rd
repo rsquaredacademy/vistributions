@@ -40,8 +40,11 @@ two values in increasing order.}
 
 \item{tp}{Tail probability for quantile calculation, strictly between 0 and
 1. The cutoff follows \code{qbinom()}, including its numerical fuzz
-at cumulative jumps. For \code{type = "upper"} the bars with
-\code{x > k} are shaded.}
+at cumulative jumps. The caption states the defining convention:
+\code{P(X <= k - 1) < tp} and \code{P(X <= k) >= tp} for the lower
+tail; \code{P(X >= k + 1) <= tp} and \code{P(X >= k) > tp} for the
+upper tail. Numerical fuzz can affect comparisons at jumps. For
+\code{type = "upper"} the bars with \code{x > k} are shaded.}
 }
 \value{
 An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).

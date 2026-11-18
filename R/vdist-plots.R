@@ -105,25 +105,14 @@ bperc_plot_build <- function(data, method, n, p, tp) {
   tpt <- if (extreme) "target" else vdist_fmt_number(tp)
 
   k <- data$k
-  # Compare on the side away from one, retaining qbinom's selected k even
-  # where its fuzz places a target just across a jump.
-  compare <- function(j, lower) {
-    invert <- tp > .5
-    value <- pbinom(j, n, p, lower.tail = if (invert) !lower else lower)
-    target <- if (invert) 1 - tp else tp
-    op <- if (value < target) "<" else if (value > target) ">" else "="
-    if (invert) switch(op, "<" = ">", ">" = "<", "=" = "=") else op
-  }
-  relation <- function(j, lower, inclusive) {
-    op <- compare(j, lower)
-    if (op == "=") "=" else if (inclusive && op == ">") ">=" else if (inclusive && op == "<") "<=" else op
-  }
+  # State qbinom's defining convention; its numerical fuzz can make a
+  # direct floating-point comparison at a jump disagree with these operators.
   if (method == "lower") {
-    sub <- paste0("P(X <= ", k - 1, ") ", relation(k - 1, TRUE, FALSE), " ", tpt,
-                  ", but P(X <= ", k, ") ", relation(k, TRUE, TRUE), " ", tpt)
+    sub <- paste0("P(X <= ", k - 1, ") < ", tpt,
+                  ", but P(X <= ", k, ") >= ", tpt)
   } else {
-    sub <- paste0("P(X >= ", k + 1, ") ", relation(k, FALSE, TRUE), " ", tpt,
-                  ", but P(X >= ", k, ") ", relation(k - 1, FALSE, FALSE), " ", tpt)
+    sub <- paste0("P(X >= ", k + 1, ") <= ", tpt,
+                  ", but P(X >= ", k, ") > ", tpt)
   }
 
   if (extreme) sub <- paste0("target ", threshold, "%: ", sub)

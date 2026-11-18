@@ -13,8 +13,11 @@
 #' @param type Lower/upper/exact/interval.
 #' @param tp Tail probability for quantile calculation, strictly between 0 and
 #'   1. The cutoff follows \code{qbinom()}, including its numerical fuzz
-#'   at cumulative jumps. For \code{type = "upper"} the bars with
-#'   \code{x > k} are shaded.
+#'   at cumulative jumps. The caption states the defining convention:
+#'   \code{P(X <= k - 1) < tp} and \code{P(X <= k) >= tp} for the lower
+#'   tail; \code{P(X >= k + 1) <= tp} and \code{P(X >= k) > tp} for the
+#'   upper tail. Numerical fuzz can affect comparisons at jumps. For
+#'   \code{type = "upper"} the bars with \code{x > k} are shaded.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
 #' @details Probabilities below 1e-10\% (including underflows) are shown as
