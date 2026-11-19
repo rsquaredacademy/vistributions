@@ -55,6 +55,9 @@ probability from a given quantile.
 \details{
 Percentages below 1e-10\% are displayed as < 1e-10\%, and
 probabilities within 1e-10\% of 100\% as > 99.9999999999\%.
+Percentages at or above 0.1\% keep one decimal; percentages from 0.01\% to
+0.1\% are printed in fixed point (for example \code{0.05\%}); smaller
+percentages use three significant digits in scientific notation.
 
 Drawing contract: every probability, cutoff and caption is computed from the
 t density, distribution and quantile functions, never from the drawn grid.
@@ -72,7 +75,12 @@ of points, whatever the degrees of freedom or the cutoff.
 The joint limits on \code{df}, \code{probs} and \code{perc} leave enough
 representable tail for the relative area check. Outside these limits an
 error names the supplied argument and its valid range. Text labels are kept
-inside the panel using their rendered glyph widths.
+inside the panel using their rendered glyph widths. A shaded region whose
+visible height is less than 0.4\% of the density peak is disclosed in the
+caption as too small to display. Probability labels are anchored to the
+cutoff line with a fixed absolute gap, so their layout does not depend on
+the device size; a label that would leave the panel is stacked on a second
+line instead of being drawn across the cutoff.
 }
 \examples{
 # Visualize a distribution, percentile and probability.

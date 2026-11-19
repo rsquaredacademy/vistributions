@@ -6,6 +6,9 @@
 #'
 #' @details Percentages below 1e-10\% are displayed as < 1e-10\%, and
 #' probabilities within 1e-10\% of 100\% as > 99.9999999999\%.
+#' Percentages at or above 0.1\% keep one decimal; percentages from 0.01\% to
+#' 0.1\% are printed in fixed point (for example \code{0.05\%}); smaller
+#' percentages use three significant digits in scientific notation.
 #'
 #' @details The F density must not be too concentrated to draw: the central
 #' 99.9998\% probability mass must span a finite interval of at least 0.001.
@@ -30,7 +33,12 @@
 #' checked area are unchanged. Upper-tail views retain the density body and
 #' disclose shaded mass outside the panel. A cutoff clipped to the panel edge
 #' is also disclosed. Every plotting grid has a bounded number of
-#' points, whatever the degrees of freedom or the cutoff.
+#' points, whatever the degrees of freedom or the cutoff. A shaded region whose
+#' visible height is less than 0.4\% of the density peak is disclosed in the
+#' caption as too small to display. Probability labels are anchored to the
+#' cutoff line with a fixed absolute gap, so their layout does not depend on the
+#' device size; a label that would leave the panel is stacked on a second line
+#' instead of being drawn across the cutoff.
 #'
 #' @param num_df Degrees of freedom associated with the numerator of f statistic
 #'   (at least 1; need not be a whole number).

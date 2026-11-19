@@ -93,7 +93,7 @@ test_that("H4.3: a near-certain binomial tail is a bound, not certainty", {
 
 # L1.1 ----------------------------------------------------------------------
 
-test_that("L1.1: t percentile annotations do not overprint on a wide window", {
+test_that("L1.1: t percentile annotations are cutoff-anchored on wide windows", {
   p <- vdist_t_perc(.95, df = .1, "lower", print_plot = FALSE)
   built <- ggplot2::ggplot_build(p)
   xr <- built$layout$panel_params[[1]]$x.range
@@ -101,7 +101,8 @@ test_that("L1.1: t percentile annotations do not overprint on a wide window", {
     if ("label" %in% names(d) && "x" %in% names(d)) d$x else NULL
   }))
   expect_length(text_x, 2)
-  expect_gt(diff(range(text_x)) / diff(xr), 0.02)
+  expect_equal(text_x[1], text_x[2])
+  expect_true(all(text_x >= xr[1] & text_x <= xr[2]))
 
   # both labels are inside the panel and name the two tails
   expect_true(all(text_x >= xr[1] & text_x <= xr[2]))
@@ -110,20 +111,21 @@ test_that("L1.1: t percentile annotations do not overprint on a wide window", {
   }))
   expect_setequal(labels, c("95.0%", "5.0%"))
 
-  # the upper tail is separated too
+  # the upper tail is anchored the same way
   pu <- vdist_t_perc(.02, df = .1, "upper", print_plot = FALSE)
   bu <- ggplot2::ggplot_build(pu)
-  tur <- bu$layout$panel_params[[1]]$x.range
   tu <- unlist(lapply(bu$data, function(d) {
     if ("label" %in% names(d) && "x" %in% names(d)) d$x else NULL
   }))
-  expect_gt(diff(range(tu)) / diff(tur), 0.02)
+  expect_equal(tu[1], tu[2])
+  expect_true(all(tu >= bu$layout$panel_params[[1]]$x.range[1] &
+                  tu <= bu$layout$panel_params[[1]]$x.range[2]))
 
-  # ordinary windows keep the historical +-0.3 placement
+  # ordinary windows use the same cutoff anchor; the absolute gap and the
+  # rendered glyph boxes are checked in test-vfx16-findings.R
   p7 <- vdist_t_perc(.95, df = 7, "lower", print_plot = FALSE)
   pc <- vistributions:::tperc_data_prep(.95, 7, "lower")$pc
-  expect_equal(ggplot2::layer_data(p7, 2)$x, pc - 0.3)
-  expect_equal(ggplot2::layer_data(p7, 3)$x, pc + 0.3)
+  expect_equal(ggplot2::layer_data(p7, 2)$x, rep(pc, 2))
 })
 
 # L1.2 ----------------------------------------------------------------------

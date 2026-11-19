@@ -4,7 +4,10 @@
 #' the chi square distribution. Compute & visualize quantiles out of given
 #' probability and probability from a given quantile.
 #'
-#' @param df Degrees of freedom (at least 0.1; need not be a whole number).
+#' @param df Degrees of freedom (at least 0.1 and at most 2e20; need not be a
+#'   whole number). Above 2e20, \code{sqrt(2 / df)} is below 1e-10 of \code{df}
+#'   and the plotted range can no longer distinguish the mean from its standard
+#'   deviation at double precision, so the value is rejected by name.
 #' @param probs Probability value, strictly between 0 and 1 and within
 #'   \code{(1e-12, 1 - 1e-12)}.
 #' @param perc Quantile value.
@@ -19,6 +22,9 @@
 #'
 #' @details Percentages below 1e-10\% are displayed as < 1e-10\%, and
 #' probabilities within 1e-10\% of 100\% as > 99.9999999999\%.
+#' Percentages at or above 0.1\% keep one decimal; percentages from 0.01\% to
+#' 0.1\% are printed in fixed point (for example \code{0.05\%}); smaller
+#' percentages use three significant digits in scientific notation.
 #'
 #' @details
 #' Drawing contract: every probability, cutoff and caption is computed from the
@@ -44,6 +50,13 @@
 #' and a few standard deviations instead of showing a flat far tail.
 #' An explicitly supplied \code{xaxis_range} is limited to \code{1e10};
 #' wider explicit windows are rejected with an error naming \code{xaxis_range}.
+#' \code{df} itself is limited to \code{2e20}, the point at which
+#' \code{sqrt(2 / df)} reaches 1e-10 of \code{df} and the default body-centred
+#' window collapses to a single coordinate.
+#' Probability labels are anchored to the cutoff line with a fixed absolute
+#' gap, so their layout does not depend on the device size. A label that would
+#' leave the panel (a cutoff close to an edge) is stacked on a second line
+#' instead of being drawn across the cutoff.
 #'
 #' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 #'

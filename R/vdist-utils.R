@@ -77,10 +77,21 @@ vdist_prob_range <- function(dist) {
   c(tab$prob_lo[1], tab$prob_hi[1])
 }
 
-# Parameter floors, defined once and used by every export of the family.
+# Parameter floors and ceilings, defined once and used by every export of the
+# family. Above 2e20 the standard deviation sqrt(2 * df) is below 1e-10 of df,
+# so df - 4 sd and df + 4 sd collapse to the same double and the plot would be
+# a blank zero-area panel; the bound mirrors the normal sd / |mean| floor.
+vdist_chisquare_df_max <- 2e20
+
 vdist_check_chisquare_df <- function(df) {
   if (df < 0.1) {
     stop("df must be at least 0.1 for guaranteed numerical accuracy.", call. = FALSE)
+  }
+  if (df > vdist_chisquare_df_max) {
+    stop(paste0("df must not exceed ", format(vdist_chisquare_df_max, scientific = TRUE),
+                " for the chi-square distribution: sqrt(2 / df) must be at least ",
+                "1e-10 so the plotted range can distinguish df from its ",
+                "standard deviation."), call. = FALSE)
   }
   invisible(df)
 }
@@ -263,7 +274,7 @@ vdist_contract <- function(dist = NULL) {
     prob_hi       = c(1 - 1e-12, 1 - 1e-12, 1 - 1e-12, 1 - 1e-12, NA_real_),
     parameter     = c("sd / |mean| >= 1e-10 (mean != 0)",
                       "df >= 0.05; df < 1: probs in [0.001, 0.999], abs(perc) <= qt(0.001, df, lower.tail = FALSE)",
-                      "df >= 0.1",
+                      "df >= 0.1; df <= 2e20",
                       "num_df >= 1, den_df > 0",
                       "n a whole number in [0, 2^31 - 1], 0 <= p <= 1"),
     stringsAsFactors = FALSE
@@ -579,61 +590,199 @@ vdist_clamp <- function(x, l) {
   pmin(pmax(x, l[1]), l[length(l)])
 }
 
-# Two annotation positions on either side of a cutoff, in the units the panel is
-# drawn in. The separation has to be a share of the panel, not a fixed number of
-# data units: the t percentile with df = 0.1 has its cutoff at the right edge of
-# a window about 1.6e9 wide drawn on the symmetric log axis used for wide
-# windows, where 0.3 data units is 0.2% of the panel and the two labels (95% and
-# 5%) overprint. The positions are therefore chosen on the axis the labels are
-# rendered on: the transformed axis for a wide window, the data axis otherwise.
-# When the clamped offset falls below the minimum share of the view, the pair is
-# widened to a readable share instead, keeping both labels inside the panel.
-# Ordinary windows keep the requested offset when the pair is already readable.
-vdist_label_pair <- function(x, view, offset = 0.3,
-                            min_frac = 0.025, frac = 0.12) {
-  tr <- if (vdist_wide_window(view)) scales::pseudo_log_trans() else NULL
-  fw <- if (is.null(tr)) base::identity else tr$transform
-  bw <- if (is.null(tr)) base::identity else tr$inverse
-  v  <- fw(view)
-  x  <- fw(x)
-  lo <- vdist_clamp(x - offset, v)
-  hi <- vdist_clamp(x + offset, v)
-  span <- v[2] - v[1]
-  if (!is.finite(span) || span <= 0) {
-    return(bw(c(lo, hi)))
-  }
-  if (!is.null(tr)) min_frac <- max(min_frac, frac)
-  if (hi - lo < min_frac * span) {
-    d <- frac * span / 2
-    lo <- x - d
-    hi <- x + d
-  }
-  # Move the pair together: independently clamping the outer label's glyphs
-  # can otherwise put it directly on top of the inner label at a panel edge.
-  margin <- 0.08 * span
-  shift <- max(0, hi - (v[2] - margin)) - max(0, (v[1] + margin) - lo)
-  bw(c(lo, hi) - shift)
+# Annotation labels are anchored to a cutoff line, not given a data-unit
+# offset: the left label ends a fixed absolute distance before the cutoff
+# (hjust = 1) and the right label starts the same distance after it
+# (hjust = 0). The gap is in millimetres, so the pair does not overlap on any
+# device size and never depends on the width of the plotted window. Grid
+# evaluates the placement when the panel is drawn, so the labels re-flow when
+# the same plot object is printed at another size.
+#
+# A label that would leave the panel (a cutoff close to an edge) cannot stay
+# on its own side without being clipped. It is stacked on a second line on the
+# side that has room instead of being drawn across the cutoff; the labels are
+# then separated vertically rather than horizontally.
+vdist_label_gap <- 2
+vdist_label_row_gap <- 6
+
+vdist_annotate_labels <- function(label, x, y, colour, side, size = 3) {
+  ggplot2::layer(
+    geom = GeomVdistLabels,
+    data = data.frame(x = x, y = y, label = label, colour = colour,
+                      stringsAsFactors = FALSE),
+    mapping = ggplot2::aes(x = x, y = y, label = label, colour = colour),
+    stat = "identity", position = "identity", inherit.aes = FALSE,
+    show.legend = FALSE,
+    params = list(size = size, side = side,
+                  gap = vdist_label_gap, row_gap = vdist_label_row_gap)
+  )
 }
 
-# Clamp text by its rendered glyph width, not just by its anchor. Grid evaluates
-# these units in the panel viewport on the actual device, so this also works on
-# transformed axes and after resizing. Labels already inside the panel do not
-# move. Each annotation contains a single text grob.
-vdist_annotate_text <- function(...) {
-  layer <- ggplot2::annotate("text", ...)
-  layer$geom <- ggplot2::ggproto(NULL, ggplot2::GeomText,
-    draw_panel = function(data, panel_params, coord, parse = FALSE,
-                          na.rm = FALSE, check_overlap = FALSE) {
-      g <- ggplot2::GeomText$draw_panel(data, panel_params, coord,
-        parse = parse, na.rm = na.rm, check_overlap = check_overlap)
-      if (inherits(g, "text")) {
-        width <- grid::grobWidth(g)
-        g$x <- grid::unit.pmax(width * g$hjust,
-          grid::unit.pmin(grid::unit(1, "npc") - width * (1 - g$hjust), g$x))
+GeomVdistLabels <- ggplot2::ggproto("GeomVdistLabels", ggplot2::GeomText,
+  parameters = function(self, extra = FALSE) {
+    c(ggplot2::ggproto_parent(ggplot2::GeomText, self)$parameters(extra),
+      "side", "gap", "row_gap")
+  },
+  draw_panel = function(self, data, panel_params, coord,
+                        side = NULL, gap = vdist_label_gap,
+                        row_gap = vdist_label_row_gap, ...) {
+    transformed <- coord$transform(data, panel_params)
+    n <- nrow(data)
+    if (is.null(side) || length(side) != n) {
+      side <- rep(0, n)
+    }
+    kids <- vector("list", n)
+    for (i in seq_len(n)) {
+      # Keep GeomText's own text grob so the font, colour and size are exactly
+      # those of a normal annotate("text") layer; only x, y and hjust move.
+      kids[[i]] <- ggplot2::GeomText$draw_panel(
+        data[i, , drop = FALSE], panel_params, coord,
+        parse = FALSE, na.rm = FALSE, check_overlap = FALSE)
+    }
+    grid::gTree(children = do.call(grid::gList, kids),
+                vd_x = transformed$x, vd_y = transformed$y, vd_side = side,
+                vd_gap = gap, vd_row_gap = row_gap,
+                cl = "vdist_labels")
+  })
+
+# Grid calls this while the panel viewport is current, so widths are measured
+# with the device and panel size that will actually be shown.
+#' @exportS3Method grid::makeContent
+makeContent.vdist_labels <- function(x) {
+  n <- length(x$children)
+  if (!n) {
+    return(x)
+  }
+  to_npc_w <- function(u) grid::convertWidth(u, "npc", valueOnly = TRUE)
+  to_npc_h <- function(u) grid::convertHeight(u, "npc", valueOnly = TRUE)
+  widths <- vapply(x$children,
+    function(g) to_npc_w(grid::grobWidth(g)), numeric(1))
+  heights <- vapply(x$children,
+    function(g) to_npc_h(grid::grobHeight(g)), numeric(1))
+  gap <- to_npc_w(grid::unit(x$vd_gap, "mm"))
+  step <- max(to_npc_h(grid::unit(x$vd_row_gap, "mm")),
+              max(heights) + to_npc_h(grid::unit(1.5, "mm")))
+  anchor <- x$vd_x
+  y_anchor <- x$vd_y
+  side <- x$vd_side
+
+  left <- right <- numeric(n)
+  hjust <- numeric(n)
+  for (i in seq_len(n)) {
+    if (side[i] < 0) {
+      right[i] <- anchor[i] - gap
+      left[i] <- right[i] - widths[i]
+      hjust[i] <- 1
+    } else if (side[i] > 0) {
+      left[i] <- anchor[i] + gap
+      right[i] <- left[i] + widths[i]
+      hjust[i] <- 0
+    } else {
+      left[i] <- anchor[i] - widths[i] / 2
+      right[i] <- anchor[i] + widths[i] / 2
+      hjust[i] <- 0.5
+    }
+  }
+
+  row <- rep(NA_integer_, n)
+  stacked <- logical(n)
+  for (i in seq_len(n)) {
+    if (left[i] < 0 || right[i] > 1) {
+      # No room on the label's own side. Keep it away from the cutoff by
+      # putting it on the other side, on a separate line.
+      if (side[i] < 0) {
+        left[i] <- anchor[i] + gap
+        right[i] <- left[i] + widths[i]
+        hjust[i] <- 0
+      } else if (side[i] > 0) {
+        right[i] <- anchor[i] - gap
+        left[i] <- right[i] - widths[i]
+        hjust[i] <- 1
       }
-      g
-    })
-  layer
+      stacked[i] <- side[i] != 0
+    }
+    if (side[i] == 0) {
+      if (left[i] < 0) {
+        right[i] <- right[i] - left[i]
+        left[i] <- 0
+      }
+      if (right[i] > 1) {
+        left[i] <- left[i] - (right[i] - 1)
+        right[i] <- 1
+      }
+    } else {
+      # Only reachable for a label wider than the panel itself; keep the glyph
+      # inside the panel and flag it as stacked.
+      if (left[i] < 0) {
+        left[i] <- 0
+        right[i] <- widths[i]
+        hjust[i] <- 0
+        stacked[i] <- TRUE
+      }
+      if (right[i] > 1) {
+        right[i] <- 1
+        left[i] <- 1 - widths[i]
+        hjust[i] <- 1
+        stacked[i] <- TRUE
+      }
+    }
+  }
+
+  clearance <- to_npc_w(grid::unit(1, "mm"))
+  overlaps <- function(i, j) {
+    left[i] < right[j] + clearance && left[j] < right[i] + clearance
+  }
+  # Outer (anchored) labels keep the first line; a centre label moves down when
+  # the two cutoffs are too close for it, and a stacked label starts on line 2.
+  order_i <- order(side == 0, stacked, seq_len(n))
+  for (i in order_i) {
+    r <- if (stacked[i]) 1L else 0L
+    repeat {
+      clash <- FALSE
+      for (j in seq_len(n)) {
+        if (j != i && !is.na(row[j]) && row[j] == r && overlaps(i, j)) {
+          clash <- TRUE
+          break
+        }
+      }
+      if (!clash) {
+        break
+      }
+      r <- r + 1L
+    }
+    row[i] <- r
+  }
+
+  if (max(row) > 0) {
+    # Keep the lowest line inside the panel on short devices.
+    room <- min(y_anchor) - max(heights) / 2 -
+      to_npc_h(grid::unit(0.5, "mm"))
+    if (is.finite(room) && room > 0 && step * max(row) > room) {
+      step <- room / max(row)
+    }
+  }
+
+  kids <- vector("list", n)
+  for (i in seq_len(n)) {
+    g <- x$children[[i]]
+    # hjust is the side of the glyph box that sits on this anchor: hjust = 1
+    # anchors the right edge, hjust = 0 the left edge, hjust = 0.5 the centre.
+    g$x <- grid::unit(left[i] + widths[i] * hjust[i], "npc")
+    g$hjust <- hjust[i]
+    y <- y_anchor[i] - row[i] * step
+    # Keep the glyph box inside the panel on very short devices too.
+    edge <- to_npc_h(grid::unit(0.5, "mm"))
+    y <- min(y, 1 - heights[i] * (1 - g$vjust) - edge)
+    y <- max(y, heights[i] * g$vjust + edge)
+    g$y <- grid::unit(y, "npc")
+    # Placement facts used by the rendered-glyph regression tests.
+    g$vdist_side <- side[i]
+    g$vdist_cutoff <- anchor[i]
+    g$vdist_stacked <- stacked[i]
+    g$vdist_row <- row[i]
+    kids[[i]] <- g
+  }
+  grid::setChildren(x, do.call(grid::gList, kids))
 }
 
 # a single non-negative whole number (number of trials). Values within 1e-8 of
@@ -905,8 +1054,11 @@ fmt_moment <- function(x) {
 }
 
 # Format a probability for a caption together with the interval its printed
-# digits guarantee. Percentages at or above 0.1 keep one decimal; smaller ones
-# use three significant digits in scientific notation.
+# digits guarantee. Percentages at or above 0.1 keep one decimal. Percentages
+# from 0.01 to 0.1 are printed in fixed point with three significant digits,
+# so a value on the 0.1 boundary (0.0999...%) reads "0.1%", not "1e-01%", and
+# the same event prints the same text in the percentile and probability forms.
+# Smaller values use three significant digits in scientific notation.
 #
 # The displayed precision is increased whenever the exact value does not fall
 # inside the rounding interval of the first candidate (a value exactly on a
@@ -941,14 +1093,23 @@ vdist_fmt_pct <- function(p) {
     s <- formatC(shown, format = "f", digits = dec, decimal.mark = ".")
     return(list(text = s, value = shown / 100, tol = half / 100))
   }
-  s <- format(v, scientific = TRUE, digits = 3, trim = TRUE,
-              decimal.mark = ".")
-  mant <- sub("e.*$", "", s)
-  dec <- if (grepl("\\.", mant)) nchar(sub("^[^.]*\\.", "", mant)) else 0
+  if (v >= 0.01) {
+    s <- format(signif(v, 3), scientific = FALSE, trim = TRUE,
+                decimal.mark = ".")
+    shown <- as.numeric(s)
+    dec <- if (grepl("\\.", s)) {
+      nchar(sub("^[^.]*\\.", "", s))
+    } else {
+      0L
+    }
+    return(list(text = s, value = shown / 100,
+                tol = 0.5 * 10 ^ (-dec) / 100))
+  }
+  s <- formatC(signif(v, 3), format = "e", digits = 2,
+               decimal.mark = ".")
   ex <- suppressWarnings(as.numeric(sub("^.*e", "", s)))
   if (!is.finite(ex)) ex <- 0
-  list(text = s, value = as.numeric(s) / 100,
-       tol = 0.5 * 10 ^ (-dec) * 10 ^ ex / 100)
+  list(text = s, value = as.numeric(s) / 100, tol = 0.5 * 10 ^ (-2) * 10 ^ ex / 100)
 }
 
 vdist_pct_text <- function(p) {
@@ -1035,10 +1196,14 @@ vdist_fmt_cutoff <- function(x, scale, pfun, target) {
     return(current)
   }
 
-  for (d in 3:17) {
-    s <- sprintf(paste0("%.", d, "f"), x)
-    if (ok(s)) {
-      return(s)
+  # Fixed-point formatting of a value at or above 1e15 emits meaningless
+  # integer digits; fmt_num() already switches to scientific notation there.
+  if (abs(x) < 1e15) {
+    for (d in 3:17) {
+      s <- sprintf(paste0("%.", d, "f"), x)
+      if (ok(s)) {
+        return(s)
+      }
     }
   }
   for (d in 4:17) {
@@ -1049,7 +1214,8 @@ vdist_fmt_cutoff <- function(x, scale, pfun, target) {
     }
   }
 
-  stop(paste0("The cutoff ", format(x, digits = 17, decimal.mark = "."),
+  stop(paste0("The cutoff ", format(x, digits = 17, scientific = TRUE,
+                                    decimal.mark = "."),
               " cannot be printed with enough precision to state the ",
               "requested probability; the coordinate precision is ",
               "insufficient. Use a larger scale or a less extreme probability."),
@@ -1078,10 +1244,12 @@ vdist_fmt_value <- function(x, scale, pfun, tol = 1e-6, displayed = NULL,
     return(current)
   }
 
-  for (d in 3:17) {
-    s <- sprintf(paste0("%.", d, "f"), x)
-    if (ok(s)) {
-      return(s)
+  if (abs(x) < 1e15) {
+    for (d in 3:17) {
+      s <- sprintf(paste0("%.", d, "f"), x)
+      if (ok(s)) {
+        return(s)
+      }
     }
   }
   for (d in 4:17) {
@@ -1092,7 +1260,8 @@ vdist_fmt_value <- function(x, scale, pfun, tol = 1e-6, displayed = NULL,
     }
   }
 
-  stop(paste0("The cutoff ", format(x, digits = 17, decimal.mark = "."),
+  stop(paste0("The cutoff ", format(x, digits = 17, scientific = TRUE,
+                                    decimal.mark = "."),
               " cannot be printed with enough precision to state its ",
               "probability; the coordinate precision is insufficient. Use a ",
               "larger scale or a less extreme probability."), call. = FALSE)
@@ -1124,11 +1293,13 @@ vdist_fmt_interval <- function(x1, x2, scale, pfun, target, dfun = NULL, total_t
   if (ok(s1, s2)) {
     return(c(s1, s2))
   }
-  for (d in 3:17) {
-    a <- sprintf(paste0("%.", d, "f"), x1)
-    b <- sprintf(paste0("%.", d, "f"), x2)
-    if (ok(a, b)) {
-      return(c(a, b))
+  if (max(abs(c(x1, x2))) < 1e15) {
+    for (d in 3:17) {
+      a <- sprintf(paste0("%.", d, "f"), x1)
+      b <- sprintf(paste0("%.", d, "f"), x2)
+      if (ok(a, b)) {
+        return(c(a, b))
+      }
     }
   }
   for (d in 4:17) {
@@ -1358,7 +1529,11 @@ vdist_subpixel_layer <- function(data, ylim) {
 vdist_caption_text <- function(data) {
   bits <- character(0)
   if (isTRUE(data$cutoff_outside)) bits <- c(bits, "The cutoff line is clipped to the plotted range")
-  if (isTRUE(data$underflow) || isTRUE(data$too_short)) {
+  # The strip caption already says that the region is too small to see and
+  # that it is marked. Adding the generic sentence as well would repeat
+  # "the shaded region" and contradict the marker.
+  if (!isTRUE(data$subpixel$show) &&
+      (isTRUE(data$underflow) || isTRUE(data$too_short))) {
     bits <- c(bits, "the shaded region is too small to display")
   }
   b <- vdist_beyond_text(data$omitted)

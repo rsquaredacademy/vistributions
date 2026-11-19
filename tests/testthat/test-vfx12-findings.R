@@ -1,3 +1,11 @@
+label_values <- function(g) {
+  unlist(lapply(g$layers, function(layer) {
+    if ("label" %in% names(layer$data)) return(layer$data$label)
+    if (!is.null(layer$aes_params$label)) return(layer$aes_params$label)
+    NULL
+  }))
+}
+
 test_that("binomial jump cutoffs follow qbinom and shade its event", {
   cases <- list(c(9,.5,.5),c(1,.01,.01),c(1,.1,.9),c(1,.1,.1))
   for (z in cases) for (type in c("lower", "upper")) {
@@ -39,16 +47,16 @@ test_that("two cutoff labels agree with both printed tails", {
     d <- vistributions:::nperc_data_prep(p,0,1,"both")
     expect_identical(fmt(pnorm(as.numeric(d$cut_text[1])))$text,fmt(pnorm(qnorm((1-p)/2)))$text)
     g <- vdist_normal_perc(p, type="both", print_plot=FALSE)
-    labels <- unlist(lapply(g$layers, function(layer) layer$aes_params$label))
-    expect_identical(unname(labels[2:3]), paste0(c(fmt(pnorm(as.numeric(d$cut_text[1])))$text,
-      fmt(pnorm(as.numeric(d$cut_text[2]),lower.tail=FALSE))$text), "%"))
+    labels <- label_values(g)
+    expect_identical(unname(labels[c(1, 3)]), paste0(c(fmt(pnorm(as.numeric(d$cut_text[1])))$text,
+      fmt(pnorm(as.numeric(d$cut_text[2]), lower.tail=FALSE))$text), "%"))
   }
   p <- 1-2*pt(-5.00049,10)
   d <- vistributions:::tperc_data_prep(p,10,"both")
   expect_identical(fmt(pt(as.numeric(d$cut_text[1]),10))$text,fmt(pt(qt((1-p)/2,10),10))$text)
   g <- vdist_t_perc(p,10,"both",FALSE)
-  labels <- unlist(lapply(g$layers, function(layer) layer$aes_params$label))
-  expect_identical(unname(labels[2:3]), paste0(c(fmt(pt(as.numeric(d$cut_text[1]),10))$text,
+  labels <- label_values(g)
+  expect_identical(unname(labels[c(1, 3)]), paste0(c(fmt(pt(as.numeric(d$cut_text[1]),10))$text,
     fmt(pt(as.numeric(d$cut_text[2]),10,lower.tail=FALSE))$text), "%"))
 })
 

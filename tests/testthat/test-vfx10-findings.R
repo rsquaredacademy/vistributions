@@ -122,27 +122,28 @@ test_that("H06: small tail probabilities are computed on the right scale", {
   }
   expect_lt(100 * (pnorm(8, lower.tail = FALSE) - pnorm(8.1, lower.tail = FALSE)), 1e-10)
   labels <- function(p) {
-    lapply(p$layers, function(l) l$aes_params$label)
+    lapply(Filter(function(l) "label" %in% names(l$data), p$layers),
+           function(l) l$data$label)
   }
   # the complementary annotation is the opposite tail, never 1 - p
   g <- vdist_normal_prob(9, print_plot = FALSE)
   expect_true(any(vapply(labels(g), function(x) {
-    !is.null(x) && grepl("^< 1e-10%$", x)
+    any(grepl("^< 1e-10%$", x))
   }, logical(1))))
 
   g <- vdist_t_prob(10, 200, print_plot = FALSE)
   expect_true(any(vapply(labels(g), function(x) {
-    !is.null(x) && grepl("^< 1e-10%$", x)
+    any(grepl("^< 1e-10%$", x))
   }, logical(1))))
 
   g <- vdist_chisquare_prob(100, 1, print_plot = FALSE)
   expect_true(any(vapply(labels(g), function(x) {
-    !is.null(x) && grepl("^< 1e-10%$", x)
+    any(grepl("^< 1e-10%$", x))
   }, logical(1))))
 
   g <- vdist_f_prob(30, 5, 200, print_plot = FALSE)
   expect_true(any(vapply(labels(g), function(x) {
-    !is.null(x) && grepl("^< 1e-10%$", x)
+    any(grepl("^< 1e-10%$", x))
   }, logical(1))))
 })
 
@@ -177,7 +178,8 @@ test_that("H08 and H09: normals below the scale limit are rejected", {
   expect_error(vdist_normal_perc(.0001, 1, 1e-13, "both", FALSE), "sd / \\|mean\\|")
   expect_error(vdist_normal_prob(1, 1, 1e-14, print_plot = FALSE), "sd / \\|mean\\|")
   p <- vdist_normal_perc(.5, 1, 1e-10, print_plot = FALSE)
-  expect_gt(diff(range(panel_xy(p, 4)$x)), 0)
+  axis_labels <- ggplot2::ggplot_build(p)$layout$panel_params[[1]]$x$get_labels()
+  expect_equal(length(unique(axis_labels)), length(axis_labels))
 })
 
 # H10 -----------------------------------------------------------------------
@@ -276,7 +278,7 @@ test_that("M03: a decimal comma never reaches the numeric parser", {
   old <- options(OutDec = ",")
   on.exit(options(old), add = TRUE)
   expect_equal(subtitle(vdist_normal_perc(.000123, print_plot = FALSE)),
-               "P(X < -3.666) = 1.23e-02%")
+               "P(X < -3.666) = 0.0123%")
   expect_s3_class(vdist_t_perc(.000123, 7, print_plot = FALSE), "ggplot")
   expect_s3_class(vdist_chisquare_perc(.000123, 7, print_plot = FALSE), "ggplot")
   expect_s3_class(vdist_f_perc(.000123, 5, 10, print_plot = FALSE), "ggplot")

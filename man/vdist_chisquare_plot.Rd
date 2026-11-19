@@ -28,7 +28,10 @@ vdist_chisquare_prob(
 )
 }
 \arguments{
-\item{df}{Degrees of freedom (at least 0.1; need not be a whole number).}
+\item{df}{Degrees of freedom (at least 0.1 and at most 2e20; need not be a
+whole number). Above 2e20, \code{sqrt(2 / df)} is below 1e-10 of \code{df}
+and the plotted range can no longer distinguish the mean from its standard
+deviation at double precision, so the value is rejected by name.}
 
 \item{normal}{If \code{TRUE}, normal curve with same \code{mean} and
 \code{sd} as the chi square distribution is drawn.}
@@ -58,6 +61,9 @@ probability and probability from a given quantile.
 \details{
 Percentages below 1e-10\% are displayed as < 1e-10\%, and
 probabilities within 1e-10\% of 100\% as > 99.9999999999\%.
+Percentages at or above 0.1\% keep one decimal; percentages from 0.01\% to
+0.1\% are printed in fixed point (for example \code{0.05\%}); smaller
+percentages use three significant digits in scientific notation.
 
 Drawing contract: every probability, cutoff and caption is computed from the
 chi-square density, distribution and quantile functions, never from the
@@ -82,6 +88,13 @@ cutoff would leave less than 20\% of the distribution inside the panel (for exam
 and a few standard deviations instead of showing a flat far tail.
 An explicitly supplied \code{xaxis_range} is limited to \code{1e10};
 wider explicit windows are rejected with an error naming \code{xaxis_range}.
+\code{df} itself is limited to \code{2e20}, the point at which
+\code{sqrt(2 / df)} reaches 1e-10 of \code{df} and the default body-centred
+window collapses to a single coordinate.
+Probability labels are anchored to the cutoff line with a fixed absolute
+gap, so their layout does not depend on the device size. A label that would
+leave the panel (a cutoff close to an edge) is stacked on a second line
+instead of being drawn across the cutoff.
 }
 \examples{
 # visualize chi square distribution

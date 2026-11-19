@@ -35,14 +35,10 @@ test_that("TC-BUG-05: F distribution functions evaluate cleanly when den_df <= 4
 
 test_that("TC-BUG-06: vdist_t_prob with type = 'both' maps colors and positions correctly (BUG-06)", {
   p <- vdist_t_prob(perc = 2, df = 7, type = "both", print_plot = FALSE)
-  text_dfs <- Filter(function(d) "label" %in% names(d), ggplot2::ggplot_build(p)$data)
-  ann_df <- do.call(rbind, text_dfs)
-  center_color <- ann_df[ann_df$x == 0, "colour"]
-  expect_equal(center_color, "#6495ED")
-  left_color <- ann_df[ann_df$x < -1, "colour"]
-  expect_equal(left_color, "#0000CD")
-  right_color <- ann_df[ann_df$x > 1, "colour"]
-  expect_equal(right_color, "#0000CD")
+  lab <- Filter(function(l) inherits(l$geom, "GeomVdistLabels"), p$layers)[[1]]$data
+  # left tail, centre, right tail: anchors and dark/light colours
+  expect_equal(lab$x, c(-2, 0, 2))
+  expect_equal(lab$colour, c("#0000CD", "#6495ED", "#0000CD"))
 })
 
 test_that("TC-BUG-07: check_positive rejects zero and negative values (BUG-07)", {
@@ -105,12 +101,11 @@ test_that("TC-BUG-15: vdist_binom_prob exact shades only x == s (BUG-15)", {
 
 test_that("TC-BUG-16: vdist_t_prob upper tail colors match shaded/unshaded regions (BUG-16)", {
   p <- vdist_t_prob(perc = 1.5, df = 7, type = "upper", print_plot = FALSE)
-  text_dfs <- Filter(function(d) "label" %in% names(d), ggplot2::ggplot_build(p)$data)
-  ann_df <- do.call(rbind, text_dfs)
-  body_color <- ann_df[ann_df$x < 1.5, "colour"]
-  expect_equal(body_color, "#6495ED")
-  tail_color <- ann_df[ann_df$x > 1.5, "colour"]
-  expect_equal(tail_color, "#0000CD")
+  lab <- Filter(function(l) inherits(l$geom, "GeomVdistLabels"), p$layers)[[1]]$data
+  # the complement (left) is light and the upper tail is dark, both anchored
+  # at the cutoff
+  expect_equal(lab$x, c(1.5, 1.5))
+  expect_equal(lab$colour, c("#6495ED", "#0000CD"))
 })
 
 test_that("TC-BUG-17: Degrees of freedom must be positive across t, f, chisquare (BUG-17)", {

@@ -1,18 +1,44 @@
 # Glyph bounds must be checked on the device, not by testing label anchors.
-# The panel viewport here represents a compact plotting device; the same grid
-# units are evaluated anew when the plot is drawn on a larger/smaller device.
-fx15_text_extents <- function(p, width = 120) {
+# The viewport here represents a compact plotting panel; the same grid units
+# are evaluated anew when the plot is drawn on a larger/smaller device.
+fx15_find_labels <- function(g) {
+  if (inherits(g, "vdist_labels")) {
+    return(g)
+  }
+  if (!is.null(g$children)) {
+    for (child in g$children) {
+      found <- fx15_find_labels(child)
+      if (!is.null(found)) {
+        return(found)
+      }
+    }
+  }
+  NULL
+}
+
+fx15_text_extents <- function(p, width = 120, height = 60) {
   gt <- ggplot2::ggplotGrob(p)
   panel <- gt$grobs[[which(gt$layout$name == "panel")]]
-  texts <- Filter(function(g) inherits(g, "text"), panel$children)
+  g <- fx15_find_labels(panel)
   grid::pushViewport(grid::viewport(width = grid::unit(width, "mm"),
-                                    xscale = c(0, 1)))
+                                    height = grid::unit(height, "mm"),
+                                    xscale = c(0, 1), yscale = c(0, 1)))
   on.exit(grid::popViewport())
+  texts <- if (is.null(g)) {
+    Filter(function(g) inherits(g, "text"), panel$children)
+  } else {
+    grid::makeContent(g)$children
+  }
   do.call(rbind, lapply(texts, function(g) {
     w <- grid::convertWidth(grid::grobWidth(g), "npc", valueOnly = TRUE)
+    h <- grid::convertHeight(grid::grobHeight(g), "npc", valueOnly = TRUE)
     x <- grid::convertX(g$x, "npc", valueOnly = TRUE)
+    y <- grid::convertY(g$y, "npc", valueOnly = TRUE)
     data.frame(label = g$label, left = x - w * g$hjust,
-               right = x + w * (1 - g$hjust))
+               right = x + w * (1 - g$hjust),
+               bottom = y - h * g$vjust,
+               top = y + h * (1 - g$vjust),
+               stacked = isTRUE(g$vdist_stacked))
   }))
 }
 
@@ -41,12 +67,11 @@ test_that("fx15: percentile glyph extents stay inside ordinary linear panels", {
       check(vdist_chisquare_perc(prob, df, type, FALSE), paste("chi", df, prob, type))
     }
   }
-  # Verify the harness detects the original ordinary-input clipping.
-  old <- vdist_t_perc(.975, 1, "lower", FALSE)
-  for (i in seq_along(old$layers)) {
-    if (inherits(old$layers[[i]]$geom, "GeomText")) old$layers[[i]]$geom <- ggplot2::GeomText
-  }
-  old$layers[[3]]$data$x <- old$coordinates$limits$x[2]
+  # Verify the harness detects an unclamped edge annotation.
+  old <- ggplot2::ggplot(data.frame(x = c(0, 1), y = c(0, 1)),
+                         ggplot2::aes(x, y)) +
+    ggplot2::geom_point() +
+    ggplot2::annotate("text", x = 1, y = .5, label = "clipped")
   expect_gt(max(fx15_text_extents(old)$right), 1)
 })
 
@@ -61,9 +86,15 @@ test_that("fx15: wide t and F label pairs have visible gaps and unclipped glyphs
     vdist_t_prob(1e8, .1, "upper", FALSE))
   for (p in cases) for (width in c(90, 150)) {
     e <- fx15_text_extents(p, width)
-    e <- e[order(e$left), ]
     expect_true(all(e$left >= -1e-10 & e$right <= 1 + 1e-10))
-    expect_gt(e$left[2] - e$right[1], 0)
+    expect_true(all(e$bottom >= -1e-10 & e$top <= 1 + 1e-10))
+    if (nrow(e) > 1) for (i in seq_len(nrow(e) - 1L)) {
+      for (j in (i + 1L):nrow(e)) {
+        separated <- e$right[i] <= e$left[j] || e$right[j] <= e$left[i] ||
+          e$top[i] <= e$bottom[j] || e$top[j] <= e$bottom[i]
+        expect_true(separated, info = paste(p$labels$subtitle, i, j))
+      }
+    }
   }
 })
 

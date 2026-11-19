@@ -66,6 +66,9 @@ probability  and probability from a given quantile.
 \details{
 Percentages below 1e-10\% are displayed as < 1e-10\%, and
 probabilities within 1e-10\% of 100\% as > 99.9999999999\%.
+Percentages at or above 0.1\% keep one decimal; percentages from 0.01\% to
+0.1\% are printed in fixed point (for example \code{0.05\%}); smaller
+percentages use three significant digits in scientific notation.
 
 Supported values: for a central interval the representable endpoints
 must enclose \code{probs} to within 1e-6 relative error. If not, increase
@@ -88,6 +91,12 @@ distribution) is marked with a visible strip in the panel and disclosed in
 the caption; its polygon and its checked area are unchanged. Every plotting
 grid has a bounded number of points, whatever the mean and standard
 deviation.
+A shaded region whose visible height is less than 0.4\% of the density peak
+is disclosed in the caption as too small to display.
+Probability labels are anchored to the cutoff line with a fixed absolute
+gap, so their layout does not depend on the device size. A label that would
+leave the panel (a cutoff close to an edge) is stacked on a second line
+instead of being drawn across the cutoff.
 }
 \examples{
 # visualize normal distribution

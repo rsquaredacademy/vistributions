@@ -1,3 +1,11 @@
+label_values <- function(g) {
+  unlist(lapply(g$layers, function(layer) {
+    if ("label" %in% names(layer$data)) return(layer$data$label)
+    if (!is.null(layer$aes_params$label)) return(layer$aes_params$label)
+    NULL
+  }))
+}
+
 test_that("supported domain limits are stable at the normal ratio and binomial jumps", {
   expect_error(vdist_normal_plot(1, 0.999e-10, FALSE), "sd / \\|mean\\|")
   expect_error(vdist_normal_perc(1e-12, print_plot = FALSE), "probs")
@@ -13,7 +21,7 @@ test_that("cutoffs preserve both normal tail labels", {
   cutoff <- as.numeric(text)
   expect_equal(round(100 * pnorm(cutoff, lower.tail = FALSE), 5),
                round(100 * pnorm(4.00049, lower.tail = FALSE), 5))
-  expect_equal(ggplot2::layer_data(g, 3)$label, "3.16e-03%")
+  expect_true("3.16e-03%" %in% unname(label_values(g)))
 })
 
 test_that("chi-square views follow the distribution and retain full density grids", {
@@ -174,7 +182,7 @@ test_that("printed cutoffs support a floor bound near its boundary", {
   cut <- as.numeric(regmatches(g$labels$subtitle,
     regexec("P\\(X < ([^)]+)\\)",g$labels$subtitle))[[1]][2])
   expect_lt(pnorm(cut,lower.tail=FALSE),1e-12)
-  expect_match(ggplot2::layer_data(g,3)$label,"< 1e-10%")
+  expect_true(any(grepl("< 1e-10%", label_values(g), fixed = TRUE)))
 })
 
 test_that("binomial exact jumps and targets outside the exclusion match qbinom", {
@@ -217,7 +225,7 @@ test_that("printed cutoffs support both labels for all continuous families", {
     for (g in list(family$prob(x,type),family$perc(p,type))) {
       cut <- as.numeric(regmatches(g$labels$subtitle,
         regexec("P\\(X [<>] ([^)]+)\\)",g$labels$subtitle))[[1]][2])
-      labels <- unlist(lapply(g$layers,function(layer) layer$aes_params$label))
+      labels <- label_values(g)
       expect_gte(length(labels),2)
       check_label(labels[if (type == "lower") 1 else 2], family$pf(cut,lower.tail=type=="lower"))
       check_label(labels[if (type == "lower") 2 else 1], family$pf(cut,lower.tail=type!="lower"))
