@@ -210,7 +210,7 @@ test_that("captions are true at the printed precision for every rounding regime"
   # a value exactly on a one-decimal rounding boundary is printed with the
   # digits that make it unambiguous, not rounded to a false value
   expect_equal(subtitle(vdist_normal_perc(.0505, type = "both", print_plot = FALSE)),
-               "P(-0.06333 < X < 0.06333) = 5.05%")
+    "P(-0.063334680678 < X < 0.063334680678) = 5.05%")
 
   # the two-tailed t caption states the exact two-tail probability
   expect_equal(subtitle(vdist_t_prob(.1, 7, "both", print_plot = FALSE)),

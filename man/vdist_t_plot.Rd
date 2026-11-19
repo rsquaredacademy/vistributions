@@ -55,9 +55,14 @@ probability from a given quantile.
 \details{
 Percentages below 1e-10\% are displayed as < 1e-10\%, and
 probabilities within 1e-10\% of 100\% as > 99.9999999999\%.
-Percentages at or above 0.1\% keep one decimal; percentages from 0.01\% to
-0.1\% are printed in fixed point (for example \code{0.05\%}); smaller
-percentages use three significant digits in scientific notation.
+Percentages at or above 0.1\% keep at least one decimal. Smaller
+percentages use three significant digits in scientific notation, retaining
+trailing zeros (for example \code{5.00e-02\%}). Values that round to
+0.1\% at three significant digits use \code{1.00e-01\%} on either side
+of the notation switch. Cutoffs retain enough digits that the same event prints identical
+percentage text in the percentile and probability forms, including at
+halfway rounding boundaries. Extra percentage digits resolve exact halfway
+values (for example \code{5.05\%}).
 
 Drawing contract: every probability, cutoff and caption is computed from the
 t density, distribution and quantile functions, never from the drawn grid.

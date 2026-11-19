@@ -278,7 +278,7 @@ test_that("M03: a decimal comma never reaches the numeric parser", {
   old <- options(OutDec = ",")
   on.exit(options(old), add = TRUE)
   expect_equal(subtitle(vdist_normal_perc(.000123, print_plot = FALSE)),
-               "P(X < -3.666) = 0.0123%")
+               "P(X < -3.666) = 1.23e-02%")
   expect_s3_class(vdist_t_perc(.000123, 7, print_plot = FALSE), "ggplot")
   expect_s3_class(vdist_chisquare_perc(.000123, 7, print_plot = FALSE), "ggplot")
   expect_s3_class(vdist_f_perc(.000123, 5, 10, print_plot = FALSE), "ggplot")

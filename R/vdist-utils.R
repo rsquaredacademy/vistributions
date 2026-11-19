@@ -610,7 +610,7 @@ vdist_annotate_labels <- function(label, x, y, colour, side, size = 3) {
     geom = GeomVdistLabels,
     data = data.frame(x = x, y = y, label = label, colour = colour,
                       stringsAsFactors = FALSE),
-    mapping = ggplot2::aes(x = x, y = y, label = label, colour = colour),
+    mapping = ggplot2::aes(x = x, y = y, label = label, colour = I(colour)),
     stat = "identity", position = "identity", inherit.aes = FALSE,
     show.legend = FALSE,
     params = list(size = size, side = side,
@@ -1054,11 +1054,11 @@ fmt_moment <- function(x) {
 }
 
 # Format a probability for a caption together with the interval its printed
-# digits guarantee. Percentages at or above 0.1 keep one decimal. Percentages
-# from 0.01 to 0.1 are printed in fixed point with three significant digits,
-# so a value on the 0.1 boundary (0.0999...%) reads "0.1%", not "1e-01%", and
-# the same event prints the same text in the percentile and probability forms.
-# Smaller values use three significant digits in scientific notation.
+# digits guarantee. Percentages above the 0.1 switch keep at least one decimal.
+# Smaller values use three significant digits in scientific notation, with
+# trailing zeros retained. Values that round to 0.1 at three significant
+# digits use the scientific branch too, so quantile/CDF roundoff at the
+# notation boundary does not change the text for the same event.
 #
 # The displayed precision is increased whenever the exact value does not fall
 # inside the rounding interval of the first candidate (a value exactly on a
@@ -1080,7 +1080,7 @@ vdist_fmt_pct <- function(p) {
     return(list(text = "0", value = 0, tol = 0.005))
   }
   v <- p * 100
-  if (v >= 0.1) {
+  if (signif(v, 3) > 0.1) {
     dec <- 1L
     repeat {
       shown <- round(v, dec)
@@ -1092,18 +1092,6 @@ vdist_fmt_pct <- function(p) {
     }
     s <- formatC(shown, format = "f", digits = dec, decimal.mark = ".")
     return(list(text = s, value = shown / 100, tol = half / 100))
-  }
-  if (v >= 0.01) {
-    s <- format(signif(v, 3), scientific = FALSE, trim = TRUE,
-                decimal.mark = ".")
-    shown <- as.numeric(s)
-    dec <- if (grepl("\\.", s)) {
-      nchar(sub("^[^.]*\\.", "", s))
-    } else {
-      0L
-    }
-    return(list(text = s, value = shown / 100,
-                tol = 0.5 * 10 ^ (-dec) / 100))
   }
   s <- formatC(signif(v, 3), format = "e", digits = 2,
                decimal.mark = ".")
@@ -1117,12 +1105,15 @@ vdist_pct_text <- function(p) {
 }
 
 # A displayed bound is an inequality, not a rounding interval. A cutoff must
-# keep the probability on the correct side of that bound.
+# keep the probability on the correct side of that bound. For rounded values,
+# the rounding interval alone is insufficient at a halfway or notation
+# boundary: formatting the event must also reproduce the exact displayed text.
 vdist_pct_matches <- function(p, target, tol, text = NULL) {
   if (!is.finite(p)) return(FALSE)
   if (!is.null(text) && startsWith(text, "<")) return(p < 1e-12)
   if (!is.null(text) && startsWith(text, ">")) return(p > 1 - 1e-12)
-  abs(p - target) <= tol
+  abs(p - target) <= tol &&
+    (is.null(text) || identical(vdist_fmt_pct(p)$text, text))
 }
 
 # A binomial caption probability: rounded exactly once, from the exact value.
@@ -1233,6 +1224,7 @@ vdist_fmt_value <- function(x, scale, pfun, tol = 1e-6, displayed = NULL,
   # half a display unit of the unrounded value: the two CDF values can straddle
   # a rounding boundary.
   target <- if (is.null(displayed)) pfun(x) else displayed
+  if (is.null(display_text)) display_text <- vdist_pct_text(target)
   ok <- function(s) {
     v <- suppressWarnings(as.numeric(s))
     is.finite(v) && vdist_pct_matches(pfun(v), target, tol, display_text) &&
@@ -1282,9 +1274,7 @@ vdist_fmt_interval <- function(x1, x2, scale, pfun, target, dfun = NULL, total_t
     is.finite(a) && is.finite(b) && is.finite(pfun(b)) && is.finite(pfun(a)) &&
       vdist_pct_matches(vdist_prob_between(pfun, dfun, a, b), disp$value, disp$tol, disp$text) &&
       vdist_pct_matches(pfun(a), left$value, left$tol, left$text) &&
-      identical(vdist_fmt_pct(pfun(a))$text, left$text) &&
       vdist_pct_matches(pfun(b, lower.tail = FALSE), right$value, right$tol, right$text) &&
-      identical(vdist_fmt_pct(pfun(b, lower.tail = FALSE))$text, right$text) &&
       (!total_tail || vdist_pct_matches(pfun(a) + pfun(b, lower.tail = FALSE), tails$value, tails$tol, tails$text))
   }
 

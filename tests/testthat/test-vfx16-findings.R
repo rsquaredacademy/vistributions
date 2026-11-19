@@ -202,7 +202,7 @@ test_that("vfx16: cutoff-anchored labels stay separated, inside and on side", {
   }
 })
 
-test_that("vfx16: percentages near 0.1% use fixed point and agree across forms", {
+test_that("vfx16: percentages near 0.1% agree across forms", {
   pairs <- list(
     c(vdist_t_perc(.001, 5, print_plot = FALSE)$labels$subtitle,
       vdist_t_prob(-5.893, 5, print_plot = FALSE)$labels$subtitle),
@@ -214,8 +214,8 @@ test_that("vfx16: percentages near 0.1% use fixed point and agree across forms",
   }
   expect_false(grepl("1e-01%", pairs[[1]][1], fixed = TRUE))
   expect_false(grepl("5e-02%", pairs[[1]][1], fixed = TRUE))
-  expect_equal(vistributions:::vdist_fmt_pct(0.0005)$text, "0.05")
-  expect_equal(vistributions:::vdist_fmt_pct(0.000123)$text, "0.0123")
+  expect_equal(vistributions:::vdist_fmt_pct(0.0005)$text, "5.00e-02")
+  expect_equal(vistributions:::vdist_fmt_pct(0.000123)$text, "1.23e-02")
   expect_equal(vistributions:::vdist_fmt_pct(0.00005)$text, "5.00e-03")
 })
 
