@@ -22,6 +22,10 @@
 #'
 #' @details Probabilities below 1e-10\% (including underflows) are shown as
 #' < 1e-10\%, with the corresponding upper display > 99.9999999999\%.
+#' A probability below one that rounds to \code{1.000} at three decimals is
+#' shown as \code{> 0.999} when it is at most \code{1 - 1e-12};
+#' above that threshold it uses the percentage bound. Exact certainty is
+#' shown as \code{= 1.000}.
 #'
 #' Every bar is one count while \code{n + 1} counts fit in the plotting
 #' grid (2001 bars). A wider support is drawn in approximately 2001 bins

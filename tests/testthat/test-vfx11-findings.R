@@ -117,11 +117,13 @@ test_that("singular F and chi-square bodies remain visible in every export", {
 })
 
 test_that("heavy-tailed polygons and F tail bounds preserve probability", {
-  g <- vdist_t_perc(1e-10,.1,print_plot=FALSE)
+  expect_error(vdist_t_perc(1e-10,.1,print_plot=FALSE),
+               "probs must be between 0.001 and 0.999", fixed = TRUE)
+  g <- vdist_t_perc(1e-10,1,print_plot=FALSE)
   layers <- Filter(function(l) identical(l$aes_params$fill,"#0000CD") ||
                      identical(l$geom_params$fill,"#0000CD"), g$layers)
   mass <- sum(vapply(layers,function(l) vistributions:::vdist_area(l$data$x,l$data$y),numeric(1)))
-  expect_lt(abs(mass / pt(qt(1e-10,.1),.1) - 1), 1e-6)
+  expect_lt(abs(mass / pt(qt(1e-10,1),1) - 1), 1e-6)
   g <- vdist_f_prob(1e6,1e6,1e6,print_plot=FALSE)
   expect_equal(pf(1e6,1e6,1e6), 1)
   expect_match(g$labels$subtitle, "> 99\\.9999999999%")

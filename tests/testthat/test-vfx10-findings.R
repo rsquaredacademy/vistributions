@@ -168,8 +168,8 @@ test_that("H07: a tail event keeps its polygon and its true disclosure", {
 
   # the old formula divided by the truncated mass, not the event mass
   p <- vdist_normal_perc(2e-9, print_plot = FALSE)
-  expect_true(is.null(p$labels$caption) ||
-                caption_pct(p$labels$caption) < 1)
+  expect_lt(vistributions:::nperc_data_prep(2e-9, 0, 1, "lower")$omitted, .01)
+  expect_match(p$labels$caption, "too small to display", fixed = TRUE)
 })
 
 # H08 -----------------------------------------------------------------------
@@ -240,13 +240,13 @@ test_that("H15: a finite peak at the smallest scales is drawn, not flat", {
   expect_gt(diff(range(panel_xy(p, 2)$y)), 0.5)
 
   p <- vdist_normal_prob(0, sd = 3e-309, print_plot = FALSE)
-  expect_equal(subtitle(p), "P(X < 0) = 50%")
+  expect_equal(subtitle(p), "P(X < 0) = 50.0%")
 })
 
 # M01 -----------------------------------------------------------------------
 test_that("M01: a segment midpoint does not overflow", {
   p <- vdist_normal_prob(1e308, 1e308, 1e306, print_plot = FALSE)
-  expect_equal(subtitle(p), "P(X < 1e+308) = 50%")
+  expect_equal(subtitle(p), "P(X < 1e+308) = 50.0%")
   expect_equal(dark_area(p), pnorm(1e308, 1e308, 1e306), tolerance = 1e-3)
 
   p <- vdist_normal_perc(.5, 1e308, 1e306, "both", print_plot = FALSE)
@@ -344,12 +344,12 @@ test_that("M07: the test entry points do not require the suggested packages", {
 })
 
 # M08 -----------------------------------------------------------------------
-test_that("M08: the resolution error states the real probability range", {
+test_that("M08: probability validation states the real probability range", {
   # df below the documented floor is rejected for its own reason (see M2.1),
   # so the probability-range message is checked at a valid df.
   err <- tryCatch(vdist_t_perc(1e-13, 1, print_plot = FALSE),
                   error = function(e) conditionMessage(e))
-  expect_match(err, "0\\.9999999999")
+  expect_match(err, "0.999999999999", fixed = TRUE)
   expect_match(err, "1e-12")
   expect_match(err, "probs")
 })

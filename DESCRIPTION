@@ -9,6 +9,7 @@ Depends:
     R (>= 4.1.0)
 Imports:
     ggplot2,
+    grid,
     scales,
     stats,
     utils

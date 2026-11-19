@@ -26,15 +26,15 @@ test_that("H2: fractional df is kept in t, chi-square and F helpers", {
   expect_equal(subtitle(vdist_t_prob(2, df = 1.9, "upper", print_plot = FALSE)),
                paste0("P(X > 2) = ", round(pt(2, 1.9, lower.tail = FALSE), 3) * 100, "%"))
   expect_equal(subtitle(vdist_chisquare_perc(.95, df = 1.9, print_plot = FALSE)),
-               paste0("P(X < ", round(qchisq(.95, 1.9), 3), ") = 95%"))
+               paste0("P(X < ", round(qchisq(.95, 1.9), 3), ") = 95.0%"))
   expect_equal(subtitle(vdist_chisquare_prob(3, df = 2.5, print_plot = FALSE)),
                paste0("P(X < 3) = ", round(pchisq(3, 2.5), 3) * 100, "%"))
   expect_equal(subtitle(vdist_f_prob(1, num_df = 1.5, den_df = 3, print_plot = FALSE)),
                paste0("P(X < 1) = ", round(pf(1, 1.5, 3), 3) * 100, "%"))
   expect_equal(subtitle(vdist_f_perc(.9, num_df = 2.5, den_df = 7.5, print_plot = FALSE)),
-               paste0("P(X < ", round(qf(.9, 2.5, 7.5), 3), ") = 90%"))
+               paste0("P(X < ", round(qf(.9, 2.5, 7.5), 3), ") = 90.0%"))
   expect_equal(subtitle(vdist_t_perc(.9, df = 2.5, print_plot = FALSE)),
-               paste0("P(X < ", round(qt(.9, 2.5), 3), ") = 90%"))
+               paste0("P(X < ", round(qt(.9, 2.5), 3), ") = 90.0%"))
 })
 
 test_that("H2: densities use the real-valued df (including df below one)", {
@@ -52,7 +52,7 @@ test_that("H2: densities use the real-valued df (including df below one)", {
 test_that("H3: normal quantiles are not rounded before plotting", {
   p <- vdist_normal_perc(.95, sd = .0001, print_plot = FALSE)
   expect_equal(max(vlines(p)), qnorm(.95, sd = .0001))
-  expect_equal(subtitle(p), "P(X < 0.0001645) = 95%")
+  expect_equal(subtitle(p), "P(X < 0.0001645) = 95.0%")
 
   p <- vdist_normal_perc(.95, mean = .0006, sd = .00001, print_plot = FALSE)
   expect_equal(max(vlines(p)), qnorm(.95, .0006, .00001))
@@ -153,7 +153,7 @@ test_that("H7: negative symmetric t cutoffs give the same plot as |perc|", {
 test_that("M1: quantiles beyond the default grid still plot, at the true cutoff", {
   p <- vdist_t_perc(.95, df = 1, print_plot = FALSE)
   expect_equal(vlines(p), qt(.95, 1))
-  expect_equal(subtitle(p), paste0("P(X < ", round(qt(.95, 1), 3), ") = 95%"))
+  expect_equal(subtitle(p), paste0("P(X < ", round(qt(.95, 1), 3), ") = 95.0%"))
   p <- vdist_chisquare_perc(.999, df = 1, print_plot = FALSE)
   expect_equal(vlines(p), qchisq(.999, 1))
   p <- vdist_normal_perc(.9999999, print_plot = FALSE)

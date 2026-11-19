@@ -32,13 +32,17 @@ are rejected with an error naming \code{df}.}
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
 \item{probs}{Probability value, strictly between 0 and 1 and within
-\code{(1e-12, 1 - 1e-12)}.}
+\code{(1e-12, 1 - 1e-12)} for \code{df >= 1}. For
+\code{0.05 <= df < 1}, use \code{0.001 <= probs <= 0.999}.}
 
 \item{type}{Lower tail, upper tail, interval or both.}
 
 \item{perc}{Quantile value. For \code{type = "interval"} and
 \code{type = "both"} the event is defined by \code{|perc|}, so a negative
-value gives the same result as its absolute value.}
+value gives the same result as its absolute value.
+For \code{0.05 <= df < 1}, \code{abs(perc)} must not exceed
+\code{qt(0.001, df, lower.tail = FALSE)}; the error gives the numeric
+range for the supplied \code{df}.}
 }
 \value{
 An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
@@ -65,6 +69,10 @@ A shaded region too narrow to occupy a pixel at the plotted scale is marked
 with a visible strip in the panel and disclosed in the caption; its polygon
 and its checked area are unchanged. Every plotting grid has a bounded number
 of points, whatever the degrees of freedom or the cutoff.
+The joint limits on \code{df}, \code{probs} and \code{perc} leave enough
+representable tail for the relative area check. Outside these limits an
+error names the supplied argument and its valid range. Text labels are kept
+inside the panel using their rendered glyph widths.
 }
 \examples{
 # Visualize a distribution, percentile and probability.

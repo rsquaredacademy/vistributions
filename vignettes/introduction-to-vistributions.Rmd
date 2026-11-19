@@ -52,7 +52,7 @@ vdist_normal_plot(mean = 2, sd = 0.6)
 - probs: a probability value
 - mean: mean of the normal distribution
 - sd: standard deviation of the normal distribution
-- type: lower/upper tail
+- type: lower/upper/both tail
 
 Suppose X, the grade on a exam, is normally distributed with mean 60 
 and standard deviation 3. The teacher wants to give 10% of the class an A. 
@@ -143,7 +143,7 @@ vdist_binom_perc(10, 0.5, 0.05, 'upper')
 ##### Input
 - p: probability of success
 - n: the number of trials
-- s: number of success in a trial
+- s: number of successes in n trials
 - type: lower/upper/interval/exact tail
 
 

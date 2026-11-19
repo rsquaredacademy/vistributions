@@ -110,15 +110,15 @@ test_that("a near-zero normal mean is drawn, not rejected (VFXX6-M1)", {
 
   pc <- vdist_normal_perc(.95, mean = 1e-308, sd = 10, print_plot = FALSE)
   expect_s3_class(pc, "ggplot")
-  expect_equal(subtitle(pc), "P(X < 16.449) = 95%")
+  expect_equal(subtitle(pc), "P(X < 16.449) = 95.0%")
 
   pu <- vdist_normal_perc(.95, mean = 1e-308, sd = 10, type = "upper",
                           print_plot = FALSE)
-  expect_equal(subtitle(pu), "P(X > -16.449) = 95%")
+  expect_equal(subtitle(pu), "P(X > -16.449) = 95.0%")
 
   pb <- vdist_normal_prob(16.45, mean = 1e-308, sd = 10, print_plot = FALSE)
   expect_s3_class(pb, "ggplot")
-  expect_match(subtitle(pb), "= 95%")
+  expect_match(subtitle(pb), "= 95.0%")
 
   # the drawn probability is the probability the caption states
   v <- as.numeric(sub("^P\\(X < ([^)]+)\\).*$", "\\1", subtitle(pc)))
@@ -129,7 +129,7 @@ test_that("a near-zero normal mean is drawn, not rejected (VFXX6-M1)", {
   for (k in c(1e3, 1e-3)) {
     pk <- vdist_normal_perc(.95, mean = 1e-308 * k, sd = 10 * k,
                             print_plot = FALSE)
-    expect_match(subtitle(pk), "= 95%$")
+    expect_match(subtitle(pk), "= 95.0%$")
     expect_lt(abs(dark_area(pk) - .95), 1e-3)
   }
 })

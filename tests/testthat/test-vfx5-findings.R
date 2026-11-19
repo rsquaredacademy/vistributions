@@ -191,8 +191,11 @@ test_that("VFXX4-M2: the stated domain matches the implementation", {
   expect_true(grepl("outside the plotted range", p$labels$caption))
   expect_match(p$labels$caption, "of the shaded region")
 
-  # extreme t probability now reports the event, not a spurious area error
-  p <- vdist_t_perc(1e-10, .1, print_plot = FALSE)
+  # The heavy-tail joint domain rejects this probability by name; df >= 1
+  # retains the full percentile range and its checked event polygon.
+  expect_error(vdist_t_perc(1e-10, .1, print_plot = FALSE),
+               "probs must be between 0.001 and 0.999", fixed = TRUE)
+  p <- vdist_t_perc(1e-10, 1, print_plot = FALSE)
   expect_lt(abs(dark_area(p) - 1e-10), 1e-3)
 
   # reliable inversion at very large equal F degrees of freedom
@@ -217,7 +220,7 @@ test_that("scaling the units does not change the plot", {
     # same probability caption; the cutoff is printed in the new units
     expect_equal(sub("^P\\([^)]*\\) = ", "", subtitle(scaled)),
                  sub("^P\\([^)]*\\) = ", "", subtitle(base)))
-    expect_match(subtitle(scaled), "= 95%$")
+    expect_match(subtitle(scaled), "= 95.0%$")
 
     # the dark polygon, expressed in standardized units, is the same curve.
     # The adaptive grid may hold one vertex more or less in a different unit

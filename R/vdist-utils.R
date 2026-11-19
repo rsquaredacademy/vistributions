@@ -92,14 +92,9 @@ vdist_check_f_num_df <- function(num_df) {
   invisible(num_df)
 }
 
-# t degrees of freedom. Very small df makes the tails so heavy that the event
-# bounds (the 1e-10 quantiles) are hundreds of orders of magnitude away and the
-# shaded polygon of an ordinary probability cannot be resolved at double
-# precision: the smallest df at which the ordinary values 0.05, 0.5 and 0.95
-# plot for both `vdist_t_prob()` and `vdist_t_perc()` is about 0.031 (0.031
-# still fails its area check, 0.0315 works). The floor is documented as 0.05,
-# which is the smallest value that also plots the 0.999 percentile, and values
-# below it are rejected with a message naming `df` rather than the probability.
+# The df floor and the joint probability/cutoff limits below are conservative
+# numerical bounds for heavy t tails. A df floor alone does not guarantee that
+# an extreme event leaves enough representable tail for a relative area check.
 vdist_t_df_floor <- 0.05
 
 vdist_check_t_df <- function(df) {
@@ -112,10 +107,33 @@ vdist_check_t_df <- function(df) {
   invisible(df)
 }
 
-# Largest chi-square xaxis_range whose plot still passes its area check. The
-# trapezoid sum over a window this wide is accurate to within 1e-6 relative
-# error up to a range of about 1e28 for every df; 1e10 is documented with a
-# wide margin and is far beyond any chi-square body (the support scale is df).
+# A conservative joint domain for the heavy tails below one degree of freedom.
+# It leaves enough representable tail beyond every event for the relative area
+# check, including central intervals (whose two tail probabilities are halved).
+vdist_check_t_probability <- function(probs, df) {
+  if (df < 1 && (probs < 0.001 || probs > 0.999)) {
+    stop("probs must be between 0.001 and 0.999 (inclusive) when 0.05 <= df < 1; for df >= 1 use probs strictly between 1e-12 and 0.999999999999.",
+         call. = FALSE)
+  }
+  invisible(probs)
+}
+
+vdist_check_t_perc <- function(perc, df) {
+  if (df < 1) {
+    limit <- stats::qt(0.001, df, lower.tail = FALSE)
+    if (abs(perc) > limit) {
+      stop(paste0("perc must be between -", format(limit, digits = 17),
+                  " and ", format(limit, digits = 17), " when df = ", df,
+                  "; for 0.05 <= df < 1 use abs(perc) <= qt(0.001, df, lower.tail = FALSE)."),
+           call. = FALSE)
+    }
+  }
+  invisible(perc)
+}
+
+# Cap on an explicit chi-square window starting at zero. A body-centred
+# default window can have large endpoints while still being narrow and is
+# checked independently; the cap must not be applied to its right endpoint.
 vdist_chisquare_range_max <- 1e10
 
 vdist_check_chisquare_range <- function(xaxis_range) {
@@ -244,7 +262,7 @@ vdist_contract <- function(dist = NULL) {
     prob_lo       = c(1e-12, 1e-12, 1e-12, 1e-12, NA_real_),
     prob_hi       = c(1 - 1e-12, 1 - 1e-12, 1 - 1e-12, 1 - 1e-12, NA_real_),
     parameter     = c("sd / |mean| >= 1e-10 (mean != 0)",
-                      "df >= 0.05",
+                      "df >= 0.05; df < 1: probs in [0.001, 0.999], abs(perc) <= qt(0.001, df, lower.tail = FALSE)",
                       "df >= 0.1",
                       "num_df >= 1, den_df > 0",
                       "n a whole number in [0, 2^31 - 1], 0 <= p <= 1"),
@@ -570,9 +588,9 @@ vdist_clamp <- function(x, l) {
 # rendered on: the transformed axis for a wide window, the data axis otherwise.
 # When the clamped offset falls below the minimum share of the view, the pair is
 # widened to a readable share instead, keeping both labels inside the panel.
-# Ordinary windows keep the requested offset, so their annotations do not move.
+# Ordinary windows keep the requested offset when the pair is already readable.
 vdist_label_pair <- function(x, view, offset = 0.3,
-                            min_frac = 0.025, frac = 0.08) {
+                            min_frac = 0.025, frac = 0.12) {
   tr <- if (vdist_wide_window(view)) scales::pseudo_log_trans() else NULL
   fw <- if (is.null(tr)) base::identity else tr$transform
   bw <- if (is.null(tr)) base::identity else tr$inverse
@@ -581,11 +599,41 @@ vdist_label_pair <- function(x, view, offset = 0.3,
   lo <- vdist_clamp(x - offset, v)
   hi <- vdist_clamp(x + offset, v)
   span <- v[2] - v[1]
-  if (!is.finite(span) || span <= 0 || hi - lo >= min_frac * span) {
+  if (!is.finite(span) || span <= 0) {
     return(bw(c(lo, hi)))
   }
-  d <- frac * span / 2
-  bw(c(vdist_clamp(x - d, v), vdist_clamp(x + d, v)))
+  if (!is.null(tr)) min_frac <- max(min_frac, frac)
+  if (hi - lo < min_frac * span) {
+    d <- frac * span / 2
+    lo <- x - d
+    hi <- x + d
+  }
+  # Move the pair together: independently clamping the outer label's glyphs
+  # can otherwise put it directly on top of the inner label at a panel edge.
+  margin <- 0.08 * span
+  shift <- max(0, hi - (v[2] - margin)) - max(0, (v[1] + margin) - lo)
+  bw(c(lo, hi) - shift)
+}
+
+# Clamp text by its rendered glyph width, not just by its anchor. Grid evaluates
+# these units in the panel viewport on the actual device, so this also works on
+# transformed axes and after resizing. Labels already inside the panel do not
+# move. Each annotation contains a single text grob.
+vdist_annotate_text <- function(...) {
+  layer <- ggplot2::annotate("text", ...)
+  layer$geom <- ggplot2::ggproto(NULL, ggplot2::GeomText,
+    draw_panel = function(data, panel_params, coord, parse = FALSE,
+                          na.rm = FALSE, check_overlap = FALSE) {
+      g <- ggplot2::GeomText$draw_panel(data, panel_params, coord,
+        parse = parse, na.rm = na.rm, check_overlap = check_overlap)
+      if (inherits(g, "text")) {
+        width <- grid::grobWidth(g)
+        g$x <- grid::unit.pmax(width * g$hjust,
+          grid::unit.pmin(grid::unit(1, "npc") - width * (1 - g$hjust), g$x))
+      }
+      g
+    })
+  layer
 }
 
 # a single non-negative whole number (number of trials). Values within 1e-8 of
@@ -890,14 +938,8 @@ vdist_fmt_pct <- function(p) {
       }
       dec <- dec + 1L
     }
-    s  <- format(shown, trim = TRUE, scientific = FALSE, digits = 15,
-                 decimal.mark = ".")
-    dec_shown <- if (grepl("\\.", s)) {
-      nchar(sub("^[^.]*\\.", "", s))
-    } else {
-      0L
-    }
-    return(list(text = s, value = shown / 100, tol = 0.5 * 10 ^ (-dec_shown) / 100))
+    s <- formatC(shown, format = "f", digits = dec, decimal.mark = ".")
+    return(list(text = s, value = shown / 100, tol = half / 100))
   }
   s <- format(v, scientific = TRUE, digits = 3, trim = TRUE,
               decimal.mark = ".")
@@ -1316,7 +1358,9 @@ vdist_subpixel_layer <- function(data, ylim) {
 vdist_caption_text <- function(data) {
   bits <- character(0)
   if (isTRUE(data$cutoff_outside)) bits <- c(bits, "The cutoff line is clipped to the plotted range")
-  if (isTRUE(data$underflow)) bits <- c(bits, "the shaded region is too small to display")
+  if (isTRUE(data$underflow) || isTRUE(data$too_short)) {
+    bits <- c(bits, "the shaded region is too small to display")
+  }
   b <- vdist_beyond_text(data$omitted)
   if (!is.null(b)) {
     bits <- c(bits, b)

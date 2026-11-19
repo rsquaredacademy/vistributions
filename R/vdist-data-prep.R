@@ -285,9 +285,8 @@ vdist_cont_prep <- function(spec, parts, prob, view, method,
   if (!is.finite(cover) || !is.finite(prob) ||
       prob >= 1e-12 && cover < prob * (1 - 1e-6)) {
     stop(paste0("The shaded part of the ", spec$family, " distribution ",
-                "cannot be represented numerically: only ",
-                format(cover / max(prob, 1e-300) * 100, digits = 4),
-                "% of the event is inside the representable tails. Use a ",
+                "cannot be represented numerically: the representable tails ",
+                "do not cover the event to within 1e-6 relative error. Use a ",
                 "less extreme probability."), call. = FALSE)
   }
 
@@ -332,6 +331,21 @@ vdist_cont_prep <- function(spec, parts, prob, view, method,
   cutoff_outside <- !is.null(cut_draw) && any(cut_draw < view[1] | cut_draw > view[2]) ||
     any(cut < view[1] | cut > view[2])
 
+  ycap <- vdist_density_cap(spec$dfun, view[1], view[2], spec$pfun, spec$qfun)
+  # A region can occupy plenty of horizontal space yet be invisible because
+  # its density is far below one pixel of the panel height. Include the exact
+  # endpoints as well as the view grid so that a rising tail is not missed.
+  visible_peak <- 0
+  for (p in parts) {
+    lo <- max(p[1], view[1], spec$support[1])
+    hi <- min(p[2], view[2], spec$support[2])
+    if (hi > lo) {
+      xx <- c(lo, x[x >= lo & x <= hi], hi)
+      visible_peak <- max(visible_peak, spec$dfun(xx), na.rm = TRUE)
+    }
+  }
+  too_short <- visible_peak > 0 && visible_peak / ycap < 4e-3
+
   list(cutoff_outside = cutoff_outside,
        spec       = spec,
        plot_data  = plot_data,
@@ -350,9 +364,9 @@ vdist_cont_prep <- function(spec, parts, prob, view, method,
        event_prob = prob,
        omitted    = omitted,
        underflow  = isTRUE(prob == 0),
+       too_short  = isTRUE(too_short),
        subpixel   = vdist_subpixel_region(parts, view, rb, prob, omitted),
-       ycap       = vdist_density_cap(spec$dfun, view[1], view[2],
-                                      spec$pfun, spec$qfun),
+       ycap       = ycap,
        point_data = data.frame(x = pc, y = 0))
 }
 
@@ -471,9 +485,10 @@ cprob_data_prep <- function(perc, df, method) {
   # panel in a negligible left tail: df = 200 with perc = 13 on [0, 25] draws a
   # flat panel 40 orders of magnitude below the body at 200. The body is part of
   # the picture, so the view is widened to the mean and a few standard
-  # deviations when it contains none of it. Windows that already show the body
-  # (every ordinary df) are unchanged.
-  if (hi < chim - 4 * chisd) hi <- chim + 4 * chisd
+  # deviations when it contains less than 20% of the distribution. This also
+  # covers the shoulder below the mode, while preserving the ordinary df 1--30
+  # windows at the 5th--95th percentiles.
+  if (pfun(hi) < 0.2) hi <- chim + 4 * chisd
   hiq <- vdist_tail_quantile(spec$qfun, 1e-9, lower.tail = FALSE)$q
   hi <- min(max(hi, perc + chisd, 1), max(hiq, 1))
   view <- c(0, hi)

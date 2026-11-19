@@ -108,7 +108,7 @@ test_that("L1.1: t percentile annotations do not overprint on a wide window", {
   labels <- unlist(lapply(built$data, function(d) {
     if ("label" %in% names(d)) as.character(d$label) else NULL
   }))
-  expect_setequal(labels, c("95%", "5%"))
+  expect_setequal(labels, c("95.0%", "5.0%"))
 
   # the upper tail is separated too
   pu <- vdist_t_perc(.02, df = .1, "upper", print_plot = FALSE)
@@ -204,7 +204,7 @@ test_that("H7.2b: a chi-square probability view keeps the body of the distributi
       dark <- dark + vistributions:::vdist_area(d$x, d$y)
     }
   }
-  expect_equal(dark, pchisq(13, 200), tolerance = 1e-6)
+  expect_lt(abs(dark / pchisq(13, 200) - 1), 1e-6)
 
   # ordinary windows are unchanged
   expect_equal(ggplot2::ggplot_build(

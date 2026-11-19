@@ -11,7 +11,10 @@
 #' @param type Lower tail or upper tail.
 #' @param normal If \code{TRUE}, normal curve with same \code{mean} and
 #' \code{sd} as the chi square distribution is drawn.
-#' @param xaxis_range Upper X axis limit; by default the view spans four standard deviations around df, clipped at zero. It must not exceed \code{1e10}.
+#' @param xaxis_range Upper X axis limit; by default the view spans four
+#'   standard deviations around df, clipped at zero. An explicitly supplied
+#'   value must not exceed \code{1e10}; this cap does not apply to the default
+#'   body-centred window.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
 #' @details Percentages below 1e-10\% are displayed as < 1e-10\%, and
@@ -29,17 +32,18 @@
 #' and are true at the precision they print. A shaded region too narrow to
 #' occupy a pixel at the plotted scale (for example the lower 5\% tail of
 #' \code{df = 0.1}) is marked with a visible strip in the panel and disclosed in
-#' the caption; its polygon and its checked area are unchanged. Every plotting
-#' grid has a bounded number of points, whatever the range or degrees of
+#' the caption; its polygon and its checked area are unchanged.
+#' A shaded region whose height is less than 0.4\% of the density peak is
+#' disclosed as too small to display.
+#' Every plotting grid has a bounded number of points, whatever the range or degrees of
 #' freedom.
 #'
 #' A probability view keeps the body of the distribution: when the requested
-#' cutoff would leave the panel entirely in a negligible left tail (for example
+#' cutoff would leave less than 20\% of the distribution inside the panel (for example
 #' \code{vdist_chisquare_prob(13, df = 200)}), the window is widened to the mean
 #' and a few standard deviations instead of showing a flat far tail.
-#' \code{xaxis_range} is limited to \code{1e10}: a wider window is far beyond
-#' any chi-square body and cannot be integrated at double precision, so it is
-#' rejected with a clear message rather than a mismatched-area error.
+#' An explicitly supplied \code{xaxis_range} is limited to \code{1e10};
+#' wider explicit windows are rejected with an error naming \code{xaxis_range}.
 #'
 #' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 #'
@@ -75,7 +79,7 @@ vdist_chisquare_plot <- function(df = 3, normal = FALSE, xaxis_range = NULL, pri
   check_numeric(xaxis_range, "xaxis_range")
   check_scalar(xaxis_range, "xaxis_range")
   check_positive(xaxis_range, "xaxis_range")
-  vdist_check_chisquare_range(xaxis_range)
+  if (!default_range) vdist_check_chisquare_range(xaxis_range)
   check_logical(normal)
 
   data <- cplot_data_prep(df, xaxis_range, if (default_range) max(0, df - 4 * sqrt(2 * df)) else 0)
