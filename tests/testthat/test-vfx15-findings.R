@@ -27,7 +27,8 @@ fx15_text_extents <- function(p, width = 120, height = 60) {
   texts <- if (is.null(g)) {
     Filter(function(g) inherits(g, "text"), panel$children)
   } else {
-    grid::makeContent(g)$children
+    # Halo patches are children too; the glyph boxes are the text grobs.
+    Filter(function(g) !is.null(g$label), grid::makeContent(g)$children)
   }
   do.call(rbind, lapply(texts, function(g) {
     w <- grid::convertWidth(grid::grobWidth(g), "npc", valueOnly = TRUE)

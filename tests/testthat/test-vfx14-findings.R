@@ -125,7 +125,9 @@ test_that("L1.1: t percentile annotations are cutoff-anchored on wide windows", 
   # rendered glyph boxes are checked in test-vfx16-findings.R
   p7 <- vdist_t_perc(.95, df = 7, "lower", print_plot = FALSE)
   pc <- vistributions:::tperc_data_prep(.95, 7, "lower")$pc
-  expect_equal(ggplot2::layer_data(p7, 2)$x, rep(pc, 2))
+  lab <- which(vapply(p7$layers,
+    function(l) inherits(l$geom, "GeomVdistLabels"), logical(1)))
+  expect_equal(ggplot2::layer_data(p7, lab)$x, rep(pc, 2))
 })
 
 # L1.2 ----------------------------------------------------------------------

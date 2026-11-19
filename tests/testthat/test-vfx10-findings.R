@@ -165,7 +165,7 @@ test_that("H07: a tail event keeps its polygon and its true disclosure", {
   # a cutoff wholly outside the panel is disclosed against the event itself
   p <- vdist_normal_prob(12, type = "upper", print_plot = FALSE)
   expect_match(p$labels$caption, "of the shaded region lies outside")
-  expect_match(p$labels$caption, "> 99\\.9999999999%")
+  expect_match(p$labels$caption, "100\\.0%")
 
   # the old formula divided by the truncated mass, not the event mass
   p <- vdist_normal_perc(2e-9, print_plot = FALSE)
@@ -186,7 +186,9 @@ test_that("H08 and H09: normals below the scale limit are rejected", {
 test_that("H10: the visibility strip marks its own event at any scale", {
   for (s in c(1e-200, 1e200)) {
     p <- vdist_normal_prob(c(.99, 1.01) * s, sd = s, print_plot = FALSE)
-    strip <- ggplot2::layer_data(p, length(p$layers))
+    strip_at <- which(vapply(p$layers,
+      function(l) inherits(l$geom, "GeomRect"), logical(1)))
+    strip <- ggplot2::layer_data(p, max(strip_at))
     expect_true(strip$xmin[1] <= 1.01 * s && strip$xmax[1] >= .99 * s)
     expect_true(strip$xmin[1] >= .9 * s && strip$xmax[1] <= 1.1 * s)
   }
@@ -269,7 +271,8 @@ test_that("M02: finite distant cutoffs keep their exact mass", {
   )
   for (cs in cases) {
     expect_equal(dark_area(cs$p), cs$truth, tolerance = 1e-3)
-    expect_match(subtitle(cs$p), "> 99\\.9999999999%")
+    # The event covers the whole plotted line and is exactly certain.
+    expect_match(subtitle(cs$p), "= 100\\.0%")
   }
 })
 

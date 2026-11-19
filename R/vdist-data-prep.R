@@ -935,7 +935,9 @@ tprob_data_prep <- function(perc, df, method) {
     prob <- vdist_prob_between(pfun, spec$dfun, -p, p)
     parts <- list(c(-p, p))
     disp <- vdist_fmt_pct(prob)
-    cut_text <- vdist_fmt_interval(-p, p, Inf, pfun, prob, spec$dfun)[2]
+    # Both ends of the interval, so a zero-width interval prints "0 < X < 0"
+    # instead of the signed zero "-0".
+    cut_text <- vdist_fmt_interval(-p, p, Inf, pfun, prob, spec$dfun)
     pp1 <- pfun(-p); pp2 <- pfun(p, lower.tail = FALSE)
   } else {
     p <- abs(perc)

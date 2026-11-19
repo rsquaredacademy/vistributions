@@ -38,7 +38,9 @@ test_that("two cutoff labels agree with both printed tails", {
   }
   for (x in c(5.00049,seq(.5,6,by=.5)+.00049)) for (method in c("interval","both")) {
     d <- vistributions:::tprob_data_prep(x,10,method)
-    z <- as.numeric(d$cut_text)
+    # The interval form stores both printed ends; the positive end is the one
+    # the symmetric cutoff label is built from.
+    z <- as.numeric(d$cut_text[length(d$cut_text)])
     expect_identical(fmt(pt(-z,10))$text,fmt(pt(-x,10))$text)
     expect_identical(fmt(pt(z,10,lower.tail=FALSE))$text,fmt(pt(x,10,lower.tail=FALSE))$text)
   }
@@ -64,9 +66,16 @@ test_that("F near-one upper quantiles reproduce the smaller tail", {
   for (den in c(1,2,10)) for (p in 1-c(1e-8,1e-9,1e-11)) {
     d <- vistributions:::fperc_data_prep(p,1,den,"upper")
     expect_lt(abs(pf(d$pp,1,den)/(1-p)-1),1e-6)
-    expect_false(startsWith(d$prob_text,">"))
+    # A probability that rounds to 100.0% is printed as a true bound, never as
+    # the deep near-certainty bound or as an asserted 100.0%.
+    expect_false(startsWith(d$prob_text, "> 99.9999999999"))
+    if (startsWith(d$prob_text, ">") && !startsWith(d$prob_text, "> 99.9999999999")) {
+      expect_equal(d$prob_text, "> 99.9")
+      expect_gt(p, 0.999)
+    }
     g <- vdist_f_perc(p,1,den,"upper",FALSE)
     expect_false(grepl("> 99.9999999999%",g$labels$subtitle,fixed=TRUE))
+    expect_false(grepl("= 100.0%",g$labels$subtitle,fixed=TRUE))
   }
 })
 

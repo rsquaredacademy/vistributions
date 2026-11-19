@@ -5,7 +5,9 @@
 #' probability and probability from a given quantile.
 #'
 #' @details Percentages below 1e-10\% are displayed as < 1e-10\%, and
-#' probabilities within 1e-10\% of 100\% as > 99.9999999999\%.
+#' probabilities within 1e-10\% of 100\% as > 99.9999999999\%. A
+#' probability below 1 that would print 100.0\% is displayed as the bound
+#' > 99.9\%, the mirror of the floor; an exact 1 keeps 100.0\%.
 #' Percentages at or above 0.1\% keep at least one decimal. Smaller
 #' percentages use three significant digits in scientific notation, retaining
 #' trailing zeros (for example \code{5.00e-02\%}). Values that round to
@@ -43,7 +45,10 @@
 #' caption as too small to display. Probability labels are anchored to the
 #' cutoff line with a fixed absolute gap, so their layout does not depend on the
 #' device size; a label that would leave the panel is stacked on a second line
-#' instead of being drawn across the cutoff.
+#' instead of being drawn across the cutoff. Labels are drawn above the density,
+#' the cutoff lines and the markers, each on a small light patch in the panel
+#' background colour, so the shaded fill cannot erase the text and a cutoff line
+#' cannot cross it.
 #'
 #' @param num_df Degrees of freedom associated with the numerator of f statistic
 #'   (at least 1; need not be a whole number).

@@ -245,7 +245,7 @@ cperc_plot_build <- function(data, method, probs, df) {
     plot <- plot + labs(caption = vdist_caption_text(data))
   }
 
-  return(plot)
+  return(vdist_labels_last(plot))
 
 }
 
@@ -326,7 +326,7 @@ cprob_plot_build <- function(data, method, perc, df) {
     gplot <- gplot + labs(caption = vdist_caption_text(data))
   }
 
-  return(gplot)
+  return(vdist_labels_last(gplot))
 }
 
 # Polygon of a continuous region. The builder in R/vdist-utils.R samples the
@@ -485,7 +485,7 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
     gplot <- gplot + labs(caption = vdist_caption_text(data))
   }
 
-  return(gplot)
+  return(vdist_labels_last(gplot))
 
 }
 
@@ -577,7 +577,7 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
     gplot <- gplot + labs(caption = vdist_caption_text(data))
   }
 
-  return(gplot)
+  return(vdist_labels_last(gplot))
 
 }
 
@@ -724,7 +724,7 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
     gplot <- gplot + labs(caption = vdist_caption_text(data))
   }
 
-  return(gplot)
+  return(vdist_labels_last(gplot))
 }
 
 nprob_plot_build <- function(data, perc, mean, sd, method) {
@@ -828,7 +828,7 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
     gplot <- gplot + labs(caption = vdist_caption_text(data))
   }
 
-  return(gplot)
+  return(vdist_labels_last(gplot))
 
 }
 
@@ -960,7 +960,7 @@ tperc_plot_build <- function(data, probs, df, method) {
     gplot <- gplot + labs(caption = vdist_caption_text(data))
   }
 
-  return(gplot)
+  return(vdist_labels_last(gplot))
 }
 
 tprob_plot_build <- function(data, perc, df, method) {
@@ -1052,7 +1052,7 @@ tprob_plot_build <- function(data, perc, df, method) {
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(", paste0("-", data$cut_text), " < X < ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+              subtitle = paste0("P(", data$cut_text[1], " < X < ", data$cut_text[2], ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
       vdist_annotate_labels(
                label  = c(paste0(vdist_pct_text(data$pp1), "%"),
                           paste0(data$prob_text, "%"),
@@ -1120,7 +1120,7 @@ tprob_plot_build <- function(data, perc, df, method) {
     gplot <- gplot + labs(caption = vdist_caption_text(data))
   }
 
-  return(gplot)
+  return(vdist_labels_last(gplot))
 
 }
 

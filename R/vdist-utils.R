@@ -604,8 +604,18 @@ vdist_clamp <- function(x, l) {
 # then separated vertically rather than horizontally.
 vdist_label_gap <- 2
 vdist_label_row_gap <- 6
+# A label is drawn on its own light patch so it stays readable over the dark
+# event fill, over the density line and over a cutoff line. The patch is in the
+# panel background colour (the default theme's grey92) with a small padding, so
+# it is invisible on an ordinary panel and covers what is behind the text
+# wherever the text sits.
+vdist_label_halo_fill <- "#EBEBEB"
+vdist_label_halo_pad <- 0.7
+vdist_label_halo_r <- 0.8
 
-vdist_annotate_labels <- function(label, x, y, colour, side, size = 3) {
+vdist_annotate_labels <- function(label, x, y, colour, side, size = 3,
+                                  halo = TRUE,
+                                  halo_fill = vdist_label_halo_fill) {
   ggplot2::layer(
     geom = GeomVdistLabels,
     data = data.frame(x = x, y = y, label = label, colour = colour,
@@ -614,18 +624,34 @@ vdist_annotate_labels <- function(label, x, y, colour, side, size = 3) {
     stat = "identity", position = "identity", inherit.aes = FALSE,
     show.legend = FALSE,
     params = list(size = size, side = side,
-                  gap = vdist_label_gap, row_gap = vdist_label_row_gap)
+                  gap = vdist_label_gap, row_gap = vdist_label_row_gap,
+                  halo = halo, halo_fill = halo_fill)
   )
+}
+
+# Draw the annotation labels above everything else a builder added. The density
+# polygon, the cutoff lines and the markers are opaque, so a label layer below
+# them is painted over (chi-square df < 2 and F num_df < 2 reach the top of the
+# panel with their density spike and erased the text). Reordering the layer list
+# keeps the geometry unchanged and only changes z-order.
+vdist_labels_last <- function(p) {
+  is_label <- vapply(p$layers,
+    function(l) inherits(l$geom, "GeomVdistLabels"), logical(1))
+  if (any(is_label) && !is_label[length(is_label)]) {
+    p$layers <- c(p$layers[!is_label], p$layers[is_label])
+  }
+  p
 }
 
 GeomVdistLabels <- ggplot2::ggproto("GeomVdistLabels", ggplot2::GeomText,
   parameters = function(self, extra = FALSE) {
     c(ggplot2::ggproto_parent(ggplot2::GeomText, self)$parameters(extra),
-      "side", "gap", "row_gap")
+      "side", "gap", "row_gap", "halo", "halo_fill")
   },
   draw_panel = function(self, data, panel_params, coord,
                         side = NULL, gap = vdist_label_gap,
-                        row_gap = vdist_label_row_gap, ...) {
+                        row_gap = vdist_label_row_gap, halo = TRUE,
+                        halo_fill = vdist_label_halo_fill, ...) {
     transformed <- coord$transform(data, panel_params)
     n <- nrow(data)
     if (is.null(side) || length(side) != n) {
@@ -642,6 +668,9 @@ GeomVdistLabels <- ggplot2::ggproto("GeomVdistLabels", ggplot2::GeomText,
     grid::gTree(children = do.call(grid::gList, kids),
                 vd_x = transformed$x, vd_y = transformed$y, vd_side = side,
                 vd_gap = gap, vd_row_gap = row_gap,
+                vd_halo = isTRUE(halo), vd_halo_fill = halo_fill,
+                vd_halo_pad = vdist_label_halo_pad,
+                vd_halo_r = vdist_label_halo_r,
                 cl = "vdist_labels")
   })
 
@@ -649,6 +678,9 @@ GeomVdistLabels <- ggplot2::ggproto("GeomVdistLabels", ggplot2::GeomText,
 # with the device and panel size that will actually be shown.
 #' @exportS3Method grid::makeContent
 makeContent.vdist_labels <- function(x) {
+  if (isTRUE(x$vd_made)) {
+    return(x)
+  }
   n <- length(x$children)
   if (!n) {
     return(x)
@@ -762,7 +794,9 @@ makeContent.vdist_labels <- function(x) {
     }
   }
 
-  kids <- vector("list", n)
+  kids <- vector("list", 2L * n)
+  pad_w <- to_npc_w(grid::unit(x$vd_halo_pad, "mm"))
+  pad_h <- to_npc_h(grid::unit(x$vd_halo_pad, "mm"))
   for (i in seq_len(n)) {
     g <- x$children[[i]]
     # hjust is the side of the glyph box that sits on this anchor: hjust = 1
@@ -780,9 +814,29 @@ makeContent.vdist_labels <- function(x) {
     g$vdist_cutoff <- anchor[i]
     g$vdist_stacked <- stacked[i]
     g$vdist_row <- row[i]
-    kids[[i]] <- g
+    if (isTRUE(x$vd_halo)) {
+      # A light patch behind the text, drawn before it in the same gTree, so the
+      # text stays readable wherever it lands (dark fill, line, marker) and no
+      # line can cross the glyphs without the patch behind them.
+      halo <- grid::roundrectGrob(
+        x = grid::unit((left[i] + right[i]) / 2, "npc"),
+        y = grid::unit(y, "npc"),
+        width = grid::unit(widths[i] + 2 * pad_w, "npc"),
+        height = grid::unit(heights[i] + 2 * pad_h, "npc"),
+        r = grid::unit(x$vd_halo_r, "mm"),
+        gp = grid::gpar(fill = x$vd_halo_fill, col = NA)
+      )
+      halo$vdist_halo <- TRUE
+      halo$vdist_label <- i
+      g$vdist_halo <- TRUE
+      kids[[2L * i - 1L]] <- halo
+    } else {
+      g$vdist_halo <- FALSE
+    }
+    kids[[2L * i]] <- g
   }
-  grid::setChildren(x, do.call(grid::gList, kids))
+  x$vd_made <- TRUE
+  grid::setChildren(x, do.call(grid::gList, kids[!vapply(kids, is.null, logical(1))]))
 }
 
 # a single non-negative whole number (number of trials). Values within 1e-8 of
@@ -1066,6 +1120,13 @@ fmt_moment <- function(x) {
 # decimal). The rule is a function of the probability alone, so it is unchanged
 # by a change of measurement units and it guarantees that every printed
 # percentage is true at the precision it shows.
+#
+# A continuous probability below one that would print 100.0% is shown as the
+# bound "> 99.9" instead, the mirror of the "< 1e-10" floor: one decimal cannot
+# state an event that can still fail without asserting certainty. This is the
+# continuous counterpart of the binomial "> 0.999" bound. The probability is
+# still rounded once, from the exact value, so the same event prints the same
+# text in the percentile and probability forms.
 vdist_fmt_pct <- function(p) {
   if (length(p) != 1L || !is.finite(p)) {
     return(list(text = "NA", value = NA_real_, tol = Inf))
@@ -1073,7 +1134,13 @@ vdist_fmt_pct <- function(p) {
   if (p >= 0 && p < 1e-12) {
     return(list(text = "< 1e-10", value = p, tol = 1e-12))
   }
-  if (p <= 1 && p > 1 - 1e-12) {
+  if (p == 1) {
+    # A certain event keeps its equality. Below one, a value that would round to
+    # 100.0 is printed as the bound "> 99.9" instead (see below), the mirror of
+    # the "< 1e-10" floor.
+    return(list(text = "100.0", value = 1, tol = 0.0005))
+  }
+  if (p < 1 && p > 1 - 1e-12) {
     return(list(text = "> 99.9999999999", value = p, tol = 1e-12))
   }
   if (p == 0) {
@@ -1089,6 +1156,10 @@ vdist_fmt_pct <- function(p) {
         break
       }
       dec <- dec + 1L
+    }
+    if (shown >= 100 && p < 1) {
+      # One decimal would assert certainty for an event that can still fail.
+      return(list(text = "> 99.9", value = 1, tol = 0.0005))
     }
     s <- formatC(shown, format = "f", digits = dec, decimal.mark = ".")
     return(list(text = s, value = shown / 100, tol = half / 100))
@@ -1111,7 +1182,10 @@ vdist_pct_text <- function(p) {
 vdist_pct_matches <- function(p, target, tol, text = NULL) {
   if (!is.finite(p)) return(FALSE)
   if (!is.null(text) && startsWith(text, "<")) return(p < 1e-12)
-  if (!is.null(text) && startsWith(text, ">")) return(p > 1 - 1e-12)
+  if (!is.null(text) && startsWith(text, ">")) {
+    bound <- suppressWarnings(as.numeric(sub("^>[[:space:]]*", "", text)))
+    return(is.finite(bound) && p * 100 > bound)
+  }
   abs(p - target) <= tol &&
     (is.null(text) || identical(vdist_fmt_pct(p)$text, text))
 }

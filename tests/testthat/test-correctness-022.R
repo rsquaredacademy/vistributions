@@ -214,5 +214,6 @@ test_that("L3: cutoffs outside the support give probability 0, not an error", {
   expect_equal(subtitle(vdist_f_prob(-1, print_plot = FALSE)), "P(X < -1) < 1e-10%")
   expect_equal(subtitle(vdist_chisquare_prob(-1, print_plot = FALSE)), "P(X < -1) < 1e-10%")
   p <- vdist_chisquare_prob(-1, 5, "upper", print_plot = FALSE)
-  expect_equal(subtitle(p), "P(X > -1) > 99.9999999999%")
+  # The whole support lies above -1: an exact certainty keeps its equality.
+  expect_equal(subtitle(p), "P(X > -1) = 100.0%")
 })

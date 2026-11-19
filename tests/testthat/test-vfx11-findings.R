@@ -88,7 +88,8 @@ test_that("underflowed normal tails use floor and disclose omission", {
   expect_match(g$labels$subtitle, "< 1e-10%")
   expect_match(g$labels$caption, "too small")
   g <- vdist_normal_prob(40, type = "lower", print_plot = FALSE)
-  expect_match(g$labels$subtitle, "> 99\\.9999999999%")
+  # pnorm(40) is 1 exactly: an exact certainty keeps its equality.
+  expect_match(g$labels$subtitle, "= 100\\.0%")
 })
 
 test_that("exact binomial jumps keep qbinom convention", {
@@ -134,7 +135,7 @@ test_that("heavy-tailed polygons and F tail bounds preserve probability", {
   expect_lt(abs(mass / pt(qt(1e-10,1),1) - 1), 1e-6)
   g <- vdist_f_prob(1e6,1e6,1e6,print_plot=FALSE)
   expect_equal(pf(1e6,1e6,1e6), 1)
-  expect_match(g$labels$subtitle, "> 99\\.9999999999%")
+  expect_match(g$labels$subtitle, "= 100\\.0%")
 })
 
 
@@ -208,7 +209,12 @@ test_that("binomial exact jumps and targets outside the exclusion match qbinom",
 test_that("printed cutoffs support both labels for all continuous families", {
   check_label <- function(text, truth) {
     if (startsWith(text,"<")) { expect_lt(truth,1e-12); return(invisible(NULL)) }
-    if (startsWith(text,">")) { expect_gt(truth,1-1e-12); return(invisible(NULL)) }
+    if (startsWith(text,">")) {
+      # The printed text is a bound: the exact probability must be beyond it.
+      bound <- as.numeric(sub("%$","",sub("^>[[:space:]]*","",text)))
+      expect_gt(100*truth,bound)
+      return(invisible(NULL))
+    }
     num <- sub("%$","",text)
     parts <- strsplit(tolower(num),"e",fixed=TRUE)[[1]]
     decimals <- if (grepl("\\.",parts[1])) nchar(sub("^[^.]*\\.","",parts[1])) else 0
