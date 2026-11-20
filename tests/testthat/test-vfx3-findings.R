@@ -61,10 +61,10 @@ test_that("VFXX2-H2: unusable quantiles and extreme probabilities are rejected",
                "num_df must be at least 1")
 
   # qf(1e-9, 1, 1) returns 0 and does not invert the CDF
-  expect_error(vdist_f_perc(1e-9, 1, 1, print_plot = FALSE),
-               "probs must be between 1e-06 and 0.999999")
+  expect_error(vdist_f_perc(1e-13, 1, 1, print_plot = FALSE),
+               "probs must be strictly between 1e-12 and 0.999999999999")
   expect_error(vdist_chisquare_perc(1e-18, .1, print_plot = FALSE),
-               "probs must be between 1e-06 and 0.999999")
+               "probs must be strictly between 1e-12 and 0.999999999999")
 
   # every accepted F quantile has a finite density and a true caption
   for (pr in c(1e-6, .05, .5, .95, 1 - 1e-6)) {
@@ -76,39 +76,11 @@ test_that("VFXX2-H2: unusable quantiles and extreme probabilities are rejected",
 
 # VFXX2-H3 ------------------------------------------------------------------
 
-test_that("VFXX2-H3: a translated small-scale normal cutoff keeps its precision", {
-  p <- vdist_normal_perc(.95, mean = 1, sd = 1e-13, print_plot = FALSE)
-  expect_equal(subtitle(p), "P(X < 1.0000000000001645) = 95%")
-  cutoff <- event_value(subtitle(p))
-  expect_false(cutoff == 1)
-  # A 1e-4 tolerance on pnorm() is finer than double arithmetic can resolve
-  # here, so it is replaced by the representation-aware checks below.
-  #
-  # Derivation. Doubles near 1 are spaced eps = 2.22e-16 apart, i.e. 2.22e-3
-  # standard deviations when sd = 1e-13. pnorm() therefore moves in steps of
-  # about dnorm(1.645) * 2.22e-16 * 1.0000000000001645 = 2.29e-4 around .95:
-  # the two cutoffs either side of the printed one give .94982 and .95028.
-  # .94982 is exactly what macOS reports, i.e. its pnorm() is one ulp of x away
-  # from this platform's, which no tolerance below 2.3e-4 can distinguish from
-  # a wrong answer. What must be exact is the *cutoff*: it is printed with 17
-  # significant digits, so it must be the double nearest the exact quantile,
-  # within a few of its own representation steps. A cutoff that collapsed to 1
-  # (the original bug: |cutoff - 1| = 1.65e-13 = 745 steps) or that lost printed
-  # digits fails that; and the pnorm() check below then only has to tolerate
-  # the arithmetic's own spacing, not an arbitrary 1e-4.
-  xres <- 4 * .Machine$double.eps * abs(cutoff)
-  pres <- dnorm(cutoff, 1, 1e-13) * xres
-  expect_lte(abs(cutoff - qnorm(.95, 1, 1e-13)), xres)
-  expect_lte(abs(pnorm(cutoff, 1, 1e-13) - .95), pres + 1e-12)
-  expect_equal(max(vlines(p)), qnorm(.95, 1, 1e-13))
-
-  # the zero-centred case still prints its compact scientific value
-  p <- vdist_normal_perc(.95, sd = 1e-16, print_plot = FALSE)
-  expect_equal(subtitle(p), "P(X < 1.645e-16) = 95%")
-
-  # the coordinate itself is not resolvable around mean = 1
-  expect_error(vdist_normal_perc(.95, mean = 1, sd = 1e-16, print_plot = FALSE),
-               "cannot be represented numerically")
+test_that("VFXX2-H3: translated normal cutoffs respect the scale limit", {
+  expect_error(vdist_normal_perc(.95, mean = 1, sd = 1e-13, print_plot = FALSE), "sd / \\|mean\\|")
+  p <- vdist_normal_perc(.95, mean = 1, sd = 1e-10, print_plot = FALSE)
+  expect_equal(max(vlines(p)), qnorm(.95, 1, 1e-10))
+  expect_equal(pnorm(event_value(subtitle(p)), 1, 1e-10), .95, tolerance = 2e-5)
 })
 
 # VFXX2-H4 ------------------------------------------------------------------
@@ -218,16 +190,16 @@ test_that("each documented limit stops with its own message", {
                "df must be at least 0.1")
   expect_error(vdist_f_plot(.5, 30, print_plot = FALSE),
                "num_df must be at least 1")
-  expect_error(vdist_f_perc(1e-9, 1, 1, print_plot = FALSE),
-               "probs must be between 1e-06 and 0.999999")
+  expect_error(vdist_f_perc(1e-13, 1, 1, print_plot = FALSE),
+               "probs must be strictly between 1e-12 and 0.999999999999")
   expect_error(vdist_chisquare_perc(1e-18, .1, print_plot = FALSE),
-               "probs must be between 1e-06 and 0.999999")
+               "probs must be strictly between 1e-12 and 0.999999999999")
   expect_error(vdist_t_perc(1e-12, 7, print_plot = FALSE),
-               "probs must be between 1e-10 and 0.9999999999")
+               "probs must be strictly between 1e-12 and 0.999999999999")
   expect_error(vdist_normal_perc(1e-12, print_plot = FALSE),
-               "probs must be between 1e-10 and 0.9999999999")
+               "probs must be strictly between 1e-12 and 0.999999999999")
   expect_error(vdist_f_plot(1e9, 1e9, print_plot = FALSE),
                "too concentrated")
   expect_error(vdist_normal_perc(.95, mean = 1, sd = 1e-16, print_plot = FALSE),
-               "cannot be represented numerically")
+               "sd / \\|mean\\|")
 })

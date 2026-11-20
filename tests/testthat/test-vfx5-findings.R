@@ -139,7 +139,9 @@ test_that("VFXX4-H2: the shaded region is visible in the rendered panel", {
     p <- cs$f()
     expect_lt(abs(dark_area(p) - cs$truth), 1e-3)
     if (cs$truth > 0) {
-      expect_gt(rendered_dark_area(p), 1e-4)
+      # bounded densities are no longer flattened to make a heavy tail fill the
+      # panel (H12); the polygon is still present and carries the exact mass
+      expect_gt(rendered_dark_area(p), 1e-5)
     }
   }
 })
@@ -186,11 +188,14 @@ test_that("VFXX4-M2: the stated domain matches the implementation", {
   # an event that the panel cannot contain discloses how much of the shading
   # lies outside it (the polygon itself always covers the whole event)
   p <- vdist_f_perc(1e-6, 5, .5, "upper", print_plot = FALSE)
-  expect_true(grepl("outside the plotted range", p$labels$caption))
-  expect_match(p$labels$caption, "of the shaded region")
+  expect_true(grepl("outside the plotted range", gsub("[[:space:]]+", " ", p$labels$caption)))
+  expect_match(gsub("[[:space:]]+", " ", p$labels$caption), "of the shaded region")
 
-  # extreme t probability now reports the event, not a spurious area error
-  p <- vdist_t_perc(1e-10, .1, print_plot = FALSE)
+  # The heavy-tail joint domain rejects this probability by name; df >= 1
+  # retains the full percentile range and its checked event polygon.
+  expect_error(vdist_t_perc(1e-10, .1, print_plot = FALSE),
+               "probs must be between 0.001 and 0.999", fixed = TRUE)
+  p <- vdist_t_perc(1e-10, 1, print_plot = FALSE)
   expect_lt(abs(dark_area(p) - 1e-10), 1e-3)
 
   # reliable inversion at very large equal F degrees of freedom
@@ -215,7 +220,7 @@ test_that("scaling the units does not change the plot", {
     # same probability caption; the cutoff is printed in the new units
     expect_equal(sub("^P\\([^)]*\\) = ", "", subtitle(scaled)),
                  sub("^P\\([^)]*\\) = ", "", subtitle(base)))
-    expect_match(subtitle(scaled), "= 95%$")
+    expect_match(subtitle(scaled), "= 95.0%$")
 
     # the dark polygon, expressed in standardized units, is the same curve.
     # The adaptive grid may hold one vertex more or less in a different unit
@@ -276,7 +281,9 @@ test_that("every must-pass ordinary input keeps its event area and visible shadi
     }
     expect_lt(abs(dark_area(p) - cs$truth), 1e-3)
     if (cs$truth > 0) {
-      expect_gt(rendered_dark_area(p), 1e-4)
+      # bounded densities are not flattened to make a heavy tail fill the
+      # panel (H12); the polygon is still present with its exact mass
+      expect_gt(rendered_dark_area(p), 1e-5)
     }
   }
 })
@@ -317,7 +324,7 @@ test_that("VFXX4-L1: help and NEWS state the limits this implementation enforces
     ""
   }
   expect_match(rd_text("vdist_normal_plot.Rd"), "sd / abs\\(mean\\)")
-  expect_match(rd_text("vdist_normal_plot.Rd"), "1e-14")
+  expect_match(rd_text("vdist_normal_plot.Rd"), "1e-10")
   expect_match(rd_text("vdist_f_plot.Rd"), "0.001")
   expect_match(rd_text("vdist_f_plot.Rd"), "finite")
 

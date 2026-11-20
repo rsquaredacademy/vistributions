@@ -26,15 +26,15 @@ test_that("H2: fractional df is kept in t, chi-square and F helpers", {
   expect_equal(subtitle(vdist_t_prob(2, df = 1.9, "upper", print_plot = FALSE)),
                paste0("P(X > 2) = ", round(pt(2, 1.9, lower.tail = FALSE), 3) * 100, "%"))
   expect_equal(subtitle(vdist_chisquare_perc(.95, df = 1.9, print_plot = FALSE)),
-               paste0("P(X < ", round(qchisq(.95, 1.9), 3), ") = 95%"))
+               paste0("P(X < ", round(qchisq(.95, 1.9), 3), ") = 95.0%"))
   expect_equal(subtitle(vdist_chisquare_prob(3, df = 2.5, print_plot = FALSE)),
                paste0("P(X < 3) = ", round(pchisq(3, 2.5), 3) * 100, "%"))
   expect_equal(subtitle(vdist_f_prob(1, num_df = 1.5, den_df = 3, print_plot = FALSE)),
                paste0("P(X < 1) = ", round(pf(1, 1.5, 3), 3) * 100, "%"))
   expect_equal(subtitle(vdist_f_perc(.9, num_df = 2.5, den_df = 7.5, print_plot = FALSE)),
-               paste0("P(X < ", round(qf(.9, 2.5, 7.5), 3), ") = 90%"))
+               paste0("P(X < ", round(qf(.9, 2.5, 7.5), 3), ") = 90.0%"))
   expect_equal(subtitle(vdist_t_perc(.9, df = 2.5, print_plot = FALSE)),
-               paste0("P(X < ", round(qt(.9, 2.5), 3), ") = 90%"))
+               paste0("P(X < ", round(qt(.9, 2.5), 3), ") = 90.0%"))
 })
 
 test_that("H2: densities use the real-valued df (including df below one)", {
@@ -52,7 +52,7 @@ test_that("H2: densities use the real-valued df (including df below one)", {
 test_that("H3: normal quantiles are not rounded before plotting", {
   p <- vdist_normal_perc(.95, sd = .0001, print_plot = FALSE)
   expect_equal(max(vlines(p)), qnorm(.95, sd = .0001))
-  expect_equal(subtitle(p), "P(X < 0.0001645) = 95%")
+  expect_equal(subtitle(p), "P(X < 0.0001645) = 95.0%")
 
   p <- vdist_normal_perc(.95, mean = .0006, sd = .00001, print_plot = FALSE)
   expect_equal(max(vlines(p)), qnorm(.95, .0006, .00001))
@@ -70,7 +70,7 @@ test_that("H4: binomial counts must be whole numbers", {
   expect_error(vdist_binom_plot(n = -1, p = .5), "n must be a single non-negative whole number")
   # whole numbers stored as doubles, and n = 0, still work
   p <- vdist_binom_prob(10, .5, s = 3, type = "exact", print_plot = FALSE)
-  expect_equal(subtitle(p), paste("P(X) = 3 =", round(dbinom(3, 10, .5), 3)))
+  expect_equal(subtitle(p), paste0("P(X = 3) = ", sprintf("%.3f", dbinom(3, 10, .5))))
   expect_s3_class(vdist_binom_plot(n = 0, p = .5, print_plot = FALSE), "ggplot")
 })
 
@@ -80,7 +80,8 @@ test_that("H4: binomial probabilities match stats for each event type", {
   expect_equal(sum(shaded_mass(vdist_binom_prob(10, .5, 3, "lower", print_plot = FALSE))),
                pbinom(3, 10, .5))
   expect_equal(subtitle(vdist_binom_prob(10, .5, 3, "upper", print_plot = FALSE)),
-               paste("P(X) >= 3 =", round(pbinom(2, 10, .5, lower.tail = FALSE), 3)))
+               paste0("P(X >= 3) = ",
+                      sprintf("%.3f", pbinom(2, 10, .5, lower.tail = FALSE))))
 })
 
 test_that("H4: binomial summary sd is computed from n, p exactly", {
@@ -129,7 +130,7 @@ test_that("H6: shading matches the reported cutoff (lower and upper)", {
   up <- vdist_binom_perc(10, .5, .05, "upper", print_plot = FALSE)
   expect_equal(sum(shaded_mass(up)), pbinom(8, 10, .5, lower.tail = FALSE))
   # exact equality boundary: P(X <= 0) = 0.5^10 exactly
-  eq <- vdist_binom_perc(10, .5, .5^10, "lower", print_plot = FALSE)
+  eq <- vdist_binom_perc(10, .5, pbinom(0, 10, .5), "lower", print_plot = FALSE)
   expect_equal(sum(shaded_mass(eq)), .5^10)
 })
 
@@ -152,7 +153,7 @@ test_that("H7: negative symmetric t cutoffs give the same plot as |perc|", {
 test_that("M1: quantiles beyond the default grid still plot, at the true cutoff", {
   p <- vdist_t_perc(.95, df = 1, print_plot = FALSE)
   expect_equal(vlines(p), qt(.95, 1))
-  expect_equal(subtitle(p), paste0("P(X < ", round(qt(.95, 1), 3), ") = 95%"))
+  expect_equal(subtitle(p), paste0("P(X < ", round(qt(.95, 1), 3), ") = 95.0%"))
   p <- vdist_chisquare_perc(.999, df = 1, print_plot = FALSE)
   expect_equal(vlines(p), qchisq(.999, 1))
   p <- vdist_normal_perc(.9999999, print_plot = FALSE)
@@ -188,7 +189,7 @@ test_that("M2: the shaded region keeps its area at small scales", {
 # M3 ------------------------------------------------------------------------
 
 test_that("M3: probs of 0 or 1 are rejected with a clear message", {
-  msg <- "probs must be greater than 0 and less than 1."
+  msg <- "probs must be strictly between 1e-12 and 0.999999999999"
   expect_error(vdist_normal_perc(1), msg)
   expect_error(vdist_normal_perc(0), msg)
   expect_error(vdist_t_perc(1), msg)
@@ -210,8 +211,9 @@ test_that("L3: missing, empty and vector inputs get package errors", {
 })
 
 test_that("L3: cutoffs outside the support give probability 0, not an error", {
-  expect_equal(subtitle(vdist_f_prob(-1, print_plot = FALSE)), "P(X < -1) = 0%")
-  expect_equal(subtitle(vdist_chisquare_prob(-1, print_plot = FALSE)), "P(X < -1) = 0%")
+  expect_equal(subtitle(vdist_f_prob(-1, print_plot = FALSE)), "P(X < -1) < 1e-10%")
+  expect_equal(subtitle(vdist_chisquare_prob(-1, print_plot = FALSE)), "P(X < -1) < 1e-10%")
   p <- vdist_chisquare_prob(-1, 5, "upper", print_plot = FALSE)
-  expect_equal(subtitle(p), "P(X > -1) = 100%")
+  # The whole support lies above -1: an exact certainty keeps its equality.
+  expect_equal(subtitle(p), "P(X > -1) = 100.0%")
 })

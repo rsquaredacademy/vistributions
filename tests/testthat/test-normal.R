@@ -20,7 +20,7 @@ test_that("vdist_normal_prob throws the appropriate errors", {
 })
 
 test_that("vdist_normal_perc throws the appropriate errors", {
-  expect_error(vdist_normal_perc(1.5), "probs must be between 0 and 1 only.")
+  expect_error(vdist_normal_perc(1.5), "probs must be strictly between 1e-12 and 0.999999999999")
   expect_error(vdist_normal_perc("0.95"), "probs must be numeric.")
   expect_error(vdist_normal_perc(TRUE), "probs must be numeric.")
   expect_error(vdist_normal_perc(0.95, "10", 0.5), "mean must be numeric.")

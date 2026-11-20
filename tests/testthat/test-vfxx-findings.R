@@ -45,15 +45,15 @@ test_that("VFXX-H1: accepted near-integer trial counts are rounded once", {
 
   # exact probability of the rounded distribution, not the truncated one
   pe <- vdist_binom_prob(n, .5, 2, "exact", print_plot = FALSE)
-  expect_equal(subtitle(pe), "P(X) = 2 = 0.375")
+  expect_equal(subtitle(pe), "P(X = 2) = 0.375")
   expect_equal(sum(shaded_mass(pe)), dbinom(2, 3, .5))
   expect_equal(sum(shaded_mass(pe)), .375)
 
   # s = n is now accepted instead of failing against the truncated n
   expect_equal(subtitle(vdist_binom_prob(n, .5, 3, "exact", print_plot = FALSE)),
-               "P(X) = 3 = 0.125")
+               "P(X = 3) = 0.125")
   expect_equal(subtitle(vdist_binom_prob(n, .5, 3, "lower", print_plot = FALSE)),
-               "P(X) <= 3 = 1")
+               "P(X <= 3) = 1.000")
   expect_equal(sum(shaded_mass(vdist_binom_prob(n, .5, 3, "lower", print_plot = FALSE))),
                pbinom(3, 3, .5))
 
@@ -78,14 +78,14 @@ test_that("VFXX-H1: accepted near-integer trial counts are rounded once", {
 test_that("VFXX-H2: tiny cutoffs are printed with enough precision to be true", {
   # normal: sd = 1e-16, cutoff 1.64485362695147e-16 was printed as 0
   p <- vdist_normal_perc(.95, sd = 1e-16, print_plot = FALSE)
-  expect_equal(subtitle(p), "P(X < 1.645e-16) = 95%")
+  expect_equal(subtitle(p), "P(X < 1.645e-16) = 95.0%")
   expect_equal(event_value(subtitle(p)), 1.645e-16)
   expect_equal(pnorm(event_value(subtitle(p)), sd = 1e-16), .95, tolerance = 1e-4)
   expect_equal(max(vlines(p)), qnorm(.95, sd = 1e-16))
 
   # chi-square with a fractional df: cutoff 1.114775e-26 was printed as 0
   p <- vdist_chisquare_perc(.05, df = .1, print_plot = FALSE)
-  expect_equal(subtitle(p), "P(X < 1.115e-26) = 5%")
+  expect_equal(subtitle(p), "P(X < 1.115e-26) = 5.0%")
   expect_equal(pchisq(event_value(subtitle(p)), .1), .05, tolerance = 1e-4)
   expect_equal(max(vlines(p)), qchisq(.05, .1))
 
@@ -96,9 +96,9 @@ test_that("VFXX-H2: tiny cutoffs are printed with enough precision to be true", 
 
   # ordinary scales keep the three-decimal text exactly as before
   expect_equal(subtitle(vdist_normal_perc(.95, sd = .0001, print_plot = FALSE)),
-               "P(X < 0.0001645) = 95%")
+               "P(X < 0.0001645) = 95.0%")
   expect_equal(subtitle(vdist_chisquare_perc(.95, df = 1.9, print_plot = FALSE)),
-               paste0("P(X < ", round(qchisq(.95, 1.9), 3), ") = 95%"))
+               paste0("P(X < ", round(qchisq(.95, 1.9), 3), ") = 95.0%"))
 })
 
 # VFXX-H3 -------------------------------------------------------------------
@@ -195,5 +195,5 @@ test_that("VFXX-L1: an empty perc gives a package error, not an internal one", {
                "perc must have one or two values.")
   # equal endpoints are still a valid (empty) interval
   expect_equal(subtitle(vdist_normal_prob(c(1, 1), print_plot = FALSE)),
-               "P(1 < X < 1) = 0%")
+               "P(1 < X < 1) < 1e-10%")
 })

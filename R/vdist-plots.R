@@ -22,7 +22,7 @@ bplot_plot_build <- function(data, n, p) {
     scale_x_continuous(breaks = vdist_count_breaks(n))
 
   if (isTRUE(data$binned)) {
-    p <- p + labs(caption = vdist_binned_text())
+    p <- p + labs(caption = vdist_wrap_caption(vdist_binned_text()))
   }
 
   return(p)
@@ -41,10 +41,11 @@ vdist_col_layer <- function(data, fill) {
   }
 }
 
-# Axis breaks for a count axis never number more than 31 ticks, so a large n
-# does not materialise one label per count.
+# Count axes use at most seven integer ticks, even for small teaching counts.
 vdist_count_breaks <- function(n) {
-  if (n <= 30) seq(0, n) else ggplot2::waiver()
+  if (n == 0) return(0)
+  b <- vdist_axis_breaks(c(0, n), trim = FALSE)
+  b[b == floor(b)]
 }
 
 vdist_binned_text <- function() {
@@ -54,6 +55,8 @@ vdist_binned_text <- function() {
 
 bprob_plot_build <- function(data, method, n, p, s) {
 
+  np <- vdist_fmt_binom_prob(data$k)
+  relation <- if (grepl("^[<>]", np)) " " else " = "
   plot <-
     ggplot(data$plot_data) +
     vdist_col_layer(data, data$cols) +
@@ -63,31 +66,24 @@ bprob_plot_build <- function(data, method, n, p, s) {
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
+  # The inequality belongs inside P(): P(X >= 4) = 0.35, not P(X) >= 4 = 0.35.
   if (method == "lower") {
-    plot <-
-      plot +
-      ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
-              subtitle = paste("P(X) <=", s, "=", round(data$k, 3)))
+    sub <- paste0("P(X <= ", s, ")", relation, np)
   } else if (method == "upper") {
-    plot <-
-      plot +
-      ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
-              subtitle = paste("P(X) >=", s, "=", round(data$k, 3)))
+    sub <- paste0("P(X >= ", s, ")", relation, np)
   } else if (method == "exact") {
-    plot <-
-      plot +
-      ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
-              subtitle = paste("P(X) =", s, "=", round(data$k, 3)))
+    sub <- paste0("P(X = ", s, ")", relation, np)
   } else {
-    plot <-
-      plot +
-      ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
-              subtitle = paste0("P(", s[1], " <= X <= ", s[2], ")", " = ", round(data$k, 3)))
+    sub <- paste0("P(", s[1], " <= X <= ", s[2], ")", relation, np)
   }
 
-  if (isTRUE(data$binned)) {
-    plot <- plot + labs(caption = vdist_binned_text())
-  }
+  plot <- plot +
+    ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
+            subtitle = sub)
+
+  notes <- if (isTRUE(data$binned)) vdist_binned_text() else character(0)
+  if (data$k < 1e-12) notes <- c(notes, "The shaded probability is too small to display")
+  if (length(notes)) plot <- plot + labs(caption = vdist_wrap_caption(paste(notes, collapse = "; ")))
 
   return(plot)
 }
@@ -103,23 +99,33 @@ bperc_plot_build <- function(data, method, n, p, tp) {
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
+  # The threshold is printed with every digit needed to state the inequality:
+  # paste0() prints 1 - 2^-53 as the excluded value 1.
+  threshold <- vdist_fmt_pct(tp)$text
+  extreme <- grepl("^[<>]", threshold)
+  tpt <- if (extreme) "target" else vdist_fmt_number(tp)
+
+  k <- data$k
+  # State qbinom's defining convention; its numerical fuzz can make a
+  # direct floating-point comparison at a jump disagree with these operators.
   if (method == "lower") {
-    plot <-
-      plot +
-      ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
-              subtitle = paste0("P(X <= ", (data$k - 1), ") < ", tp, ", but P(X <= ", data$k, ") >= ", tp)
-      )
+    sub <- paste0("P(X <= ", k - 1, ") < ", tpt,
+                  ", but P(X <= ", k, ") >= ", tpt)
   } else {
-    plot <-
-      plot +
-      ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
-              subtitle = paste0("P(X >= ", (data$k + 1), ") <= ", tp, ", but P(X >= ", data$k, ") > ", tp)
-      )
+    sub <- paste0("P(X >= ", k + 1, ") <= ", tpt,
+                  ", but P(X >= ", k, ") > ", tpt)
   }
 
-  if (isTRUE(data$binned)) {
-    plot <- plot + labs(caption = vdist_binned_text())
-  }
+  if (extreme) sub <- paste0("target ", threshold, "%: ", sub)
+
+  plot <- plot +
+    ggtitle(label    = paste("Binomial Distribution: n =", n, ", p =", p),
+            subtitle = sub)
+
+  notes <- if (isTRUE(data$binned)) vdist_binned_text() else character(0)
+  shaded <- sum(data$plot_data$df[data$cols == "#0000CD"])
+  if (shaded < 1e-12) notes <- c(notes, "The shaded probability is too small to display")
+  if (length(notes)) plot <- plot + labs(caption = vdist_wrap_caption(paste(notes, collapse = "; ")))
 
   return(plot)
 
@@ -127,7 +133,7 @@ bperc_plot_build <- function(data, method, n, p, tp) {
 
 cplot_plot_build <- function(data, df, range, normal) {
 
-  ydisp <- vdist_ylim_cap(data$ycap)
+  ydisp <- vdist_ylim_cap(if (normal) max(data$ycap, data$nline_data$y) else data$ycap)
   pp <-
     ggplot(data$plot_data) +
     geom_line(aes(x, chi),
@@ -139,7 +145,7 @@ cplot_plot_build <- function(data, df, range, normal) {
     xlab(paste("Mean =", fmt_num(df), " Std Dev. =", fmt_num(sqrt(2 * df)))) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5)) +
-    scale_x_continuous(breaks = data$breaks) +
+    scale_x_continuous(breaks = vdist_axis_breaks(data$view)) +
     geom_polygon(data    = data$poly_data,
                  mapping = aes(x = y, y = z),
                  fill    = '#4682B4') +
@@ -183,37 +189,27 @@ cperc_plot_build <- function(data, method, probs, df) {
     plot <-
       plot +
       ggtitle(label    = paste("Chi Square Distribution: df =", df),
-              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label   = paste0(data$prob_text, "%"),
-               x       = vdist_clamp(data$pc - data$chisd, data$view),
-               y       = ytext,
-               color   = "#0000CD",
-               size    = 3) +
-      annotate("text",
-               label   = paste0(other_text, "%"),
-               x       = vdist_clamp(data$pc + data$chisd, data$view),
-               y       = ytext,
-               color   = "#6495ED",
-               size    = 3)
+              subtitle = paste0("P(X < ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(data$prob_text, "%"), paste0(other_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#0000CD", "#6495ED"),
+               side   = c(-1, 1),
+               size   = 3)
 
   } else {
     plot <-
       plot +
       ggtitle(label    = paste("Chi Square Distribution: df =", df),
-              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label   = paste0(other_text, "%"),
-               x       = vdist_clamp(data$pc - data$chisd, data$view),
-               y       = ytext,
-               color   = "#6495ED",
-               size    = 3) +
-      annotate("text",
-               label   = paste0(data$prob_text, "%"),
-               x       = vdist_clamp(data$pc + data$chisd, data$view),
-               y       = ytext,
-               color   = "#0000CD",
-               size    = 3)
+              subtitle = paste0("P(X > ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(other_text, "%"), paste0(data$prob_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#6495ED", "#0000CD"),
+               side   = c(-1, 1),
+               size   = 3)
   }
 
   dark <- 0
@@ -241,16 +237,16 @@ cperc_plot_build <- function(data, method, probs, df) {
                color      = 'red',
                size       = 3) +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = if (data$xm[2] <= 300) seq(0, data$xm[2], by = 5) else waiver()) +
+    scale_x_continuous(breaks = vdist_axis_breaks(data$view)) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   plot <- plot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    plot <- plot + labs(caption = vdist_caption_text(data))
+    plot <- plot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
-  return(plot)
+  return(vdist_labels_last(plot))
 
 }
 
@@ -274,37 +270,27 @@ cprob_plot_build <- function(data, method, perc, df) {
     gplot <-
       gplot +
       ggtitle(label    = paste("Chi Square Distribution: df =", df),
-              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc - data$chisd, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3) +
-      annotate("text",
-               label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc + data$chisd, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3)
+              subtitle = paste0("P(X < ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(data$prob_text, "%"), paste0(other_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#0000CD", "#6495ED"),
+               side   = c(-1, 1),
+               size   = 3)
 
   } else {
     gplot <-
       gplot +
       ggtitle(label    = paste("Chi Square Distribution: df =", df),
-              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc - data$chisd, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc + data$chisd, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3)
+              subtitle = paste0("P(X > ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(other_text, "%"), paste0(data$prob_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#6495ED", "#0000CD"),
+               side   = c(-1, 1),
+               size   = 3)
   }
 
   dark <- 0
@@ -332,16 +318,16 @@ cprob_plot_build <- function(data, method, perc, df) {
                color      = 'red',
                size       = 3) +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = if (data$l[data$ln] <= 300) seq(0, data$l[data$ln], by = 5) else waiver()) +
+    scale_x_continuous(breaks = vdist_axis_breaks(data$view)) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   gplot <- gplot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    gplot <- gplot + labs(caption = vdist_caption_text(data))
+    gplot <- gplot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
-  return(gplot)
+  return(vdist_labels_last(gplot))
 }
 
 # Polygon of a continuous region. The builder in R/vdist-utils.R samples the
@@ -393,7 +379,7 @@ fplot_plot_build <- function(data, num_df, den_df, normal) {
             subtitle = paste("Num df =", num_df, "  Den df =", den_df)) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5)) +
-    scale_x_continuous(breaks = data$breaks) +
+    scale_x_continuous(breaks = vdist_axis_breaks(data$view)) +
     scale_y_continuous(breaks = NULL) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
@@ -433,37 +419,27 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
     gplot <-
       gplot +
       ggtitle(label    = 'f Distribution',
-              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc - 0.2, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3) +
-      annotate("text",
-               label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc + 0.2, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3)
+              subtitle = paste0("P(X < ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(data$prob_text, "%"), paste0(other_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#0000CD", "#6495ED"),
+               side   = c(-1, 1),
+               size   = 3)
 
   } else {
     gplot <-
       gplot +
       ggtitle(label    = 'f Distribution',
-              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc - 0.2, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc + 0.2, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3)
+              subtitle = paste0("P(X > ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(other_text, "%"), paste0(data$prob_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#6495ED", "#0000CD"),
+               side   = c(-1, 1),
+               size   = 3)
   }
 
   dark <- 0
@@ -507,10 +483,10 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
   gplot <- gplot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    gplot <- gplot + labs(caption = vdist_caption_text(data))
+    gplot <- gplot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
-  return(gplot)
+  return(vdist_labels_last(gplot))
 
 }
 
@@ -529,44 +505,33 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
 
-  fsd_offset <- if (!is.na(data$fsd)) data$fsd else 0.5
   other_text <- data$other_text
 
   if (method == "lower") {
     gplot <-
       gplot +
       ggtitle(label    = 'f Distribution',
-              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc - fsd_offset, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3) +
-      annotate("text",
-               label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc + fsd_offset, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3)
+              subtitle = paste0("P(X < ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(data$prob_text, "%"), paste0(other_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#0000CD", "#6495ED"),
+               side   = c(-1, 1),
+               size   = 3)
 
   } else {
     gplot <-
       gplot +
       ggtitle(label    = 'f Distribution',
-              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc - fsd_offset, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc + fsd_offset, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3)
+              subtitle = paste0("P(X > ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(other_text, "%"), paste0(data$prob_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#6495ED", "#0000CD"),
+               side   = c(-1, 1),
+               size   = 3)
   }
 
   dark <- 0
@@ -610,10 +575,10 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
   gplot <- gplot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    gplot <- gplot + labs(caption = vdist_caption_text(data))
+    gplot <- gplot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
-  return(gplot)
+  return(vdist_labels_last(gplot))
 
 }
 
@@ -639,6 +604,18 @@ nplot_plot_build <- function(data, mean, sd) {
       geom_polygon(data    = poly_data,
                    mapping = aes(x = x, y = y),
                    fill    = data$col[i])
+  }
+
+  # Default labels round every break to "1" when the window is a tiny multiple
+  # of sd around a non-zero mean. Use the distribution's own scale in that case;
+  # an ordinary normal keeps the default labels (and snapshots) unchanged.
+  if (is.finite(mean) && abs(mean) > 0 && sd / abs(mean) < 1e-6) {
+    gplot <- gplot + scale_x_continuous(
+      breaks = vdist_axis_breaks(data$view),
+      labels = function(v) fmt_num(v, sd)
+    )
+  } else {
+    gplot <- gplot + scale_x_continuous(breaks = vdist_axis_breaks(data$view))
   }
 
   gplot <- gplot + coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
@@ -667,61 +644,43 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
-              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc - sd, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3) +
-      annotate("text",
-               label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc + sd, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3)
+              subtitle = paste0("P(X < ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(data$prob_text, "%"), paste0(other_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#0000CD", "#6495ED"),
+               side   = c(-1, 1),
+               size   = 3)
 
   } else if (method == "upper") {
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
-              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc - sd, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc + sd, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3)
+              subtitle = paste0("P(X > ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(other_text, "%"), paste0(data$prob_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#6495ED", "#0000CD"),
+               side   = c(-1, 1),
+               size   = 3)
   } else {
-    tail_text <- vdist_pct_text(data$alpha)
+    left_text <- vdist_pct_text(data$pp1)
+    right_text <- vdist_pct_text(data$pp2)
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
-              subtitle = paste0("P(", data$cut_text[1], " < X < ", data$cut_text[2], ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(mean(data$pc), data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3) +
-      annotate("text",
-               label = paste0(tail_text, "%"),
-               x     = vdist_clamp(data$pc[1] - sd, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3) +
-      annotate("text",
-               label = paste0(tail_text, "%"),
-               x     = vdist_clamp(data$pc[2] + sd, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3)
+              subtitle = paste0("P(", data$cut_text[1], " < X < ", data$cut_text[2], ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(left_text, "%"),
+                          paste0(data$prob_text, "%"),
+                          paste0(right_text, "%")),
+               x      = c(data$pc[1], mean(data$pc), data$pc[length(data$pc)]),
+               y      = c(ytext, ytext, ytext),
+               colour = c("#6495ED", "#0000CD", "#6495ED"),
+               side   = c(-1, 0, 1),
+               size   = 3)
   }
 
   dark <- 0
@@ -759,16 +718,17 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = data$breaks) +
+    scale_x_continuous(breaks = vdist_axis_breaks(data$view),
+      labels = if (abs(mean) > 0 && sd / abs(mean) < 1e-6) function(v) fmt_num(v, sd) else ggplot2::waiver()) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   gplot <- gplot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    gplot <- gplot + labs(caption = vdist_caption_text(data))
+    gplot <- gplot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
-  return(gplot)
+  return(vdist_labels_last(gplot))
 }
 
 nprob_plot_build <- function(data, perc, mean, sd, method) {
@@ -790,60 +750,41 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
-              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc - sd, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3) +
-      annotate("text",
-               label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc + sd, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3)
+              subtitle = paste0("P(X < ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(data$prob_text, "%"), paste0(other_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#0000CD", "#6495ED"),
+               side   = c(-1, 1),
+               size   = 3)
 
   } else if (method == "upper") {
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
-              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc - sd, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc + sd, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3)
+              subtitle = paste0("P(X > ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(other_text, "%"), paste0(data$prob_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#6495ED", "#0000CD"),
+               side   = c(-1, 1),
+               size   = 3)
   } else {
     gplot <-
       gplot +
       ggtitle(label    = "Normal Distribution",
-              subtitle = paste0("P(", data$cut_text[1], " < X < ", data$cut_text[2], ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(mean(data$pc), data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3) +
-      annotate("text",
-               label = paste0(vdist_pct_text(data$pp1), "%"),
-               x     = vdist_clamp(data$pc[1] - sd, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3) +
-      annotate("text",
-               label = paste0(vdist_pct_text(data$pp2), "%"),
-               x     = vdist_clamp(data$pc[2] + sd, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3)
+              subtitle = paste0("P(", data$cut_text[1], " < X < ", data$cut_text[2], ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(vdist_pct_text(data$pp1), "%"),
+                          paste0(data$prob_text, "%"),
+                          paste0(vdist_pct_text(data$pp2), "%")),
+               x      = c(data$pc[1], mean(data$pc), data$pc[length(data$pc)]),
+               y      = c(ytext, ytext, ytext),
+               colour = c("#6495ED", "#0000CD", "#6495ED"),
+               side   = c(-1, 0, 1),
+               size   = 3)
   }
 
   dark <- 0
@@ -881,16 +822,17 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = data$breaks) +
+    scale_x_continuous(breaks = vdist_axis_breaks(data$view),
+      labels = if (abs(mean) > 0 && sd / abs(mean) < 1e-6) function(v) fmt_num(v, sd) else ggplot2::waiver()) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   gplot <- gplot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    gplot <- gplot + labs(caption = vdist_caption_text(data))
+    gplot <- gplot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
-  return(gplot)
+  return(vdist_labels_last(gplot))
 
 }
 
@@ -910,7 +852,7 @@ tplot_plot_build <- function(data, df) {
                  mapping = aes(x = y, y = z),
                  fill    = '#4682B4') +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = -4:4) +
+    scale_x_continuous(breaks = vdist_axis_breaks(data$view)) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
@@ -939,61 +881,43 @@ tperc_plot_build <- function(data, probs, df, method) {
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc - 0.3, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3) +
-      annotate("text",
-               label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc + 0.3, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3)
+              subtitle = paste0("P(X < ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(data$prob_text, "%"), paste0(other_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#0000CD", "#6495ED"),
+               side   = c(-1, 1),
+               size   = 3)
 
   } else if (method == "upper") {
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc - 0.3, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc + 0.3, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3)
+              subtitle = paste0("P(X > ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(other_text, "%"), paste0(data$prob_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#6495ED", "#0000CD"),
+               side   = c(-1, 1),
+               size   = 3)
   } else {
-    tail_text <- vdist_pct_text(data$alpha)
+    left_text <- vdist_pct_text(data$pp1)
+    right_text <- vdist_pct_text(data$pp2)
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(", data$cut_text[1], " < X < ", data$cut_text[2], ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(mean(data$pc), data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3) +
-      annotate("text",
-               label = paste0(tail_text, "%"),
-               x     = vdist_clamp(data$pc[1] - 0.3, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3) +
-      annotate("text",
-               label = paste0(tail_text, "%"),
-               x     = vdist_clamp(data$pc[2] + 0.3, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3)
+              subtitle = paste0("P(", data$cut_text[1], " < X < ", data$cut_text[2], ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(left_text, "%"),
+                          paste0(data$prob_text, "%"),
+                          paste0(right_text, "%")),
+               x      = c(data$pc[1], mean(data$pc), data$pc[length(data$pc)]),
+               y      = c(ytext, ytext, ytext),
+               colour = c("#6495ED", "#0000CD", "#6495ED"),
+               side   = c(-1, 0, 1),
+               size   = 3)
   }
 
   dark <- 0
@@ -1037,10 +961,10 @@ tperc_plot_build <- function(data, probs, df, method) {
   gplot <- gplot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    gplot <- gplot + labs(caption = vdist_caption_text(data))
+    gplot <- gplot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
-  return(gplot)
+  return(vdist_labels_last(gplot))
 }
 
 tprob_plot_build <- function(data, perc, df, method) {
@@ -1083,19 +1007,14 @@ tprob_plot_build <- function(data, perc, df, method) {
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(X < ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc - 1, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3) +
-      annotate("text",
-               label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc + 1, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3) +
+              subtitle = paste0("P(X < ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(data$prob_text, "%"), paste0(other_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#0000CD", "#6495ED"),
+               side   = c(-1, 1),
+               size   = 3) +
       geom_vline(xintercept = data$pc,
                  linetype   = 2,
                  linewidth  = 1) +
@@ -1112,19 +1031,14 @@ tprob_plot_build <- function(data, perc, df, method) {
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(X > ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(other_text, "%"),
-               x     = vdist_clamp(data$pc - 1, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = vdist_clamp(data$pc + 1, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3) +
+              subtitle = paste0("P(X > ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(other_text, "%"), paste0(data$prob_text, "%")),
+               x      = c(data$pc, data$pc),
+               y      = c(ytext, ytext),
+               colour = c("#6495ED", "#0000CD"),
+               side   = c(-1, 1),
+               size   = 3) +
       geom_vline(xintercept = data$pc,
                  linetype   = 2,
                  linewidth  = 1) +
@@ -1137,29 +1051,21 @@ tprob_plot_build <- function(data, perc, df, method) {
   } else if (method == "interval") {
 
     point_data <- data.frame(x1 = data$pc, x2 = -data$pc, y = 0)
+    tail_cut <- abs(data$pc[1])
 
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(", -as.numeric(data$cut_text), " < X < ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(data$prob_text, "%"),
-               x     = 0,
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3) +
-      annotate("text",
-               label = paste0(vdist_pct_text(data$pp1), "%"),
-               x     = vdist_clamp(-data$pc - 1, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3) +
-      annotate("text",
-               label = paste0(vdist_pct_text(data$pp2), "%"),
-               x     = vdist_clamp(data$pc + 1, data$view),
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3) +
+              subtitle = paste0("P(", data$cut_text[1], " < X < ", data$cut_text[2], ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(vdist_pct_text(data$pp1), "%"),
+                          paste0(data$prob_text, "%"),
+                          paste0(vdist_pct_text(data$pp2), "%")),
+               x      = c(-tail_cut, 0, tail_cut),
+               y      = c(ytext, ytext, ytext),
+               colour = c("#6495ED", "#0000CD", "#6495ED"),
+               side   = c(-1, 0, 1),
+               size   = 3) +
       geom_vline(xintercept = data$pc,
                  linetype   = 2,
                  linewidth  = 1) +
@@ -1179,29 +1085,21 @@ tprob_plot_build <- function(data, perc, df, method) {
   } else {
 
     point_data <- data.frame(x1 = data$pc, x2 = -data$pc, y = 0)
+    tail_cut <- abs(data$pc[1])
 
     gplot <-
       gplot +
       ggtitle(label    = "t Distribution",
-              subtitle = paste0("P(|X| > ", data$cut_text, ") = ", data$prob_text, "%")) +
-      annotate("text",
-               label = paste0(other_text, "%"),
-               x     = 0,
-               y     = ytext,
-               color = "#6495ED",
-               size  = 3) +
-      annotate("text",
-               label = paste0(vdist_pct_text(data$pp1), "%"),
-               x     = vdist_clamp(-data$pc - 1, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3) +
-      annotate("text",
-               label = paste0(vdist_pct_text(data$pp2), "%"),
-               x     = vdist_clamp(data$pc + 1, data$view),
-               y     = ytext,
-               color = "#0000CD",
-               size  = 3) +
+              subtitle = paste0("P(|X| > ", data$cut_text, ") ", if (grepl("^[<>]", data$prob_text)) "" else "= ", data$prob_text, "%")) +
+      vdist_annotate_labels(
+               label  = c(paste0(vdist_pct_text(data$pp1), "%"),
+                          paste0(other_text, "%"),
+                          paste0(vdist_pct_text(data$pp2), "%")),
+               x      = c(-tail_cut, 0, tail_cut),
+               y      = c(ytext, ytext, ytext),
+               colour = c("#0000CD", "#6495ED", "#0000CD"),
+               side   = c(-1, 0, 1),
+               size   = 3) +
       geom_vline(xintercept = data$pc,
                  linetype   = 2,
                  linewidth  = 1) +
@@ -1223,10 +1121,10 @@ tprob_plot_build <- function(data, perc, df, method) {
   gplot <- gplot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    gplot <- gplot + labs(caption = vdist_caption_text(data))
+    gplot <- gplot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
-  return(gplot)
+  return(vdist_labels_last(gplot))
 
 }
 

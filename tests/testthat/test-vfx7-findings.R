@@ -110,15 +110,15 @@ test_that("a near-zero normal mean is drawn, not rejected (VFXX6-M1)", {
 
   pc <- vdist_normal_perc(.95, mean = 1e-308, sd = 10, print_plot = FALSE)
   expect_s3_class(pc, "ggplot")
-  expect_equal(subtitle(pc), "P(X < 16.449) = 95%")
+  expect_equal(subtitle(pc), "P(X < 16.449) = 95.0%")
 
   pu <- vdist_normal_perc(.95, mean = 1e-308, sd = 10, type = "upper",
                           print_plot = FALSE)
-  expect_equal(subtitle(pu), "P(X > -16.449) = 95%")
+  expect_equal(subtitle(pu), "P(X > -16.449) = 95.0%")
 
   pb <- vdist_normal_prob(16.45, mean = 1e-308, sd = 10, print_plot = FALSE)
   expect_s3_class(pb, "ggplot")
-  expect_match(subtitle(pb), "= 95%")
+  expect_match(subtitle(pb), "= 95.0%")
 
   # the drawn probability is the probability the caption states
   v <- as.numeric(sub("^P\\(X < ([^)]+)\\).*$", "\\1", subtitle(pc)))
@@ -129,7 +129,7 @@ test_that("a near-zero normal mean is drawn, not rejected (VFXX6-M1)", {
   for (k in c(1e3, 1e-3)) {
     pk <- vdist_normal_perc(.95, mean = 1e-308 * k, sd = 10 * k,
                             print_plot = FALSE)
-    expect_match(subtitle(pk), "= 95%$")
+    expect_match(subtitle(pk), "= 95.0%$")
     expect_lt(abs(dark_area(pk) - .95), 1e-3)
   }
 })
@@ -137,17 +137,15 @@ test_that("a near-zero normal mean is drawn, not rejected (VFXX6-M1)", {
 test_that("a genuinely unresolvable normal is still rejected (VFXX6-M1)", {
   for (sd in c(1e-15, 1e-16)) {
     expect_error(vdist_normal_plot(mean = 1, sd = sd, print_plot = FALSE),
-                 "documented limit of 1e-14")
+                 "sd / \\|mean\\| must be at least 1e-10")
     expect_error(vdist_normal_perc(.95, mean = 1, sd = sd, print_plot = FALSE),
-                 "documented limit of 1e-14")
+                 "sd / \\|mean\\| must be at least 1e-10")
     expect_error(vdist_normal_prob(1, mean = 1, sd = sd, print_plot = FALSE),
-                 "documented limit of 1e-14")
+                 "sd / \\|mean\\| must be at least 1e-10")
   }
   # the ratio underflows to zero for a huge mean: the message must stay true
   expect_error(vdist_normal_plot(mean = 1e300, sd = 1e-10, print_plot = FALSE),
-               "below the documented limit of 1e-14")
-  expect_error(vdist_normal_plot(mean = 1e300, sd = 1e-10, print_plot = FALSE),
-               "1e-310")
+               "sd / \\|mean\\| must be at least 1e-10")
 })
 
 # ---------------------------------------------------------------------------
@@ -166,8 +164,8 @@ test_that("a sub-pixel chi-square lower tail is visible on the device (VFXX6-M2)
     expect_gt(dark_area(p), 0)
     # ... and a visible marker plus a true caption disclose the sub-pixel size
     expect_length(marker_layers(p), 1)
-    expect_match(p$labels$caption, "narrower than one pixel")
-    expect_match(p$labels$caption, "marked by the blue strip")
+    expect_match(gsub("[[:space:]]+", " ", p$labels$caption), "narrower than one pixel")
+    expect_match(gsub("[[:space:]]+", " ", p$labels$caption), "marked by the blue strip")
     # At least 100 pixels, not merely one: the marker strip is ~3.6 device
     # pixels wide over most of the data height (900 x 500 png), which paints
     # ~900 #0000CD pixels; the sub-pixel event polygon alone paints 0-3 even
@@ -268,7 +266,7 @@ test_that("a grouped binomial grid still carries the exact total mass", {
   p <- vdist_binom_plot(1e6, .5, print_plot = FALSE)
   expect_true(vistributions:::bplot_data_prep(1e6, .5)$binned)
   expect_equal(sum(p$data$df), 1, tolerance = 1e-8)
-  expect_match(p$labels$caption, "Bars are grouped")
+  expect_match(gsub("[[:space:]]+", " ", p$labels$caption), "Bars are grouped")
 
   # individual counts are unchanged while the support fits, so ordinary
   # teaching plots are untouched
@@ -300,6 +298,6 @@ test_that("the documented guarantees match the fixed behaviour", {
     ""
   }
   expect_match(rd("vdist_normal_plot.Rd"), "near-zero mean")
-  expect_match(rd("vdist_chisquare_plot.Rd"), "occupy a pixel")
+  expect_match(rd("vdist_chisquare_plot.Rd"), "occupy a\\s+pixel")
   expect_match(rd("vdist_binom_plot.Rd"), "bounded")
 })

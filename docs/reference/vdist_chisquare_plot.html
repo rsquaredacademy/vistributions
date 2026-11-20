@@ -3,7 +3,7 @@
 the chi square distribution. Compute &amp;amp; visualize quantiles out of given
 probability and probability from a given quantile."><meta property="og:description" content="Visualize how changes in degrees of freedom affect the shape of
 the chi square distribution. Compute &amp;amp; visualize quantiles out of given
-probability and probability from a given quantile."><meta property="og:image" content="https://vistributions.rsquaredacademy.com/logo.png"><!-- Rsquared site-kit v1.0.1: GA4 + region-based consent. Kit files are vendored in pkgdown/assets/site-kit/. --><link rel="stylesheet" href="/site-kit/rsa-consent.css"><script src="/site-kit/rsa-analytics.js" data-ga-id="G-2QSPEL5WM6" async></script></head><body>
+probability and probability from a given quantile."><meta property="og:image" content="https://vistributions.rsquaredacademy.com/logo.png"><!-- Rsquared site-kit v1.2.0: GA4 + region-based consent + email sign-up. Kit files are vendored in pkgdown/assets/site-kit/. --><link rel="stylesheet" href="/site-kit/rsa-consent.css"><script src="/site-kit/rsa-analytics.js" data-ga-id="G-2QSPEL5WM6" async></script><link rel="stylesheet" href="/site-kit/rsa-signup.css"><script src="/site-kit/rsa-signup.js" defer></script></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -11,7 +11,7 @@ probability and probability from a given quantile."><meta property="og:image" co
 
     <a class="navbar-brand me-2" href="../index.html">vistributions</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,7 +54,7 @@ probability and probability from a given quantile.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">vdist_chisquare_plot</span><span class="op">(</span></span>
 <span>  df <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  normal <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  xaxis_range <span class="op">=</span> <span class="fl">25</span>,</span>
+<span>  xaxis_range <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  print_plot <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -78,7 +78,7 @@ probability and probability from a given quantile.</p>
 
 
 <dl><dt id="arg-df">df<a class="anchor" aria-label="anchor" href="#arg-df"></a></dt>
-<dd><p>Degrees of freedom.</p></dd>
+<dd><p>Degrees of freedom (at least 0.1; need not be a whole number).</p></dd>
 
 
 <dt id="arg-normal">normal<a class="anchor" aria-label="anchor" href="#arg-normal"></a></dt>
@@ -87,7 +87,7 @@ probability and probability from a given quantile.</p>
 
 
 <dt id="arg-xaxis-range">xaxis_range<a class="anchor" aria-label="anchor" href="#arg-xaxis-range"></a></dt>
-<dd><p>The upper range of the X axis.</p></dd>
+<dd><p>Upper X axis limit; by default the view spans four standard deviations around df, clipped at zero.</p></dd>
 
 
 <dt id="arg-print-plot">print_plot<a class="anchor" aria-label="anchor" href="#arg-print-plot"></a></dt>
@@ -95,7 +95,8 @@ probability and probability from a given quantile.</p>
 
 
 <dt id="arg-probs">probs<a class="anchor" aria-label="anchor" href="#arg-probs"></a></dt>
-<dd><p>Probability value.</p></dd>
+<dd><p>Probability value, strictly between 0 and 1 and within
+<code>(1e-12, 1 - 1e-12)</code>.</p></dd>
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
@@ -109,6 +110,25 @@ probability and probability from a given quantile.</p>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An object of class <code>ggplot</code> (invisibly if <code>print_plot = TRUE</code>).</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Percentages below 1e-10% are displayed as &lt; 1e-10%, and
+probabilities within 1e-10% of 100% as &gt; 99.9999999999%.</p>
+<p>Drawing contract: every probability, cutoff and caption is computed from the
+chi-square density, distribution and quantile functions, never from the
+drawn grid. The shading polygon starts at the support (zero), not at a
+quantile floor, so no probability is discarded for small <code>df</code>; it
+spans the whole event and its own area is checked against the exact event
+probability (within 1e-6 relative error above the display floor). Where the density is unbounded at zero it is
+capped on the display axis only: the source-coordinate area and the printed
+probability always use the unclipped density. Captions use one rounding rule
+and are true at the precision they print. A shaded region too narrow to
+occupy a pixel at the plotted scale (for example the lower 5% tail of
+<code>df = 0.1</code>) is marked with a visible strip in the panel and disclosed in
+the caption; its polygon and its checked area are unchanged. Every plotting
+grid has a bounded number of points, whatever the range or degrees of
+freedom.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -148,7 +168,7 @@ probability and probability from a given quantile.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0. <a href="https://www.rsquaredacademy.com/privacy-policy.html" class="external-link">Privacy</a> · <a href="#" data-rsa-analytics-optout>Turn off analytics</a></p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1. <a href="https://www.rsquaredacademy.com/privacy-policy.html" class="external-link">Privacy</a> · <a href="#" data-rsa-analytics-optout>Turn off analytics</a></p>
 </div>
 
     </footer></div>

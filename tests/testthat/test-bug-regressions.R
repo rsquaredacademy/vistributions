@@ -35,14 +35,10 @@ test_that("TC-BUG-05: F distribution functions evaluate cleanly when den_df <= 4
 
 test_that("TC-BUG-06: vdist_t_prob with type = 'both' maps colors and positions correctly (BUG-06)", {
   p <- vdist_t_prob(perc = 2, df = 7, type = "both", print_plot = FALSE)
-  text_dfs <- Filter(function(d) "label" %in% names(d), ggplot2::ggplot_build(p)$data)
-  ann_df <- do.call(rbind, text_dfs)
-  center_color <- ann_df[ann_df$x == 0, "colour"]
-  expect_equal(center_color, "#6495ED")
-  left_color <- ann_df[ann_df$x < -1, "colour"]
-  expect_equal(left_color, "#0000CD")
-  right_color <- ann_df[ann_df$x > 1, "colour"]
-  expect_equal(right_color, "#0000CD")
+  lab <- Filter(function(l) inherits(l$geom, "GeomVdistLabels"), p$layers)[[1]]$data
+  # left tail, centre, right tail: anchors and dark/light colours
+  expect_equal(lab$x, c(-2, 0, 2))
+  expect_equal(lab$colour, c("#0000CD", "#6495ED", "#0000CD"))
 })
 
 test_that("TC-BUG-07: check_positive rejects zero and negative values (BUG-07)", {
@@ -68,18 +64,13 @@ test_that("TC-BUG-10: check_range handles scalar check without length > 1 warnin
   expect_error(vdist_binom_plot(10, 1.1), "p must be between 0 and 1 only.")
 })
 
-test_that("TC-BUG-11: Snapshot names in test-visual.R are correctly matched (BUG-11)", {
-  visual_file <- testthat::test_path("test-visual.R")
-  skip_if_not(file.exists(visual_file), "test-visual.R not found")
-  lines <- readLines(visual_file)
-  interval_block <- any(grepl("vdist_t_prob\\(1\\.445.*interval", lines))
-  both_block <- any(grepl("vdist_t_prob\\(1\\.6.*both", lines))
-  interval_snap <- any(grepl('"t prob interval"', lines))
-  both_snap <- any(grepl('"t prob both"', lines))
-  expect_true(interval_block && interval_snap)
-  expect_true(both_block && both_snap)
-  expect_true(file.exists(testthat::test_path("_snaps", "visual", "t-prob-interval.svg")))
-  expect_true(file.exists(testthat::test_path("_snaps", "visual", "t-prob-both.svg")))
+test_that("TC-BUG-11: t interval and both remain distinct events", {
+  interval <- vdist_t_prob(1.445, 7, "interval", FALSE)
+  both <- vdist_t_prob(1.6, 7, "both", FALSE)
+  expect_match(interval$labels$subtitle, "P\\(-")
+  expect_match(both$labels$subtitle, "P\\(\\|X\\|")
+  expect_equal(vistributions:::tprob_data_prep(1.445, 7, "interval")$event_prob,
+               pt(1.445, 7) - pt(-1.445, 7), tolerance = 1e-8)
 })
 
 test_that("TC-BUG-12: .onAttach runs without network access (BUG-12)", {
@@ -97,7 +88,7 @@ test_that("TC-BUG-14: vdist_binom_prob upper tail shades strictly x >= s (BUG-14
   prep <- vistributions:::bprob_data_prep(n = 10, p = 0.3, s = 4, method = "upper")
   expect_equal(prep$cols[prep$plot_data$n == 3], "#6495ED")
   expect_equal(prep$cols[prep$plot_data$n == 4], "#0000CD")
-  expected_prob <- round(stats::pbinom(3, 10, 0.3, lower.tail = FALSE), 3)
+  expected_prob <- stats::pbinom(3, 10, 0.3, lower.tail = FALSE)
   expect_equal(prep$k, expected_prob)
 })
 
@@ -110,12 +101,11 @@ test_that("TC-BUG-15: vdist_binom_prob exact shades only x == s (BUG-15)", {
 
 test_that("TC-BUG-16: vdist_t_prob upper tail colors match shaded/unshaded regions (BUG-16)", {
   p <- vdist_t_prob(perc = 1.5, df = 7, type = "upper", print_plot = FALSE)
-  text_dfs <- Filter(function(d) "label" %in% names(d), ggplot2::ggplot_build(p)$data)
-  ann_df <- do.call(rbind, text_dfs)
-  body_color <- ann_df[ann_df$x < 1.5, "colour"]
-  expect_equal(body_color, "#6495ED")
-  tail_color <- ann_df[ann_df$x > 1.5, "colour"]
-  expect_equal(tail_color, "#0000CD")
+  lab <- Filter(function(l) inherits(l$geom, "GeomVdistLabels"), p$layers)[[1]]$data
+  # the complement (left) is light and the upper tail is dark, both anchored
+  # at the cutoff
+  expect_equal(lab$x, c(1.5, 1.5))
+  expect_equal(lab$colour, c("#6495ED", "#0000CD"))
 })
 
 test_that("TC-BUG-17: Degrees of freedom must be positive across t, f, chisquare (BUG-17)", {

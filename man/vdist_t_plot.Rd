@@ -23,18 +23,26 @@ vdist_t_prob(
 )
 }
 \arguments{
-\item{df}{Degrees of freedom (positive; need not be a whole number).}
+\item{df}{Degrees of freedom, at least 0.05 (need not be a whole number).
+Very small degrees of freedom make the tails so heavy that an ordinary
+probability covers quantiles hundreds of orders of magnitude away, which
+cannot be plotted at double precision; values below the documented floor
+are rejected with an error naming \code{df}.}
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
 \item{probs}{Probability value, strictly between 0 and 1 and within
-\code{[1e-10, 1 - 1e-10]}.}
+\code{(1e-12, 1 - 1e-12)} for \code{df >= 1}. For
+\code{0.05 <= df < 1}, use \code{0.001 <= probs <= 0.999}.}
 
 \item{type}{Lower tail, upper tail, interval or both.}
 
 \item{perc}{Quantile value. For \code{type = "interval"} and
 \code{type = "both"} the event is defined by \code{|perc|}, so a negative
-value gives the same result as its absolute value.}
+value gives the same result as its absolute value.
+For \code{0.05 <= df < 1}, \code{abs(perc)} must not exceed
+\code{qt(0.001, df, lower.tail = FALSE)}; the error gives the numeric
+range for the supplied \code{df}.}
 }
 \value{
 An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
@@ -45,12 +53,25 @@ distribution, visualize quantiles out of given probability and
 probability from a given quantile.
 }
 \details{
+Percentages below 1e-10\% are displayed as < 1e-10\%, and
+probabilities within 1e-10\% of 100\% as > 99.9999999999\%. A
+probability below 1 that would print 100.0\% is displayed as the bound
+> 99.9\%, the mirror of the floor; an exact 1 keeps 100.0\%.
+Percentages at or above 0.1\% keep at least one decimal. Smaller
+percentages use three significant digits in scientific notation, retaining
+trailing zeros (for example \code{5.00e-02\%}). Values that round to
+0.1\% at three significant digits use \code{1.00e-01\%} on either side
+of the notation switch. Cutoffs retain enough digits that the same event prints identical
+percentage text in the percentile and probability forms, including at
+halfway rounding boundaries. Extra percentage digits resolve exact halfway
+values (for example \code{5.05\%}).
+
 Drawing contract: every probability, cutoff and caption is computed from the
 t density, distribution and quantile functions, never from the drawn grid.
 The shaded polygon spans the whole event (clipped only by the panel) and is
 sampled on a grid spaced in probability, with a fixed number of points; its
 own area is checked against the exact event probability and kept within
-1e-3. Captions use one rounding rule and are true at the precision they
+1e-6 relative error for events above the display floor. Captions use one rounding rule and are true at the precision they
 print. A very wide window - for example a heavy tail with a small \code{df} -
 is drawn on a symmetric log axis so the shaded event stays visible; the
 printed probability and the area check always use the unclipped density.
@@ -58,22 +79,34 @@ A shaded region too narrow to occupy a pixel at the plotted scale is marked
 with a visible strip in the panel and disclosed in the caption; its polygon
 and its checked area are unchanged. Every plotting grid has a bounded number
 of points, whatever the degrees of freedom or the cutoff.
+The joint limits on \code{df}, \code{probs} and \code{perc} leave enough
+representable tail for the relative area check. Outside these limits an
+error names the supplied argument and its valid range. Text labels are kept
+inside the panel using their rendered glyph widths. A shaded region whose
+visible height is less than 0.4\% of the density peak is disclosed in the
+caption as too small to display. Probability labels are anchored to the
+cutoff line with a fixed absolute gap, so their layout does not depend on
+the device size; a label that would leave the panel is stacked on a second
+line instead of being drawn across the cutoff. Labels are drawn above the
+density, the cutoff lines and the markers, each on a small light patch in the
+panel background colour, so the shaded fill cannot erase the text and a
+cutoff line cannot cross it.
 }
 \examples{
-# visualize t distribution
+# Visualize a distribution, percentile and probability.
 vdist_t_plot()
-vdist_t_plot(6)
-
-# visualize quantiles out of given probability
 vdist_t_perc(probs = 0.95, df = 4, type = 'lower')
 vdist_t_perc(probs = 0.35, df = 4, type = 'upper')
-vdist_t_perc(probs = 0.69, df = 7, type = 'both')
-
-# visualize probability from a given quantile
 vdist_t_prob(2.045, 7, 'lower')
+vdist_t_prob(1.6, 7, 'both')
+
+# Additional variants are exercised in the test suite.
+\dontrun{
+vdist_t_plot(6)
+vdist_t_perc(probs = 0.69, df = 7, type = 'both')
 vdist_t_prob(0.945, 7, 'upper')
 vdist_t_prob(1.445, 7, 'interval')
-vdist_t_prob(1.6, 7, 'both')
+}
 
 }
 \seealso{

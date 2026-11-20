@@ -93,7 +93,7 @@ test_that("VFXX3-H1: upper-tail areas cover the event, not just the view", {
 # VFXX3-H2 ------------------------------------------------------------------
 
 test_that("VFXX3-H2: translated tiny-scale normals are rejected at the limit", {
-  msg <- "documented limit of 1e-14"
+  msg <- "sd / \\|mean\\| must be at least 1e-10"
   expect_error(vdist_normal_perc(.5, mean = 1, sd = 1e-16, print_plot = FALSE), msg)
   expect_error(vdist_normal_perc(.95, mean = 1, sd = 1e-15, print_plot = FALSE), msg)
   expect_error(vdist_normal_prob(1, mean = 1, sd = 1e-16, print_plot = FALSE), msg)
@@ -106,12 +106,12 @@ test_that("VFXX3-H2: translated tiny-scale normals are rejected at the limit", {
   }
 
   # the last accepted translated scale keeps a true caption
-  p <- vdist_normal_perc(.95, mean = 1, sd = 1e-14, print_plot = FALSE)
-  caption_tail_check(subtitle(p), function(v) pnorm(v, 1, 1e-14))
+  p <- vdist_normal_perc(.95, mean = 1, sd = 1e-10, print_plot = FALSE)
+  caption_tail_check(subtitle(p), function(v) pnorm(v, 1, 1e-10))
 
-  p <- vdist_normal_prob(qnorm(.95, 1, 1e-14), mean = 1, sd = 1e-14,
+  p <- vdist_normal_prob(qnorm(.95, 1, 1e-10), mean = 1, sd = 1e-10,
                          print_plot = FALSE)
-  caption_tail_check(subtitle(p), function(v) pnorm(v, 1, 1e-14))
+  caption_tail_check(subtitle(p), function(v) pnorm(v, 1, 1e-10))
 })
 
 # VFXX3-M1 ------------------------------------------------------------------
@@ -124,7 +124,7 @@ test_that("VFXX3-M1: ordinary documented inputs are plotted, with their area", {
          truth = .95, dark = TRUE),
     list(f = function() vdist_normal_prob(.1645, sd = .1, print_plot = FALSE),
          truth = pnorm(.1645, sd = .1), dark = TRUE),
-    list(f = function() vdist_chisquare_plot(2.01, print_plot = FALSE),
+    list(f = function() vdist_chisquare_plot(2.01, xaxis_range = 25, print_plot = FALSE),
          truth = pchisq(25, 2.01), dark = FALSE),
     list(f = function() vdist_chisquare_prob(0, 2.01, print_plot = FALSE),
          truth = 0, dark = TRUE),

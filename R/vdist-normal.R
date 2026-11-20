@@ -10,8 +10,7 @@
 #'   values select \code{type = "both"} automatically.
 #' @param sd Standard deviation of the normal distribution. It must be positive.
 #'   When \code{mean} is nonzero, \code{sd / abs(mean)} must be at least
-#'   \code{1e-14}; below that limit the cutoff cannot be represented as a double
-#'   and all three normal functions stop with a numerical-resolution error.
+#'   \code{1e-10}; smaller ratios are rejected.
 #'   A near-zero mean is not a resolution failure: the ratio may overflow to
 #'   infinity (\code{mean = 1e-308, sd = 10}) while the distribution is still
 #'   perfectly resolvable, and it is drawn normally. Zero-centred
@@ -24,16 +23,35 @@
 #'   must fit in a double (\code{sd} below about \code{2.2e307}). Both limits
 #'   come from double precision and are reported by a specific error.
 #' @param probs Probability value, strictly between 0 and 1 and within
-#'   \code{[1e-10, 1 - 1e-10]}.
+#'   \code{(1e-12, 1 - 1e-12)}. For \code{type = "both"}, the
+#'   representable endpoints must enclose the requested mass to relative
+#'   error at most 1e-6, or a numerical-resolution error is reported.
 #' @param type Lower tail, upper tail or both.
 #' @param print_plot logical; if \code{TRUE}, prints the plot else returns a plot object.
 #'
+#' @details Percentages below 1e-10\% are displayed as < 1e-10\%, and
+#' probabilities within 1e-10\% of 100\% as > 99.9999999999\%. A
+#' probability below 1 that would print 100.0\% is displayed as the bound
+#' > 99.9\%, the mirror of the floor; an exact 1 keeps 100.0\%.
+#' Percentages at or above 0.1\% keep at least one decimal. Smaller
+#' percentages use three significant digits in scientific notation, retaining
+#' trailing zeros (for example \code{5.00e-02\%}). Values that round to
+#' 0.1\% at three significant digits use \code{1.00e-01\%} on either side
+#' of the notation switch. Cutoffs retain enough digits that the same event prints identical
+#' percentage text in the percentile and probability forms, including at
+#' halfway rounding boundaries. Extra percentage digits resolve exact halfway
+#' values (for example \code{5.05\%}).
+#'
 #' @details
+#' Supported values: for a central interval the representable endpoints
+#' must enclose \code{probs} to within 1e-6 relative error. If not, increase
+#' \code{sd} or choose a larger \code{probs}; ordinary inputs are unaffected.
+#'
 #' Drawing contract: every probability, cutoff and caption is computed from the
 #' normal density, distribution and quantile functions, never from the drawn
 #' grid. The shaded polygon spans the whole event and is sampled on a grid
 #' spaced in probability and in standardised units; its own area is checked
-#' against the exact event probability and kept within 1e-3. A percentage is
+#' against the exact event probability and kept within 1e-6 relative error for events above the display floor. A percentage is
 #' printed at a precision whose rounding interval contains the exact
 #' probability, and the printed cutoffs reproduce that displayed percentage.
 #' Because the normal is a location-scale family, multiplying \code{mean} and
@@ -46,6 +64,15 @@
 #' the caption; its polygon and its checked area are unchanged. Every plotting
 #' grid has a bounded number of points, whatever the mean and standard
 #' deviation.
+#' A shaded region whose visible height is less than 0.4\% of the density peak
+#' is disclosed in the caption as too small to display.
+#' Probability labels are anchored to the cutoff line with a fixed absolute
+#' gap, so their layout does not depend on the device size. A label that would
+#' leave the panel (a cutoff close to an edge) is stacked on a second line
+#' instead of being drawn across the cutoff. Labels are drawn above the
+#' density, the cutoff lines and the markers, each on a small light patch in the
+#' panel background colour, so the shaded fill cannot erase the text and a
+#' cutoff line cannot cross it.
 #'
 #' @return An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 #'
@@ -71,6 +98,7 @@
 #' @export
 #'
 vdist_normal_plot <- function(mean = 0, sd = 1, print_plot = TRUE) {
+	check_print_plot(print_plot)
 
   check_numeric(mean, "mean")
   check_scalar(mean, "mean")
@@ -95,6 +123,7 @@ vdist_normal_plot <- function(mean = 0, sd = 1, print_plot = TRUE) {
 #' @export
 #'
 vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", "upper", "both"), print_plot = TRUE) {
+	check_print_plot(print_plot)
 
   check_numeric(mean, "mean")
   check_scalar(mean, "mean")
@@ -103,7 +132,6 @@ vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", 
   check_positive(sd)
   check_numeric(probs, "probs")
   check_scalar(probs, "probs")
-  check_range(probs, 0, 1, "probs")
   check_probability(probs, "probs", "normal")
   vdist_check_normal_resolution(mean, sd)
   vdist_check_normal_range(mean, sd)
@@ -124,6 +152,7 @@ vdist_normal_perc <- function(probs = 0.95, mean = 0, sd = 1, type = c("lower", 
 #' @export
 #'
 vdist_normal_prob <- function(perc = 3, mean = 0, sd = 1, type = c("lower", "upper", "both"), print_plot = TRUE) {
+	check_print_plot(print_plot)
 
   method <- match.arg(type)
 
