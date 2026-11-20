@@ -164,8 +164,8 @@ test_that("a sub-pixel chi-square lower tail is visible on the device (VFXX6-M2)
     expect_gt(dark_area(p), 0)
     # ... and a visible marker plus a true caption disclose the sub-pixel size
     expect_length(marker_layers(p), 1)
-    expect_match(p$labels$caption, "narrower than one pixel")
-    expect_match(p$labels$caption, "marked by the blue strip")
+    expect_match(gsub("[[:space:]]+", " ", p$labels$caption), "narrower than one pixel")
+    expect_match(gsub("[[:space:]]+", " ", p$labels$caption), "marked by the blue strip")
     # At least 100 pixels, not merely one: the marker strip is ~3.6 device
     # pixels wide over most of the data height (900 x 500 png), which paints
     # ~900 #0000CD pixels; the sub-pixel event polygon alone paints 0-3 even
@@ -266,7 +266,7 @@ test_that("a grouped binomial grid still carries the exact total mass", {
   p <- vdist_binom_plot(1e6, .5, print_plot = FALSE)
   expect_true(vistributions:::bplot_data_prep(1e6, .5)$binned)
   expect_equal(sum(p$data$df), 1, tolerance = 1e-8)
-  expect_match(p$labels$caption, "Bars are grouped")
+  expect_match(gsub("[[:space:]]+", " ", p$labels$caption), "Bars are grouped")
 
   # individual counts are unchanged while the support fits, so ordinary
   # teaching plots are untouched

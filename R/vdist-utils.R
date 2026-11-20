@@ -79,8 +79,8 @@ vdist_prob_range <- function(dist) {
 
 # Parameter floors and ceilings, defined once and used by every export of the
 # family. Above 2e20 the standard deviation sqrt(2 * df) is below 1e-10 of df,
-# so df - 4 sd and df + 4 sd collapse to the same double and the plot would be
-# a blank zero-area panel; the bound mirrors the normal sd / |mean| floor.
+# a conservative relative-resolution limit mirroring the normal sd / |mean|
+# floor. It is not the point at which the window endpoints become identical.
 vdist_chisquare_df_max <- 2e20
 
 vdist_check_chisquare_df <- function(df) {
@@ -90,8 +90,7 @@ vdist_check_chisquare_df <- function(df) {
   if (df > vdist_chisquare_df_max) {
     stop(paste0("df must not exceed ", format(vdist_chisquare_df_max, scientific = TRUE),
                 " for the chi-square distribution: sqrt(2 / df) must be at least ",
-                "1e-10 so the plotted range can distinguish df from its ",
-                "standard deviation."), call. = FALSE)
+                "1e-10 under the conservative relative-resolution limit."), call. = FALSE)
   }
   invisible(df)
 }
@@ -1492,8 +1491,9 @@ vdist_wide_window <- function(x, limit = 1e6) {
   is.finite(span) && span > limit
 }
 
-# x scale for a continuous density plot. `breaks` is a numeric vector for the
-# ordinary linear axis; the symmetric log axis uses its own breaks.
+# x scale for a continuous density plot. Both linear and symmetric log axes
+# use bounded breaks over the visible window. The legacy `breaks` argument is
+# retained for internal callers; fixed-step preparation grids do not set ticks.
 vdist_x_scale <- function(x, breaks = NULL, wide = NULL) {
   if (is.null(wide)) {
     wide <- vdist_wide_window(x)
@@ -1501,7 +1501,10 @@ vdist_x_scale <- function(x, breaks = NULL, wide = NULL) {
   if (wide) {
     return(ggplot2::scale_x_continuous(
       trans  = scales::pseudo_log_trans(),
-      breaks = ggplot2::waiver(),
+      breaks = function(limits) {
+        tr <- scales::pseudo_log_trans()
+        tr$inverse(vdist_axis_breaks(tr$transform(limits)))
+      },
       labels = function(v) {
         out <- ifelse(v == 0, "0",
                       format(signif(v, 2), scientific = TRUE, trim = TRUE))
@@ -1509,11 +1512,13 @@ vdist_x_scale <- function(x, breaks = NULL, wide = NULL) {
       }
     ))
   }
-  if (is.null(breaks)) {
-    ggplot2::scale_x_continuous(breaks = ggplot2::waiver())
-  } else {
-    ggplot2::scale_x_continuous(breaks = breaks)
-  }
+  ggplot2::scale_x_continuous(breaks = vdist_axis_breaks(x))
+}
+
+# Keep disclosure text readable on the smallest supported teaching figure.
+# Only whitespace changes: the probabilities and wording remain intact.
+vdist_wrap_caption <- function(text) {
+  paste(strwrap(text, width = 48), collapse = "\n")
 }
 
 # Caption that discloses the fraction of the shaded region that lies outside
@@ -1715,23 +1720,28 @@ vdist_view_margin <- function(view, cut, scale, qfun, pfun, tail = 1e-3) {
   c(lo, hi)
 }
 
-# Nice axis breaks for a linear window: at most 11 values, anchored on the
-# distribution's own centre and scale so the labels are round numbers in the
-# data units. Falls back to pretty() when the window is not a small multiple of
-# the scale.
-vdist_axis_breaks <- function(view, scale = NULL, center = NULL, n = 6L) {
+# Nice axis breaks for a linear window: target five intervals and never more
+# than seven ticks. Reserve the last 5% for the rightmost label's half-width:
+# coord_cartesian(expand = FALSE) otherwise centres a glyph on the device edge.
+# Count axes already have bar expansion and do not need that reservation.
+vdist_axis_breaks <- function(view, scale = NULL, center = NULL, n = 5L,
+                              trim = TRUE) {
   if (!all(is.finite(view)) || diff(view) <= 0) {
     return(ggplot2::waiver())
   }
+  upper <- view[2] - if (trim) .05 * diff(view) else 0
   if (length(scale) == 1L && is.finite(scale) && scale > 0 &&
       length(center) == 1L && is.finite(center)) {
     lo <- ceiling((view[1] - center) / scale)
     hi <- floor((view[2] - center) / scale)
     k  <- hi - lo
-    if (is.finite(k) && k >= 1 && k <= 10) {
-      return(center + seq(lo, hi) * scale)
+    if (is.finite(k) && k >= 1 && k <= 6) {
+      b <- center + seq(lo, hi) * scale
+      return(b[b <= upper])
     }
   }
   b <- pretty(view, n = n)
-  b[b >= view[1] & b <= view[2]]
+  b <- b[b >= view[1] & b <= upper]
+  if (length(b) > 7L) b <- b[seq.int(1L, length(b), by = ceiling(length(b) / 7L))]
+  b
 }

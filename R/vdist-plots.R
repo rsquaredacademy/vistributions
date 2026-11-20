@@ -22,7 +22,7 @@ bplot_plot_build <- function(data, n, p) {
     scale_x_continuous(breaks = vdist_count_breaks(n))
 
   if (isTRUE(data$binned)) {
-    p <- p + labs(caption = vdist_binned_text())
+    p <- p + labs(caption = vdist_wrap_caption(vdist_binned_text()))
   }
 
   return(p)
@@ -41,10 +41,11 @@ vdist_col_layer <- function(data, fill) {
   }
 }
 
-# Axis breaks for a count axis never number more than 31 ticks, so a large n
-# does not materialise one label per count.
+# Count axes use at most seven integer ticks, even for small teaching counts.
 vdist_count_breaks <- function(n) {
-  if (n <= 30) seq(0, n) else ggplot2::waiver()
+  if (n == 0) return(0)
+  b <- vdist_axis_breaks(c(0, n), trim = FALSE)
+  b[b == floor(b)]
 }
 
 vdist_binned_text <- function() {
@@ -82,7 +83,7 @@ bprob_plot_build <- function(data, method, n, p, s) {
 
   notes <- if (isTRUE(data$binned)) vdist_binned_text() else character(0)
   if (data$k < 1e-12) notes <- c(notes, "The shaded probability is too small to display")
-  if (length(notes)) plot <- plot + labs(caption = paste(notes, collapse = "; "))
+  if (length(notes)) plot <- plot + labs(caption = vdist_wrap_caption(paste(notes, collapse = "; ")))
 
   return(plot)
 }
@@ -124,7 +125,7 @@ bperc_plot_build <- function(data, method, n, p, tp) {
   notes <- if (isTRUE(data$binned)) vdist_binned_text() else character(0)
   shaded <- sum(data$plot_data$df[data$cols == "#0000CD"])
   if (shaded < 1e-12) notes <- c(notes, "The shaded probability is too small to display")
-  if (length(notes)) plot <- plot + labs(caption = paste(notes, collapse = "; "))
+  if (length(notes)) plot <- plot + labs(caption = vdist_wrap_caption(paste(notes, collapse = "; ")))
 
   return(plot)
 
@@ -144,7 +145,7 @@ cplot_plot_build <- function(data, df, range, normal) {
     xlab(paste("Mean =", fmt_num(df), " Std Dev. =", fmt_num(sqrt(2 * df)))) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5)) +
-    scale_x_continuous(breaks = data$breaks) +
+    scale_x_continuous(breaks = vdist_axis_breaks(data$view)) +
     geom_polygon(data    = data$poly_data,
                  mapping = aes(x = y, y = z),
                  fill    = '#4682B4') +
@@ -236,13 +237,13 @@ cperc_plot_build <- function(data, method, probs, df) {
                color      = 'red',
                size       = 3) +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = if (data$xm[2] <= 300) seq(0, data$xm[2], by = 5) else waiver()) +
+    scale_x_continuous(breaks = vdist_axis_breaks(data$view)) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   plot <- plot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    plot <- plot + labs(caption = vdist_caption_text(data))
+    plot <- plot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
   return(vdist_labels_last(plot))
@@ -317,13 +318,13 @@ cprob_plot_build <- function(data, method, perc, df) {
                color      = 'red',
                size       = 3) +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = if (data$l[data$ln] <= 300) seq(0, data$l[data$ln], by = 5) else waiver()) +
+    scale_x_continuous(breaks = vdist_axis_breaks(data$view)) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   gplot <- gplot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    gplot <- gplot + labs(caption = vdist_caption_text(data))
+    gplot <- gplot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
   return(vdist_labels_last(gplot))
@@ -378,7 +379,7 @@ fplot_plot_build <- function(data, num_df, den_df, normal) {
             subtitle = paste("Num df =", num_df, "  Den df =", den_df)) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5)) +
-    scale_x_continuous(breaks = data$breaks) +
+    scale_x_continuous(breaks = vdist_axis_breaks(data$view)) +
     scale_y_continuous(breaks = NULL) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
@@ -482,7 +483,7 @@ fperc_plot_build <- function(data, probs, num_df, den_df, method) {
   gplot <- gplot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    gplot <- gplot + labs(caption = vdist_caption_text(data))
+    gplot <- gplot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
   return(vdist_labels_last(gplot))
@@ -574,7 +575,7 @@ fprob_plot_build <- function(data, perc, num_df, den_df, method) {
   gplot <- gplot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    gplot <- gplot + labs(caption = vdist_caption_text(data))
+    gplot <- gplot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
   return(vdist_labels_last(gplot))
@@ -610,8 +611,11 @@ nplot_plot_build <- function(data, mean, sd) {
   # an ordinary normal keeps the default labels (and snapshots) unchanged.
   if (is.finite(mean) && abs(mean) > 0 && sd / abs(mean) < 1e-6) {
     gplot <- gplot + scale_x_continuous(
+      breaks = vdist_axis_breaks(data$view),
       labels = function(v) fmt_num(v, sd)
     )
+  } else {
+    gplot <- gplot + scale_x_continuous(breaks = vdist_axis_breaks(data$view))
   }
 
   gplot <- gplot + coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
@@ -714,14 +718,14 @@ nperc_plot_build <- function(data, probs, mean, sd, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = data$breaks,
+    scale_x_continuous(breaks = vdist_axis_breaks(data$view),
       labels = if (abs(mean) > 0 && sd / abs(mean) < 1e-6) function(v) fmt_num(v, sd) else ggplot2::waiver()) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   gplot <- gplot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    gplot <- gplot + labs(caption = vdist_caption_text(data))
+    gplot <- gplot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
   return(vdist_labels_last(gplot))
@@ -818,14 +822,14 @@ nprob_plot_build <- function(data, perc, mean, sd, method) {
   gplot <-
     gplot +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = data$breaks,
+    scale_x_continuous(breaks = vdist_axis_breaks(data$view),
       labels = if (abs(mean) > 0 && sd / abs(mean) < 1e-6) function(v) fmt_num(v, sd) else ggplot2::waiver()) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE)
 
   gplot <- gplot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    gplot <- gplot + labs(caption = vdist_caption_text(data))
+    gplot <- gplot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
   return(vdist_labels_last(gplot))
@@ -848,7 +852,7 @@ tplot_plot_build <- function(data, df) {
                  mapping = aes(x = y, y = z),
                  fill    = '#4682B4') +
     scale_y_continuous(breaks = NULL) +
-    scale_x_continuous(breaks = -4:4) +
+    scale_x_continuous(breaks = vdist_axis_breaks(data$view)) +
     coord_cartesian(xlim = data$view, ylim = ydisp, expand = FALSE) +
     theme(plot.title    = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
@@ -957,7 +961,7 @@ tperc_plot_build <- function(data, probs, df, method) {
   gplot <- gplot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    gplot <- gplot + labs(caption = vdist_caption_text(data))
+    gplot <- gplot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
   return(vdist_labels_last(gplot))
@@ -1117,7 +1121,7 @@ tprob_plot_build <- function(data, perc, df, method) {
   gplot <- gplot + vdist_subpixel_layer(data, ydisp)
 
   if (!is.null(vdist_caption_text(data))) {
-    gplot <- gplot + labs(caption = vdist_caption_text(data))
+    gplot <- gplot + labs(caption = vdist_wrap_caption(vdist_caption_text(data)))
   }
 
   return(vdist_labels_last(gplot))

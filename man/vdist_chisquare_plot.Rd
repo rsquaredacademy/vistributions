@@ -29,9 +29,8 @@ vdist_chisquare_prob(
 }
 \arguments{
 \item{df}{Degrees of freedom (at least 0.1 and at most 2e20; need not be a
-whole number). Above 2e20, \code{sqrt(2 / df)} is below 1e-10
-and the plotted range can no longer distinguish the mean from its standard
-deviation at double precision, so the value is rejected by name.}
+whole number). This is a conservative relative-resolution limit requiring
+\code{sqrt(2 / df) >= 1e-10}; larger values are rejected by name.}
 
 \item{normal}{If \code{TRUE}, normal curve with same \code{mean} and
 \code{sd} as the chi square distribution is drawn.}
@@ -95,9 +94,9 @@ cutoff would leave less than 20\% of the distribution inside the panel (for exam
 and a few standard deviations instead of showing a flat far tail.
 An explicitly supplied \code{xaxis_range} is limited to \code{1e10};
 wider explicit windows are rejected with an error naming \code{xaxis_range}.
-\code{df} itself is limited to \code{2e20}, the point at which
-\code{sqrt(2 / df)} is below \code{1e-10} and the default body-centred
-window collapses to a single coordinate.
+\code{df} itself is limited to \code{2e20}, a conservative relative-resolution
+limit requiring \code{sqrt(2 / df) >= 1e-10}. This cap does not mark the
+point at which the default window endpoints become identical.
 Probability labels are anchored to the cutoff line with a fixed absolute
 gap, so their layout does not depend on the device size. A label that would
 leave the panel (a cutoff close to an edge) is stacked on a second line

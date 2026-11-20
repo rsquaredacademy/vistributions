@@ -188,8 +188,8 @@ test_that("VFXX4-M2: the stated domain matches the implementation", {
   # an event that the panel cannot contain discloses how much of the shading
   # lies outside it (the polygon itself always covers the whole event)
   p <- vdist_f_perc(1e-6, 5, .5, "upper", print_plot = FALSE)
-  expect_true(grepl("outside the plotted range", p$labels$caption))
-  expect_match(p$labels$caption, "of the shaded region")
+  expect_true(grepl("outside the plotted range", gsub("[[:space:]]+", " ", p$labels$caption)))
+  expect_match(gsub("[[:space:]]+", " ", p$labels$caption), "of the shaded region")
 
   # The heavy-tail joint domain rejects this probability by name; df >= 1
   # retains the full percentile range and its checked event polygon.

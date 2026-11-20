@@ -86,7 +86,7 @@ test_that("underflowed normal tails use floor and disclose omission", {
   g <- vdist_normal_prob(40, type = "upper", print_plot = FALSE)
   expect_equal(pnorm(40, lower.tail = FALSE), 0)
   expect_match(g$labels$subtitle, "< 1e-10%")
-  expect_match(g$labels$caption, "too small")
+  expect_match(gsub("[[:space:]]+", " ", g$labels$caption), "too small")
   g <- vdist_normal_prob(40, type = "lower", print_plot = FALSE)
   # pnorm(40) is 1 exactly: an exact certainty keeps its equality.
   expect_match(g$labels$subtitle, "= 100\\.0%")

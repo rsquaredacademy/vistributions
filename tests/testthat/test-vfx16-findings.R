@@ -485,7 +485,8 @@ test_that("vfx17: a near-certain event prints a bound, not 100.0%", {
   }
   # The percentile caption for the same event prints the same bound.
   cap <- vdist_t_perc(.001, .5, print_plot = FALSE)$labels$caption
-  expect_match(cap, "> 99.9% of the shaded region", fixed = TRUE)
+  expect_match(gsub("[[:space:]]+", " ", cap),
+               "> 99.9% of the shaded region", fixed = TRUE)
   # The same event prints identical text in the percentile and probability
   # forms: at a halfway event the finer digits survive, and a bound event is a
   # bound in both forms.

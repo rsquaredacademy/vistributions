@@ -103,7 +103,7 @@ test_that("certain binomial events, undefined F moments and clipped lines are cl
   expect_match(f$labels$x,"Mean = undefined  Std Dev. = undefined",fixed=TRUE)
   g <- vdist_chisquare_perc(1-1e-11,30,print_plot=FALSE)
   expect_gt(qchisq(1-1e-11,30),g$coordinates$limits$x[2])
-  expect_match(g$labels$caption,"cutoff line is clipped",ignore.case=TRUE)
+  expect_match(gsub("[[:space:]]+", " ", g$labels$caption),"cutoff line is clipped",ignore.case=TRUE)
 })
 
 test_that("NEWS describes the actual percentile limits and split-aware bins", {

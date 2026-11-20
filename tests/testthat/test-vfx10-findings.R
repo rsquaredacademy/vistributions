@@ -164,13 +164,13 @@ test_that("H07: a tail event keeps its polygon and its true disclosure", {
 
   # a cutoff wholly outside the panel is disclosed against the event itself
   p <- vdist_normal_prob(12, type = "upper", print_plot = FALSE)
-  expect_match(p$labels$caption, "of the shaded region lies outside")
-  expect_match(p$labels$caption, "100\\.0%")
+  expect_match(gsub("[[:space:]]+", " ", p$labels$caption), "of the shaded region lies outside")
+  expect_match(gsub("[[:space:]]+", " ", p$labels$caption), "100\\.0%")
 
   # the old formula divided by the truncated mass, not the event mass
   p <- vdist_normal_perc(2e-9, print_plot = FALSE)
   expect_lt(vistributions:::nperc_data_prep(2e-9, 0, 1, "lower")$omitted, .01)
-  expect_match(p$labels$caption, "too small to display", fixed = TRUE)
+  expect_match(gsub("[[:space:]]+", " ", p$labels$caption), "too small to display", fixed = TRUE)
 })
 
 # H08 -----------------------------------------------------------------------

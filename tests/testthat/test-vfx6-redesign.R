@@ -305,7 +305,7 @@ test_that("the shading polygon covers tails beyond the plotted window", {
   # enough to occupy a negligible fraction of the panel
   expect_gt(dark_area(p), 0)
   # and the caption discloses the clipped part of the region
-  expect_match(p$labels$caption, "of the shaded region lies outside the plotted range")
+  expect_match(gsub("[[:space:]]+", " ", p$labels$caption), "of the shaded region lies outside the plotted range")
 
   # a very far cutoff is clamped for the marker and in the panel, while the
   # caption keeps the true event
