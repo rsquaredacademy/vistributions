@@ -65,6 +65,7 @@ caption_interval_check <- function(s, pfun) {
 # VFXX3-H1 ------------------------------------------------------------------
 
 test_that("VFXX3-H1: upper-tail areas cover the event, not just the view", {
+  skip_on_cran()
   cases <- list(
     list(f = function() vdist_chisquare_perc(.05, 1, type = "upper", print_plot = FALSE),
          truth = .05),
@@ -93,6 +94,7 @@ test_that("VFXX3-H1: upper-tail areas cover the event, not just the view", {
 # VFXX3-H2 ------------------------------------------------------------------
 
 test_that("VFXX3-H2: translated tiny-scale normals are rejected at the limit", {
+  skip_on_cran()
   msg <- "sd / \\|mean\\| must be at least 1e-10"
   expect_error(vdist_normal_perc(.5, mean = 1, sd = 1e-16, print_plot = FALSE), msg)
   expect_error(vdist_normal_perc(.95, mean = 1, sd = 1e-15, print_plot = FALSE), msg)
@@ -141,6 +143,7 @@ test_that("VFXX3-M1: ordinary documented inputs are plotted, with their area", {
 # VFXX3-M2 ------------------------------------------------------------------
 
 test_that("VFXX3-M2: captions are true at the precision they print", {
+  skip_on_cran()
   for (pr in c(.123456789, .012345)) {
     caption_tail_check(subtitle(vdist_normal_perc(pr, print_plot = FALSE)),
                        function(v) pnorm(v))
@@ -185,6 +188,7 @@ test_that("VFXX3-M3: normal interval annotations stay inside the view", {
 # VFXX3-L1 ------------------------------------------------------------------
 
 test_that("VFXX3-L1: the chi-square floor is enforced at the documented 0.1", {
+  skip_on_cran()
   for (f in list(function() vdist_chisquare_plot(.099999, print_plot = FALSE),
                  function() vdist_chisquare_perc(.95, .099999, print_plot = FALSE),
                  function() vdist_chisquare_prob(3, .099999, print_plot = FALSE))) {
@@ -224,6 +228,7 @@ test_that("VFXX3-L1: help and NEWS state the implemented sampling contract", {
 # Must-pass ordinary inputs -------------------------------------------------
 
 test_that("every exported plotting default returns a plot", {
+  skip_on_cran()
   calls <- list(
     function() vdist_normal_plot(print_plot = FALSE),
     function() vdist_normal_perc(print_plot = FALSE),

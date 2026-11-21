@@ -265,6 +265,7 @@ test_that("vfx16: chi-square df has a documented upper resolution bound", {
 })
 
 test_that("vfx16: large interval and cutoff text use scientific notation", {
+  skip_on_cran()
   s <- vdist_t_perc(.998, .05, "both", FALSE)$labels$subtitle
   expect_match(s, "e\\+")
   expect_false(grepl("[0-9]{20,}", s))

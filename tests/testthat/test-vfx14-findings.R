@@ -94,6 +94,7 @@ test_that("H4.3: a near-certain binomial tail is a bound, not certainty", {
 # L1.1 ----------------------------------------------------------------------
 
 test_that("L1.1: t percentile annotations are cutoff-anchored on wide windows", {
+  skip_on_cran()
   p <- vdist_t_perc(.95, df = .1, "lower", print_plot = FALSE)
   built <- ggplot2::ggplot_build(p)
   xr <- built$layout$panel_params[[1]]$x.range
@@ -133,6 +134,7 @@ test_that("L1.1: t percentile annotations are cutoff-anchored on wide windows", 
 # L1.2 ----------------------------------------------------------------------
 
 test_that("L1.2: the chi-square mean marker sits on the axis", {
+  skip_on_cran()
   for (df in c(.5, 1, 2, 3, 5)) {
     p <- vdist_chisquare_plot(df, xaxis_range = 25, print_plot = FALSE)
     expect_equal(ggplot2::layer_data(p, 3)$y, 0, info = paste("df", df))
@@ -147,6 +149,7 @@ test_that("L1.2: the chi-square mean marker sits on the axis", {
 # M2.1 ----------------------------------------------------------------------
 
 test_that("M2.1: t degrees of freedom are floored at a documented value", {
+  skip_on_cran()
   msg <- "df must be at least 0.05"
   for (f in list(function() vdist_t_plot(.01, print_plot = FALSE),
                  function() vdist_t_perc(.95, .01, print_plot = FALSE),

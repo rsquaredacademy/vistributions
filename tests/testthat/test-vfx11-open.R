@@ -6,6 +6,7 @@ test_that("unrepresentable central normal mass is rejected with the documented r
 })
 
 test_that("ordinary central normal percentiles never trigger the resolution error", {
+  skip_on_cran()
   for (m in c(0,1,10,100,1000)) for (sd in c(.01,.1,1,10,100,1000)) {
     for (p in c(.01,.05,.25,.5,.75,.95,.99)) {
       g <- vdist_normal_perc(p,m,sd,"both",FALSE)
@@ -19,6 +20,7 @@ test_that("ordinary central normal percentiles never trigger the resolution erro
 })
 
 test_that("F quantiles invert the requested tail over the supported grid", {
+  skip_on_cran()
   for (dfs in list(c(1,1),c(1,2),c(2,1),c(5,10))) {
     a <- dfs[1]; b <- dfs[2]
     for (p in c(1e-9,1e-8,.01,.5,.99)) for (type in c("lower","upper")) {

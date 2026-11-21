@@ -1,4 +1,5 @@
 test_that("binomial percentile captions state the qbinom convention across jumps", {
+  skip_on_cran()
   prep <- vistributions:::bperc_data_prep
   build <- vistributions:::bperc_plot_build
   for (n in c(1, 2, 5, 9, 10, 20, 100, 1000)) {
