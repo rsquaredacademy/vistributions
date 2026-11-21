@@ -1,6 +1,6 @@
 # Ordinary teaching inputs: compare every shaded event with base R. These
 # cases cover the stated parameter ranges and every public plot type.
-test_that("ordinary distribution grid matches base R", {
+ordinary_distribution_grid <- function(full) {
   mass <- function(g) {
     layers <- Filter(function(l) inherits(l$geom, "GeomPolygon") &&
       (identical(l$aes_params$fill, "#0000CD") ||
@@ -29,8 +29,8 @@ test_that("ordinary distribution grid matches base R", {
       else vistributions:::vdist_area(d$x,d$y)
     }, numeric(1)))
   }
-  probs <- c(.01, .05, .25, .5, .75, .95, .99)
-  for (m in c(0, 1, 10, 100, 1000)) for (sd in c(.01, .1, 1, 10, 100, 1000)) {
+  probs <- if (full) c(.01, .05, .25, .5, .75, .95, .99) else c(.05, .5, .95)
+  for (m in if (full) c(0, 1, 10, 100, 1000) else c(0, 10)) for (sd in if (full) c(.01, .1, 1, 10, 100, 1000) else 1) {
     g <- vdist_normal_plot(m, sd, FALSE)
     bands <- Filter(function(l) inherits(l$geom, "GeomPolygon"), g$layers)
     bounds <- list(c(-1,1), c(-2,-1), c(-3,-2), c(1,2), c(2,3))
@@ -52,7 +52,7 @@ test_that("ordinary distribution grid matches base R", {
     check_area(vdist_normal_prob(x, m, sd, "both", FALSE), diff(pnorm(x, m, sd)),
                paste("normal interval", m, sd))
   }
-  for (df in c(1, 1.5, 5.5, 30, 100.25, 500)) {
+  for (df in if (full) c(1, 1.5, 5.5, 30, 100.25, 500) else c(5.5, 30)) {
     g <- vdist_t_plot(df, FALSE)
     expect_lt(abs(shape_mass(g) / diff(pt(c(-4,4),df)) - 1),1e-6,label=paste("t plot",df))
     for (p in probs) for (type in c("lower", "upper", "both"))
@@ -73,7 +73,7 @@ test_that("ordinary distribution grid matches base R", {
                  pchisq(x,df,lower.tail=type=="lower"),paste("chi probability",df,p,type))
     }
   }
-  for (dfs in list(c(1,1),c(1,500),c(500,1),c(3.5,7.25),c(10,50),c(200,500),c(500,500))) {
+  for (dfs in if (full) list(c(1,1),c(1,500),c(500,1),c(3.5,7.25),c(10,50),c(200,500),c(500,500)) else list(c(3.5,7.25),c(10,50))) {
     a <- dfs[1]; b <- dfs[2]
     g <- suppressMessages(vdist_f_plot(a,b,TRUE,FALSE))
     expect_lt(abs(shape_mass(g) / pf(4,a,b) - 1),1e-6,label=paste("F plot",a,b))
@@ -86,7 +86,7 @@ test_that("ordinary distribution grid matches base R", {
     }
   }
   bars <- function(g) {d <- ggplot2::layer_data(g,1); sum(d$y[d$fill == "#0000CD"])}
-  for (n in c(1,10,100,2000,5000,10000)) for (p in c(.01,.1,.5,.9,.99)) {
+  for (n in if (full) c(1,10,100,2000,5000,10000) else c(10,100)) for (p in if (full) c(.01,.1,.5,.9,.99) else .5) {
     expect_s3_class(vdist_binom_plot(n,p,FALSE), "ggplot")
     k <- round(n*p)
     for (type in c("lower","upper","exact","interval")) {
@@ -104,4 +104,14 @@ test_that("ordinary distribution grid matches base R", {
                    info=paste("binomial percentile",n,p,tp,type))
     }
   }
+}
+
+test_that("ordinary distribution grid matches base R", {
+  skip_on_cran()
+  ordinary_distribution_grid(TRUE)
+})
+
+test_that("representative ordinary distribution grid matches base R on CRAN", {
+  if (isTRUE(as.logical(Sys.getenv("NOT_CRAN")))) skip("Full grid runs outside CRAN")
+  ordinary_distribution_grid(FALSE)
 })

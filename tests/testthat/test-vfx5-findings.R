@@ -101,6 +101,7 @@ expect_caption_true <- function(p, pfun) {
 # VFXX4-H1 ------------------------------------------------------------------
 
 test_that("VFXX4-H1: resolvable tiny-unit normals are accepted", {
+  skip_on_cran()
   p <- vdist_normal_plot(mean = 1e-16, sd = 1e-16, print_plot = FALSE)
   expect_s3_class(p, "ggplot")
   expect_gt(rendered_dark_area(p), 1e-4)
@@ -125,6 +126,7 @@ test_that("VFXX4-H1: resolvable tiny-unit normals are accepted", {
 # VFXX4-H2 ------------------------------------------------------------------
 
 test_that("VFXX4-H2: the shaded region is visible in the rendered panel", {
+  skip_on_cran()
   cases <- list(
     list(f = function() vdist_chisquare_perc(.05, 1, "upper", print_plot = FALSE), truth = .05),
     list(f = function() vdist_f_prob(1, 1, 1, "upper", print_plot = FALSE), truth = .5),
@@ -178,6 +180,7 @@ test_that("VFXX4-M1: central percentile captions are true at printed precision",
 # VFXX4-M2 ------------------------------------------------------------------
 
 test_that("VFXX4-M2: the stated domain matches the implementation", {
+  skip_on_cran()
   # these now return a plot with the caption's area (or the documented error)
   ok <- function(f, truth) {
     p <- f()
@@ -271,6 +274,7 @@ must_pass <- list(
 )
 
 test_that("every must-pass ordinary input keeps its event area and visible shading", {
+  skip_on_cran()
   for (i in seq_along(must_pass)) {
     cs <- must_pass[[i]]
     p  <- cs$f()
@@ -289,6 +293,7 @@ test_that("every must-pass ordinary input keeps its event area and visible shadi
 })
 
 test_that("every exported plotting default returns a usable plot", {
+  skip_on_cran()
   calls <- list(
     function() vdist_normal_plot(print_plot = FALSE),
     function() vdist_normal_perc(print_plot = FALSE),

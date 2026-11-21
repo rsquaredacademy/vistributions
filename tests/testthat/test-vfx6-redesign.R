@@ -143,6 +143,7 @@ finding_cases <- list(
 )
 
 test_that("every continuous finding keeps its exact area and caption", {
+  skip_on_cran()
   for (id in names(finding_cases)) {
     cs <- finding_cases[[id]]
     p  <- cs$f()
@@ -179,6 +180,7 @@ test_that("every continuous finding keeps its exact area and caption", {
 # Captions and percentages: one rounding rule, true at printed precision.
 # ---------------------------------------------------------------------------
 test_that("captions are true at the printed precision for every rounding regime", {
+  skip_on_cran()
   cases <- list(
     list(f = function() vdist_normal_perc(.0505, type = "both", print_plot = FALSE),
          pf = function(v, lower.tail = TRUE) pnorm(v, lower.tail = lower.tail)),
@@ -221,6 +223,7 @@ test_that("captions are true at the printed precision for every rounding regime"
 # One numeric source: the area and the caption come from p/q, not the grid.
 # ---------------------------------------------------------------------------
 test_that("area and caption use the exact distribution functions", {
+  skip_on_cran()
   # a grid-free oracle: the event probability computed by p*() at the exact
   # quantile. The polygon area must match it, not the CDF at its own vertices.
   cases <- list(
@@ -248,6 +251,7 @@ test_that("area and caption use the exact distribution functions", {
 # ggplot_build visibility: a source area is not enough.
 # ---------------------------------------------------------------------------
 test_that("shading is visible in the built panel for the must-pass inputs", {
+  skip_on_cran()
   cases <- list(
     function() vdist_normal_plot(print_plot = FALSE),
     function() vdist_normal_perc(print_plot = FALSE),
@@ -295,6 +299,7 @@ test_that("shading is visible in the built panel for the must-pass inputs", {
 # Tails beyond the visible view.
 # ---------------------------------------------------------------------------
 test_that("the shading polygon covers tails beyond the plotted window", {
+  skip_on_cran()
   # the event extends past the panel; the polygon still carries the probability
   p <- vdist_f_perc(1e-6, 5, .5, "upper", print_plot = FALSE)
   xr <- panel_x(p)
@@ -324,6 +329,7 @@ test_that("the shading polygon covers tails beyond the plotted window", {
 # Low degrees of freedom near the support boundary.
 # ---------------------------------------------------------------------------
 test_that("low-df chi-square and F regions keep the mass at the support", {
+  skip_on_cran()
   for (df in c(.1, .5, 1, 2, 5)) {
     for (pr in c(.05, .5, .95)) {
       p <- vdist_chisquare_perc(pr, df, print_plot = FALSE)
@@ -361,6 +367,7 @@ test_that("low-df chi-square and F regions keep the mass at the support", {
 # Unit invariance.
 # ---------------------------------------------------------------------------
 test_that("scaling the data units changes nothing but the unit labels", {
+  skip_on_cran()
   for (k in c(1000, 0.001, 1e6, 1e-6)) {
     base   <- vdist_normal_perc(.95, mean = 100, sd = 15, print_plot = FALSE)
     scaled <- vdist_normal_perc(.95, mean = 100 * k, sd = 15 * k, print_plot = FALSE)
@@ -515,6 +522,7 @@ test_that("binomial shading and captions come from dbinom/pbinom/qbinom", {
 # The regression suite as a whole: no case allocates an unbounded grid.
 # ---------------------------------------------------------------------------
 test_that("the grids stay bounded", {
+  skip_on_cran()
   calls <- list(
     function() vdist_t_prob(1e6, 7, print_plot = FALSE),
     function() vdist_normal_prob(1e6, print_plot = FALSE),

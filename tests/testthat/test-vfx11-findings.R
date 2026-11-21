@@ -35,6 +35,7 @@ test_that("chi-square views follow the distribution and retain full density grid
 })
 
 test_that("singular F panel includes the body", {
+  skip_on_cran()
   for (dfs in list(c(1, 1), c(1, 2), c(2, 1))) {
     for (type in c("lower", "upper")) {
       g <- vdist_f_perc(.95, dfs[1], dfs[2], type, FALSE)
@@ -112,6 +113,7 @@ test_that("binomial displays use the probability floor", {
 })
 
 test_that("singular F and chi-square bodies remain visible in every export", {
+  skip_on_cran()
   for (dfs in list(c(1,1), c(1,2), c(2,1))) {
     a <- dfs[1]; b <- dfs[2]
     plots <- list(vdist_f_plot(a,b,print_plot=FALSE),
@@ -187,6 +189,7 @@ test_that("printed cutoffs support a floor bound near its boundary", {
 })
 
 test_that("binomial exact jumps and targets outside the exclusion match qbinom", {
+  skip_on_cran()
   for (n in c(1,10,1000,10000)) for (p in c(.01,.1,.5,.9,.99)) {
     for (type in c("lower","upper")) {
       lower <- type == "lower"
@@ -207,6 +210,7 @@ test_that("binomial exact jumps and targets outside the exclusion match qbinom",
 })
 
 test_that("printed cutoffs support both labels for all continuous families", {
+  skip_on_cran()
   check_label <- function(text, truth) {
     if (startsWith(text,"<")) { expect_lt(truth,1e-12); return(invisible(NULL)) }
     if (startsWith(text,">")) {
@@ -241,6 +245,7 @@ test_that("printed cutoffs support both labels for all continuous families", {
 
 
 test_that("large translated normal ticks remain distinct in all builders", {
+  skip_on_cran()
   for (mean in c(1e16,1e200)) {
     sd <- mean * 1e-10
     plots <- list(vdist_normal_plot(mean,sd,FALSE),

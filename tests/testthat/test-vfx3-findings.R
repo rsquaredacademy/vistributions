@@ -31,6 +31,7 @@ vlines <- function(p) {
 # VFXX2-H1 ------------------------------------------------------------------
 
 test_that("VFXX2-H1: fractional-df chi-square shading keeps the requested mass", {
+  skip_on_cran()
   cases <- list(
     list(probs = .05, df = .1,  truth = .05),
     list(probs = .5,  df = .1,  truth = .5),
@@ -55,6 +56,7 @@ test_that("VFXX2-H1: fractional-df chi-square shading keeps the requested mass",
 # VFXX2-H2 ------------------------------------------------------------------
 
 test_that("VFXX2-H2: unusable quantiles and extreme probabilities are rejected", {
+  skip_on_cran()
   # audit reproducer: qf(1e-6, .5, 3) is 0, so the old grid had an infinite
   # density; num_df below the documented floor is now a package error
   expect_error(vdist_f_perc(.5, .5, 3, print_plot = FALSE),
@@ -122,6 +124,7 @@ test_that("VFXX2-M1: the F normal overlay uses unrounded moments", {
 # VFXX2-M2 ------------------------------------------------------------------
 
 test_that("VFXX2-M2: annotations, markers and reference lines stay in view", {
+  skip_on_cran()
   cases <- list(
     vdist_t_prob(1e6, 7, print_plot = FALSE),
     vdist_normal_prob(1e6, print_plot = FALSE),
@@ -164,6 +167,7 @@ test_that("VFXX2-L1: NEWS states the implemented limits, not blanket claims", {
 # Contract grid -------------------------------------------------------------
 
 test_that("the documented grid keeps the shoelace area within 1e-3", {
+  skip_on_cran()
   probs <- c(.05, .5, .95)
 
   for (df in c(.5, 1, 2, 5, 30)) {

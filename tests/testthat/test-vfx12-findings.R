@@ -29,6 +29,7 @@ test_that("binomial jump cutoffs follow qbinom and shade its event", {
 })
 
 test_that("two cutoff labels agree with both printed tails", {
+  skip_on_cran()
   fmt <- vistributions:::vdist_fmt_pct
   for (x in c(1.64049,4.00049, seq(.2,4.2,by=.2)+.00049)) {
     d <- vistributions:::nprob_data_prep(c(-x,x),0,1,"both")
@@ -63,6 +64,7 @@ test_that("two cutoff labels agree with both printed tails", {
 })
 
 test_that("F near-one upper quantiles reproduce the smaller tail", {
+  skip_on_cran()
   for (den in c(1,2,10)) for (p in 1-c(1e-8,1e-9,1e-11)) {
     d <- vistributions:::fperc_data_prep(p,1,den,"upper")
     expect_lt(abs(pf(d$pp,1,den)/(1-p)-1),1e-6)

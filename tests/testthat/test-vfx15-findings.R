@@ -51,6 +51,7 @@ fx15_mass <- function(p) {
 }
 
 test_that("fx15: percentile glyph extents stay inside ordinary linear panels", {
+  skip_on_cran()
   check <- function(p, id) {
     expect_false(vistributions:::vdist_wide_window(p$coordinates$limits$x), info = id)
     e <- fx15_text_extents(p)
@@ -77,6 +78,7 @@ test_that("fx15: percentile glyph extents stay inside ordinary linear panels", {
 })
 
 test_that("fx15: wide t and F label pairs have visible gaps and unclipped glyphs", {
+  skip_on_cran()
   cases <- list(
     vdist_t_perc(.95, .1, "lower", FALSE),
     vdist_t_perc(.95, .1, "upper", FALSE),
@@ -100,6 +102,7 @@ test_that("fx15: wide t and F label pairs have visible gaps and unclipped glyphs
 })
 
 test_that("fx15: the t joint domain works at and just inside its boundaries", {
+  skip_on_cran()
   for (df in c(.05, .1, .5, .999999)) {
     for (prob in c(.001, .00100001, .99899999, .999)) {
       for (type in c("lower", "upper", "both")) {
@@ -152,6 +155,7 @@ test_that("fx15: chi-square range cap applies only to explicit windows", {
 })
 
 test_that("fx15: chi-square windows retain the body and tiny mass is disclosed", {
+  skip_on_cran()
   cases <- rbind(data.frame(df = 200, x = c(13, 59, 60, 65, 120)),
                  data.frame(df = 40:72, x = 13),
                  data.frame(df = 200, x = 61:120),

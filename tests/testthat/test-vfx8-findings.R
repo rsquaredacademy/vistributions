@@ -62,6 +62,7 @@ test_that("VFXX8-R1: shaded vertices are never near-duplicates of their neighbou
 })
 
 test_that("VFXX8-R2: dropping a duplicate vertex never collapses a heavy tail", {
+  skip_on_cran()
   # The t with df = 0.1 has a region about 1e96 wide. A near-duplicate test
   # relative to the *width* of such a region would delete the whole grid (this
   # is what an earlier attempt did: the area became 4.05e13 instead of 0.95).

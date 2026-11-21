@@ -152,6 +152,7 @@ test_that("a genuinely unresolvable normal is still rejected (VFXX6-M1)", {
 # VFXX6-M2: lower tails of a low-df chi-square collapse to zero device pixels.
 # ---------------------------------------------------------------------------
 test_that("a sub-pixel chi-square lower tail is visible on the device (VFXX6-M2)", {
+  skip_on_cran()
   cases <- list(
     function() vdist_chisquare_perc(.05, .1, print_plot = FALSE),
     function() vdist_chisquare_perc(.50, .1, print_plot = FALSE),
@@ -175,6 +176,7 @@ test_that("a sub-pixel chi-square lower tail is visible on the device (VFXX6-M2)
 })
 
 test_that("an ordinary shaded region is not marked as sub-pixel (VFXX6-M2)", {
+  skip_on_cran()
   ordinary <- list(
     vdist_normal_perc(.95, print_plot = FALSE),
     vdist_t_perc(.95, 5, print_plot = FALSE),
@@ -224,6 +226,7 @@ test_that("an extreme normal scale is rejected truthfully, not with a NaN area (
 # Large-scale grids: building and printing must stay bounded and fast.
 # ---------------------------------------------------------------------------
 test_that("every grid is bounded and fast at large scale", {
+  skip_on_cran()
   cases <- list(
     normal_plot  = function() vdist_normal_plot(1e6, 2e5, print_plot = FALSE),
     normal_perc  = function() vdist_normal_perc(.95, 1e6, 2e5, print_plot = FALSE),

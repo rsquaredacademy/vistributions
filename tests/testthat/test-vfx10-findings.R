@@ -115,6 +115,7 @@ test_that("H05: the printed cutoff reproduces the printed percentage", {
 
 # H06 -----------------------------------------------------------------------
 test_that("H06: small tail probabilities are computed on the right scale", {
+  skip_on_cran()
   for (p in list(vdist_normal_prob(c(9, 10), print_plot = FALSE),
                  vdist_normal_prob(c(8, 8.1), print_plot = FALSE),
                  vdist_t_prob(1e-17, 10, "interval", print_plot = FALSE))) {

@@ -76,6 +76,7 @@ test_that("VFXX-H1: accepted near-integer trial counts are rounded once", {
 # VFXX-H2 -------------------------------------------------------------------
 
 test_that("VFXX-H2: tiny cutoffs are printed with enough precision to be true", {
+  skip_on_cran()
   # normal: sd = 1e-16, cutoff 1.64485362695147e-16 was printed as 0
   p <- vdist_normal_perc(.95, sd = 1e-16, print_plot = FALSE)
   expect_equal(subtitle(p), "P(X < 1.645e-16) = 95.0%")
@@ -104,6 +105,7 @@ test_that("VFXX-H2: tiny cutoffs are printed with enough precision to be true", 
 # VFXX-H3 -------------------------------------------------------------------
 
 test_that("VFXX-H3: the shaded polygon area matches the event probability", {
+  skip_on_cran()
   cases <- list(
     list(p = vdist_t_prob(1e6, 7, print_plot = FALSE),           truth = 1),
     list(p = vdist_normal_prob(1e6, print_plot = FALSE),         truth = 1),
@@ -133,6 +135,7 @@ test_that("VFXX-H3: the shaded polygon area matches the event probability", {
 # VFXX-H4 -------------------------------------------------------------------
 
 test_that("VFXX-H4: chi-square grids respect the support and stay finite", {
+  skip_on_cran()
   # the audited reproducer: was a spurious spike of ~133,864
   p <- vdist_chisquare_perc(.999, 1, print_plot = FALSE)
   expect_equal(subtitle(p), "P(X < 10.828) = 99.9%")
@@ -165,6 +168,7 @@ test_that("VFXX-H4: chi-square grids respect the support and stay finite", {
 # VFXX-M1 -------------------------------------------------------------------
 
 test_that("VFXX-M1: the normal overlay uses the unrounded df and sd", {
+  skip_on_cran()
   # df below the documented chi-square floor is rejected, not drawn as a spike
   expect_error(vdist_chisquare_plot(1e-8, normal = TRUE, print_plot = FALSE),
                "df must be at least 0.1")

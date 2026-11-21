@@ -61,6 +61,7 @@ test_that("fx16b: scientific percentages retain three digits and their tolerance
 })
 
 test_that("fx16b: named switch and halfway events use consistent text", {
+  skip_on_cran()
   pairs <- list(
     list(vdist_t_perc(.001, 5, print_plot = FALSE), vdist_t_prob(-5.893, 5, print_plot = FALSE)),
     list(vdist_normal_perc(.001, 100, 1, print_plot = FALSE), vdist_normal_prob(96.91, 100, 1, print_plot = FALSE)),
@@ -88,6 +89,7 @@ test_that("fx16b: named switch and halfway events use consistent text", {
 })
 
 test_that("fx16b: all percentile types round trip through their printed event", {
+  skip_on_cran()
   probs <- c(1e-6, 2e-4, 5e-4, .001, .0505, .05, .5, .8005, .95, .9995, .999)
   fmt <- vistributions:::vdist_pct_text
   for (spec in vfx16b_specs()) {
@@ -133,6 +135,7 @@ vfx16b_rendered_colours <- function(p) {
 }
 
 test_that("fx16b: rendered percentage colours match c63f7de in every family", {
+  skip_on_cran()
   reference <- read.csv(test_path("fixtures", "fx16b-label-colours.csv"))
   for (id in unique(reference$case)) {
     z <- strsplit(id, "_", fixed = TRUE)[[1]]
