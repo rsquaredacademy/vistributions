@@ -1,6 +1,394 @@
 # Changelog
 
+## vistributions 0.2.2
+
+### Bug Fixes
+
+- Percentile probabilities must be between 1e-12 and 1 - 1e-12; normal
+  sd / \|mean\| must be at least 1e-10 for nonzero means. Binomial
+  percentile targets within 1e-12 of a cumulative jump are rejected,
+  except for exact equality.
+
+- Display probabilities below 1e-10% with a floor, improve chi-square
+  views, normal tick labels and singular density caps.
+
+- Binomial bars are split at the event boundary. A bar is painted as a
+  whole, so a bin that crossed the cutoff used to shade counts outside
+  the event (19.26% for a 4.01% exact event at
+  `n = 10000, p = .01, s = 100`) or miss counts inside it. Every event
+  cutoff is now a bar edge, and the shaded bar heights sum to
+  [`dbinom()`](https://rdrr.io/r/stats/Binomial.html) /
+  [`pbinom()`](https://rdrr.io/r/stats/Binomial.html) for the event (to
+  relative 1e-12).
+
+- Grouped binomial bins are computed from the side of the mode that
+  keeps their precision. The right-tail bin `[2261, 2262]` of
+  `vdist_binom_plot(4000, .5)` used to be drawn as `0` because two
+  lower-tail CDF values had both rounded to 1; it now carries
+  `3.294e-17`, the exact `dbinom(2261) + dbinom(2262)`. Adjacent
+  right-tail bins are no longer quantised.
+
+- Binomial captions put the inequality inside `P()` (`P(X >= 4) = 0.35`,
+  `P(X = 26) = 0.003`, `P(26 <= X <= 26) = 0.003`) and round exactly
+  once from the exact probability. The double rounding
+  `0.0034978 -> 0.0035 -> 0.004` no longer prints a value outside the
+  correct rounding interval. Probabilities below 1e-3 use scientific
+  notation, with `< 1e-10%` below the display floor.
+
+- [`vdist_binom_perc()`](https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.md)
+  uses survival probabilities for upper tails and thresholds near 1. It
+  rejects targets within 1e-12 of a cumulative jump except for exact
+  equality, which follows
+  [`qbinom()`](https://rdrr.io/r/stats/Binomial.html).
+
+- [`vdist_binom_prob()`](https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.md)
+  (and the interval type) require every success count, including both
+  interval endpoints, to lie in `[0, n]`. `s = -1` used to be accepted
+  and labelled `P(X) <= -1 = 0`; it is now the same clear error as
+  `s = n + 1`.
+
+- A probability caption prints enough cutoff digits for its own printed
+  percentage. `vdist_normal_prob(1.00051)` used to print
+  `P(X < 1.001) = 84.1%` although `pnorm(1.001)` is 84.16%; it now
+  prints `P(X < 1.0005) = 84.1%`, and the same check covers the t,
+  chi-square and F probability exports.
+
+- Small tail probabilities use conditioned CDF or survival differences,
+  with integration for narrow intervals. Percentages below 1e-10%,
+  including underflowed probabilities, display `< 1e-10%`; near 100% the
+  bound is `> 99.9999999999%`.
+
+- A tail event beyond the default view keeps its polygon and is
+  disclosed against the event’s own probability.
+  `vdist_normal_perc(1e-10)` used to draw no polygon and no caption; the
+  region bound now follows the event’s tail probability (an event of
+  1e-10 is not truncated at a fixed 1e-10 tail), and an event that lies
+  outside the panel reports the correct fraction outside (100% when it
+  is wholly outside) instead of dividing by the truncated mass.
+
+- The normal resolution floor is `sd / abs(mean) >= 1e-10` when the mean
+  is nonzero. The comparison uses the ratio directly and all three
+  normal exports reject smaller ratios. Translated normal ticks retain
+  distinct labels.
+
+- A central normal percentile whose representable endpoints do not
+  enclose `probs` to within 1e-6 relative error stops with a documented
+  error naming `probs` and `sd`; choose a larger `sd` or `probs`.
+
+- F percentiles use the F-beta quantile relation when
+  [`qf()`](https://rdrr.io/r/stats/Fdist.html) fails to invert
+  [`pf()`](https://rdrr.io/r/stats/Fdist.html) within 1e-6 relative
+  error, including F(1,1) lower tail probabilities near 1e-9.
+
+- The blue strip that marks an event too small to see is placed in
+  normalized view coordinates. A normal event at `1e-200` used to be
+  marked around zero (`[-1.6e-202, 1.6e-202]`), a completely different
+  event; the strip now sits at the event at both `1e-200` and `1e200`
+  (the latter used to have an infinite bound).
+
+- A chi-square or F curve whose whole view lies in a far tail is drawn,
+  not reduced to a two-point chord.
+  `vdist_chisquare_plot(200, xaxis_range = 25)` on `[0, 25]` used to
+  draw a straight line between `(0, 0)` and `(25, 7.8e-54)`; the grid
+  now follows the probability below 1e-12, so the curve equals
+  `dchisq(x, 200)` across the view. The tail floor is only used when the
+  whole view is that far out, so a singular support edge keeps its
+  documented refinement.
+
+- The density axis is capped only at a genuine support singularity. A
+  bounded density with a narrow body (F with `1e6` degrees of freedom)
+  or a heavy-tailed t used to have its body cut off, or its whole axis
+  chosen from an almost empty tail (`7.7e-98` for
+  `vdist_f_perc(.95, 1e6, 1e6)`); the body is now drawn at its true
+  height, and an axis just below the double maximum no longer overflows
+  to an infinite range.
+
+- The F moments use an overflow-free grouping, so
+  `vdist_f_plot(200, 1e306)` reports `Std Dev. = 0.1` and draws its
+  normal overlay at `dnorm(1, 1, .1) = 3.989`, instead of `Std Dev. = 0`
+  and an infinite overlay.
+
+- The chi-square mean marker is drawn at the exact `df`, not at its
+  three-decimal label: `vdist_chisquare_plot(3.14159)` marks 3.14159
+  instead of 3.142.
+
+- An overflow-safe midpoint is used when classifying shaded segments and
+  refining the grid, so `vdist_normal_prob(1e308, 1e308, 1e306)` reports
+  50% instead of an area error, and
+  `vdist_normal_perc(.5, 1e308, 1e306)` draws its central interval.
+
+- A finite endpoint decades beyond the representable tail is clipped to
+  that tail before the grid is built.
+  `vdist_normal_prob(c(-1e300, 1e300))`, `vdist_t_prob(1e100, 7)`,
+  `vdist_chisquare_prob(1e100, 4)` and `vdist_f_prob(1e100, 5, 10)` used
+  to fail with a spurious polygon-area error; they now return the exact
+  100% event.
+
+- Formatting no longer parses locale-dependent text:
+  `options(OutDec = ",")` used to make every percentile and probability
+  export fail with `NAs introduced by coercion`; the decimal mark is
+  fixed to `.` for every printed and re-parsed number.
+
+- `print_plot` is validated by all 15 plotting exports, so
+  `print_plot = NA` gives
+  `print_plot must be a single nonmissing logical.` instead of an
+  internal `if` error, and a number is no longer silently accepted.
+
+- The test entry points guard their suggested packages:
+  `tests/testthat.R` skips when `testthat` is absent (instead of failing
+  in [`library(testthat)`](https://testthat.r-lib.org)), and the visual
+  tests skip when `vdiffr` is absent without `skip_on_cran()`.
+
+- The numerical-resolution error for an unrepresentable quantile reports
+  the supported probability range, `1e-12 < probs < 1 - 1e-12`.
+
+- Shaded polygons are drawn with the same vertices on every platform.
+  The probability-spaced grid is built with
+  [`qlogis()`](https://rdrr.io/r/stats/Logistic.html),
+  [`plogis()`](https://rdrr.io/r/stats/Logistic.html) and the
+  distribution’s `q*()`, which need not round-trip exactly: the first or
+  last point can land one ulp inside the cutoff, and
+  [`unique()`](https://rdrr.io/r/base/unique.html) then keeps a
+  duplicate vertex on one platform only (the Linux CI snapshot of
+  `vdist_t_prob(1.445, 7, "interval")` carried `265.66,407.84` twice). A
+  grid point that is the same number as its neighbour to within 64 ulps
+  is now dropped after the area refinement, keeping the region’s exact
+  endpoint, so every remaining vertex is unchanged. The comparison is
+  relative to the coordinates and never to the region’s width: the t
+  region with `df = 0.1`, about `1e96` wide, keeps its full grid and its
+  area.
+
+- A normal distribution with a near-zero mean is drawn when its scale
+  ratio is in range, even if the ratio overflows to infinity. The direct
+  comparison preserves the result under scaling of mean and sd together.
+
+- An extreme normal scale is now rejected with a true message instead of
+  a NaN area error: at `sd = 3e307` the ends of `mean +/- 4 sd` are
+  finite but the window itself (8 sd) exceeds the double range, so the
+  drawing would rescale by an overflowing difference and show an empty
+  panel.
+  [`vdist_normal_perc()`](https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.md),
+  [`vdist_normal_prob()`](https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.md)
+  and
+  [`vdist_normal_plot()`](https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.md)
+  stop with a message naming the window limit (`sd` below about
+  `2.2e307`), and just below it (`sd = 2e307`) the same plot draws with
+  its full 95% shading. The polygon area sum also stays finite for a
+  region wider than the double range: its zero-height closing edge is
+  skipped instead of being computed as `Inf * 0 = NaN`.
+
+- A shaded region too narrow to occupy a pixel is no longer invisible on
+  the device. The lower 5% and 50% tails of
+  [`vdist_chisquare_perc()`](https://vistributions.rsquaredacademy.com/reference/vdist_chisquare_plot.md)
+  with `df = 0.1` (and the matching
+  [`vdist_chisquare_prob()`](https://vistributions.rsquaredacademy.com/reference/vdist_chisquare_plot.md)
+  case) are marked with a visible strip in the panel and disclosed in
+  the caption (“the shaded region is narrower than one pixel at this
+  scale”); the event polygon, its area check and the printed percentage
+  are unchanged and exact. Ordinary regions are not marked.
+
+- Every plotting grid now has a bounded number of points whatever the
+  scale. The normal, t, chi-square and F curves and shaded regions are
+  sampled on fixed-count probability and standardised grids, and a
+  binomial support wider than 2001 counts is drawn as at most 2001
+  equal-width bins whose bars carry the exact bin probability, with a
+  caption disclosing the grouping. A scale that previously grew the grid
+  with the data (for example `mean = 1e6, sd = 2e5`) keeps every layer’s
+  data small, and `vdist_normal_prob(1.2e6, 1e6, 2e5, "lower")` builds
+  and prints immediately.
+
+- `vdist_t_*()`, `vdist_chisquare_*()` and `vdist_f_*()` no longer
+  truncate non-integer degrees of freedom to whole numbers;
+  probabilities, quantiles, densities and plots now use the `df` that
+  was supplied. Chi-square `df` must be at least 0.1 and F `num_df` must
+  be at least 1; smaller values cannot be drawn from their support
+  boundary at double precision and now give a documented error instead
+  of a spike or an infinite density.
+
+- Continuous percentile cutoffs and probabilities are computed without
+  rounding, and cutoff labels retain enough digits to support the
+  printed probabilities.
+
+- Quantiles and probability limits are checked before plotting. Normal
+  and t probabilities must lie in `[1e-10, 1-1e-10]`; chi-square and F
+  probabilities must lie in `[1e-6, 1-1e-6]`. A `q*()` result that is
+  non-finite or does not invert the requested tail is a package error,
+  never a caption or an infinite polygon. A cutoff beyond the visible
+  central mass is still drawn clipped to that view while the caption
+  keeps its true value.
+
+- Continuous curves and shaded polygons are no longer sampled with a
+  step in data units. The initial grid is a fixed number of points
+  spaced in probability and, for the location-scale normal, in
+  standardised units; it is then refined where the trapezoid rule
+  disagrees with the exact CDF mass of the interval. The refinement is
+  driven by the region’s own probability scale, so a support edge where
+  the density is unbounded, a far tail and a narrow translated normal
+  are all resolved without allocating a huge grid. A density whose
+  central 99.9998% mass spans less than 0.001 is still rejected as too
+  concentrated.
+
+- Shaded continuous regions use `p*()`, `q*()` and `d*()` and are
+  checked to relative 1e-6 above the display floor. Small regions may be
+  omitted with a disclosure.
+
+- The normal scale limit is a ratio, so changing measurement units
+  preserves the supported domain. Zero-centred tiny scales remain valid
+  subject to finite density and plotting-range checks.
+
+- Captions print probabilities at the precision the area check
+  guarantees: percentages at or above 0.1 keep one decimal, smaller ones
+  use scientific notation. The printed cutoff is checked against that
+  displayed probability, and interval/tail probabilities are kept
+  unrounded until after the union arithmetic. For example
+  `vdist_t_prob(.1, 7, "interval")` now prints 7.7% and `type = "both"`
+  prints 92.3%.
+
+- Normal interval annotations are placed at the midpoint of the visible
+  cutoffs, so an interval far outside the curve no longer expands the
+  panel and compresses the density. Annotation heights and the density
+  axis are relative to the density’s own scale: a normal with large
+  units (for example `mean = 1e6, sd = 1e5`), a chi-square with a
+  singular support edge and an F with a heavy tail all keep their shaded
+  region visible on the rendered device. Densities that are unbounded at
+  a support edge are clipped on the display axis only, at the 95th
+  percentile of the density over the plotted view; source-coordinate
+  area checks always use the unclipped density, and very wide t/F
+  windows are drawn on a symmetric log axis so no part of the event
+  collapses into a line. Part of a region that lies outside the plotted
+  window is disclosed in a plot caption when it exceeds 1% of the
+  region; the polygon still covers it, so the area check is unaffected.
+
+- Central percentile captions are checked as a pair, so both printed
+  endpoints and the displayed interval percentage describe the same
+  event (for example `vdist_normal_perc(.0001, mean = 1, type = "both")`
+  no longer prints `P(0.9999 < X < 1) = 1e-02%`, and
+  `vdist_normal_perc(.0505, type = "both")` prints a probability its
+  endpoints actually attain). The pair is printed with enough digits for
+  the displayed percentage, and that percentage is computed from the
+  exact probability rather than from the printed endpoints.
+
+- Quantiles are refined by root finding when the `stats` quantile
+  function does not invert its own distribution function (for example
+  `qf(.95, 1e8, 1e8)`), so high-degree-of-freedom F percentile plots
+  work instead of failing the quantile check. The F area check now uses
+  a probability-space grid without a coarse uniform filler, which
+  removes the error in heavy-tail probability plots.
+
+- An F tail that does not converge at double precision is reported as a
+  tail-overflow error and no longer described as a too-concentrated
+  density with advice to reduce the degrees of freedom.
+
+- The chi-square `df >= 0.1` floor is now enforced by all three exports
+  at that documented boundary; the F concentration limit is stated in
+  the help page
+  ([`?vdist_f_plot`](https://vistributions.rsquaredacademy.com/reference/vdist_f_plot.md)).
+
+- [`vdist_binom_plot()`](https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.md),
+  [`vdist_binom_prob()`](https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.md)
+  and
+  [`vdist_binom_perc()`](https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.md)
+  now require `n` to be a non-negative whole number and `s` to be whole
+  numbers, instead of truncating them and labelling the probability of a
+  different event. A whole number stored as a double (for example
+  `(.7 - .4) * 10`) is accepted and rounded once, so `n`, the plotted
+  support and the success counts all describe the same distribution.
+
+- `vdist_binom_prob(type = "interval")` gives an error when the
+  endpoints are reversed, instead of a negative probability;
+  [`vdist_normal_prob()`](https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.md)
+  does the same for reversed `perc` values.
+
+- [`vdist_binom_perc()`](https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.md)
+  states the quantile definition correctly (`P(X <= k - 1) < tp` but
+  `P(X <= k) >= tp`) and the upper tail now shades `x > k`, so the
+  shaded mass is the reported tail probability. `tp` must now be
+  strictly between 0 and 1.
+
+- `vdist_t_prob(type = "interval")` and `type = "both"` with a negative
+  `perc` now use `|perc|` for the caption, reference lines and
+  annotations as well as the probability.
+
+- [`vdist_binom_plot()`](https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.md)
+  and
+  [`vdist_binom_prob()`](https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.md)
+  compute the displayed standard deviation from `sqrt(n * p * (1 - p))`
+  rather than from the rounded mean.
+
+- `probs = 0` or `probs = 1` in the `*_perc()` functions for the normal,
+  t, F and chi-square distributions now give an informative error (the
+  quantile is infinite and cannot be plotted).
+
+- Missing, empty, infinite or vector arguments (for example `sd = NA`,
+  `df = numeric()`, `p = c(.2, .3)`, `perc = numeric()` in
+  [`vdist_normal_prob()`](https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.md))
+  now give a clear package error instead of an internal one, and vector
+  `s` is no longer silently recycled in
+  [`vdist_binom_prob()`](https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.md).
+
+- [`vdist_f_prob()`](https://vistributions.rsquaredacademy.com/reference/vdist_f_plot.md)
+  and
+  [`vdist_chisquare_prob()`](https://vistributions.rsquaredacademy.com/reference/vdist_chisquare_plot.md)
+  accept cutoffs below zero (probability 0 / 1) instead of failing.
+
+- `vdist_chisquare_plot(normal = TRUE)`,
+  [`vdist_chisquare_perc()`](https://vistributions.rsquaredacademy.com/reference/vdist_chisquare_plot.md)
+  and
+  [`vdist_chisquare_prob()`](https://vistributions.rsquaredacademy.com/reference/vdist_chisquare_plot.md)
+  draw the chi-square distribution only on its non-negative support; for
+  `df < 2`, where the density is unbounded at zero, the grid starts at
+  the 1e-6 quantile instead of a negative value or an infinite density.
+  The F distribution is drawn the same way for `num_df < 2`.
+
+- The normal curve overlaid on `vdist_chisquare_plot(normal = TRUE)`
+  uses the supplied degrees of freedom and `sqrt(2 * df)` rather than
+  their three-decimal display values.
+
+- The normal curve overlaid on `vdist_f_plot(normal = TRUE)` uses the
+  unrounded F mean and standard deviation, so a valid large-df overlay
+  no longer collapses to a zero-variance point mass. When the F variance
+  is undefined (`den_df <= 4`), the overlay is omitted with a message
+  instead of drawing `Std Dev. = NA`.
+
+- Percentages are printed at a precision whose rounding interval
+  contains the exact probability: a value exactly on a one-decimal
+  boundary (for example `5.05%`) is printed with the digits that make it
+  unambiguous instead of being rounded to a false value.
+
+- The shading polygon starts at the distribution’s support (zero for
+  chi-square and F) rather than at a quantile floor, so no probability
+  is discarded for small `df`: `vdist_chisquare_perc(.05, .1)` and the
+  corresponding F cases now shade the full event. Where the density is
+  unbounded at zero it is capped on the display axis only.
+
+- The picture is invariant under a change of measurement units for the
+  normal family: multiplying `mean` and `sd` by the same factor (tested
+  with 1e-3, 1e3, 1e6 and 1e-6) changes only the axis labels. The shaded
+  proportion, the probability caption and the standardised polygon are
+  the same.
+
+- The input contract is now defined once
+  (`vistributions:::vdist_contract()`) and tested end to end. Ordinary
+  teaching inputs (the defaults, `normal(100, 15)`, t with 5 df,
+  chi-square with 1 or 2 df in an upper tail, `F(5, 10)`, a typical
+  binomial) are inside it, and every documented limit stops with its own
+  message.
+
+- Reference lines, markers and probability annotations are clamped to
+  the plotted view. Extreme cutoffs therefore no longer extend the panel
+  range (for example `vdist_t_prob(1e6, 7)` now shows its density
+  instead of a vertical line) while the caption keeps the true event.
+
+### Other
+
+- Maintainer e-mail updated to <aravindhebbali@rsquaredacademy.com>.
+- README: corrected the comment on the
+  [`vdist_normal_prob()`](https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.md)
+  example.
+
 ## vistributions 0.2.1
+
+CRAN release: 2026-10-16
 
 ### Bug Fixes
 

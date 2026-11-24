@@ -2,7 +2,13 @@
 
 Brief summary of changes made and rationale.
 
-Fixes #(issue)
+Fixes #… — the issue's example re-run on this branch:
+
+```
+<paste the output here>
+```
+
+Test added from the issue's example: `<test file, or "n/a">`
 
 ## Type of Change
 

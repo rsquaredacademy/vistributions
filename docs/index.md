@@ -10,7 +10,13 @@ annotated cutoffs for teaching and publication.
 
 ## Installation
 
-`# Install release version from CRAN`` `[`install.packages`](https://rdrr.io/r/utils/install.packages.html)`(``"vistributions"``)`` `` ``# Install development version from GitHub`` ``# install.packages("devtools")`` ``devtools``::`[`install_github`](https://devtools.r-lib.org/reference/install-deprecated.html)`(``"rsquaredacademy/vistributions"``)`
+\
+`# Install release version from CRAN`\
+[`install.packages`](https://rdrr.io/r/utils/install.packages.html)`(``"vistributions"``)`\
+\
+`# Install development version from GitHub`\
+`# install.packages("devtools")`\
+`devtools``::`[`install_github`](https://devtools.r-lib.org/reference/install-deprecated.html)`(``"rsquaredacademy/vistributions"``)`
 
 ## Supported distributions
 
@@ -36,77 +42,117 @@ further customization with `+ labs()`, `+ theme_minimal()` or
 
 ### Normal distribution
 
-`# distribution shape`` `[`vdist_normal_plot`](https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.md)`(``)`
+\
+`# distribution shape`\
+[`vdist_normal_plot`](https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.md)`(``)`
 
 ![](reference/figures/README-normal-plot-1.png)
 
-` ``# quantile from a probability (upper 10%)`` `[`vdist_normal_perc`](https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.md)`(``0.10``, mean ``=`` ``60``, sd ``=`` ``3``, type ``=`` ``"upper"``)`
+\
+\
+`# quantile from a probability (upper 10%)`\
+[`vdist_normal_perc`](https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.md)`(``0.10``, mean ``=`` ``60``, sd ``=`` ``3``, type ``=`` ``"upper"``)`
 
 ![](reference/figures/README-normal-plot-2.png)
 
-` ``# probability from quantiles (middle 50%)`` `[`vdist_normal_prob`](https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.md)`(`[`c`](https://rdrr.io/r/base/c.html)`(``85``, ``100``)``, mean ``=`` ``90``, sd ``=`` ``4``, type ``=`` ``"both"``)`
+\
+\
+`# probability between two quantiles (85 and 100)`\
+[`vdist_normal_prob`](https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.md)`(`[`c`](https://rdrr.io/r/base/c.html)`(``85``, ``100``)``, mean ``=`` ``90``, sd ``=`` ``4``, type ``=`` ``"both"``)`
 
 ![](reference/figures/README-normal-plot-3.png)
 
 ### t distribution
 
-[`vdist_t_plot`](https://vistributions.rsquaredacademy.com/reference/vdist_t_plot.md)`(``df ``=`` ``8``)`
+\
+[`vdist_t_plot`](https://vistributions.rsquaredacademy.com/reference/vdist_t_plot.md)`(``df ``=`` ``8``)`
 
 ![](reference/figures/README-t-plot-1.png)
 
-` ``# upper 15th percentile`` `[`vdist_t_perc`](https://vistributions.rsquaredacademy.com/reference/vdist_t_plot.md)`(``0.15``, df ``=`` ``8``, type ``=`` ``"upper"``)`
+\
+\
+`# upper 15th percentile`\
+[`vdist_t_perc`](https://vistributions.rsquaredacademy.com/reference/vdist_t_plot.md)`(``0.15``, df ``=`` ``8``, type ``=`` ``"upper"``)`
 
 ![](reference/figures/README-t-plot-2.png)
 
-` ``# probability between -2 and 2`` `[`vdist_t_prob`](https://vistributions.rsquaredacademy.com/reference/vdist_t_plot.md)`(``2``, df ``=`` ``6``, type ``=`` ``"interval"``)`
+\
+\
+`# probability between -2 and 2`\
+[`vdist_t_prob`](https://vistributions.rsquaredacademy.com/reference/vdist_t_plot.md)`(``2``, df ``=`` ``6``, type ``=`` ``"interval"``)`
 
 ![](reference/figures/README-t-plot-3.png)
 
 ### Chi-square distribution
 
-[`vdist_chisquare_plot`](https://vistributions.rsquaredacademy.com/reference/vdist_chisquare_plot.md)`(``df ``=`` ``5``)`
+\
+[`vdist_chisquare_plot`](https://vistributions.rsquaredacademy.com/reference/vdist_chisquare_plot.md)`(``df ``=`` ``5``)`
 
 ![](reference/figures/README-chisquare-plot-1.png)
 
-` ``# tenth percentile`` `[`vdist_chisquare_perc`](https://vistributions.rsquaredacademy.com/reference/vdist_chisquare_plot.md)`(``0.10``, df ``=`` ``8``, type ``=`` ``"lower"``)`
+\
+\
+`# tenth percentile`\
+[`vdist_chisquare_perc`](https://vistributions.rsquaredacademy.com/reference/vdist_chisquare_plot.md)`(``0.10``, df ``=`` ``8``, type ``=`` ``"lower"``)`
 
 ![](reference/figures/README-chisquare-plot-2.png)
 
-` ``# P(X > 8.79) with 12 df`` `[`vdist_chisquare_prob`](https://vistributions.rsquaredacademy.com/reference/vdist_chisquare_plot.md)`(``8.79``, df ``=`` ``12``, type ``=`` ``"upper"``)`
+\
+\
+`# P(X > 8.79) with 12 df`\
+[`vdist_chisquare_prob`](https://vistributions.rsquaredacademy.com/reference/vdist_chisquare_plot.md)`(``8.79``, df ``=`` ``12``, type ``=`` ``"upper"``)`
 
 ![](reference/figures/README-chisquare-plot-3.png)
 
 ### F distribution
 
+\
 [`vdist_f_plot`](https://vistributions.rsquaredacademy.com/reference/vdist_f_plot.md)`(``)`
 
 ![](reference/figures/README-f-plot-1.png)
 
-` ``# upper twentieth percentile, F(4, 5)`` `[`vdist_f_perc`](https://vistributions.rsquaredacademy.com/reference/vdist_f_plot.md)`(``0.20``, num_df ``=`` ``4``, den_df ``=`` ``5``, type ``=`` ``"upper"``)`
+\
+\
+`# upper twentieth percentile, F(4, 5)`\
+[`vdist_f_perc`](https://vistributions.rsquaredacademy.com/reference/vdist_f_plot.md)`(``0.20``, num_df ``=`` ``4``, den_df ``=`` ``5``, type ``=`` ``"upper"``)`
 
 ![](reference/figures/README-f-plot-2.png)
 
-` ``# P(X > 3.89), F(4, 5)`` `[`vdist_f_prob`](https://vistributions.rsquaredacademy.com/reference/vdist_f_plot.md)`(``3.89``, num_df ``=`` ``4``, den_df ``=`` ``5``, type ``=`` ``"upper"``)`
+\
+\
+`# P(X > 3.89), F(4, 5)`\
+[`vdist_f_prob`](https://vistributions.rsquaredacademy.com/reference/vdist_f_plot.md)`(``3.89``, num_df ``=`` ``4``, den_df ``=`` ``5``, type ``=`` ``"upper"``)`
 
 ![](reference/figures/README-f-plot-3.png)
 
 ### Binomial distribution
 
-[`vdist_binom_plot`](https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.md)`(``12``, ``0.2``)`
+\
+[`vdist_binom_plot`](https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.md)`(``12``, ``0.2``)`
 
 ![](reference/figures/README-binom-plot-1.png)
 
-` ``# exactly 4 successes out of 12`` `[`vdist_binom_prob`](https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.md)`(``12``, ``0.2``, ``4``, type ``=`` ``"exact"``)`
+\
+\
+`# exactly 4 successes out of 12`\
+[`vdist_binom_prob`](https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.md)`(``12``, ``0.2``, ``4``, type ``=`` ``"exact"``)`
 
 ![](reference/figures/README-binom-plot-2.png)
 
-` ``# at most 1 success`` `[`vdist_binom_prob`](https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.md)`(``12``, ``0.2``, ``1``, type ``=`` ``"lower"``)`
+\
+\
+`# at most 1 success`\
+[`vdist_binom_prob`](https://vistributions.rsquaredacademy.com/reference/vdist_binom_plot.md)`(``12``, ``0.2``, ``1``, type ``=`` ``"lower"``)`
 
 ![](reference/figures/README-binom-plot-3.png)
 
 ### Customize the plot object
 
-[`library`](https://rdrr.io/r/base/library.html)`(`[`ggplot2`](https://ggplot2.tidyverse.org)`)`` `` ``p`` ``<-`` `[`vdist_normal_plot`](https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.md)`(``mean ``=`` ``60``, sd ``=`` ``3``, print_plot ``=`` ``FALSE``)`` ``p`` ``+`` `[`theme_minimal`](https://ggplot2.tidyverse.org/reference/ggtheme.html)`(``)`` ``+`` `[`labs`](https://ggplot2.tidyverse.org/reference/labs.html)`(``title ``=`` ``"Normal(60, 3)"``)`
+\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`ggplot2`](https://ggplot2.tidyverse.org)`)`\
+\
+`p`` ``<-`` `[`vdist_normal_plot`](https://vistributions.rsquaredacademy.com/reference/vdist_normal_plot.md)`(``mean ``=`` ``60``, sd ``=`` ``3``, print_plot ``=`` ``FALSE``)`\
+`p`` ``+`` `[`theme_minimal`](https://ggplot2.tidyverse.org/reference/ggtheme.html)`(``)`` ``+`` `[`labs`](https://ggplot2.tidyverse.org/reference/labs.html)`(``title ``=`` ``"Normal(60, 3)"``)`
 
 ![](reference/figures/README-composable-1.png)
 

@@ -27,15 +27,33 @@ vdist_normal_prob(
 \arguments{
 \item{mean}{Mean of the normal distribution.}
 
-\item{sd}{Standard deviation of the normal distribution.}
+\item{sd}{Standard deviation of the normal distribution. It must be positive.
+When \code{mean} is nonzero, \code{sd / abs(mean)} must be at least
+\code{1e-10}; smaller ratios are rejected.
+A near-zero mean is not a resolution failure: the ratio may overflow to
+infinity (\code{mean = 1e-308, sd = 10}) while the distribution is still
+perfectly resolvable, and it is drawn normally. Zero-centred
+distributions have no translation and may use any positive
+\code{sd}. The comparison is a ratio, so multiplying \code{mean} and
+\code{sd} by the same factor (a change of units, for example from metres to
+millimetres) never changes the result. Independently, the density must be
+finite (\code{sd} at least about \code{1e-308}) and the plotted window
+\code{mean +/- 4 sd} must be representable: both its ends and its width
+must fit in a double (\code{sd} below about \code{2.2e307}). Both limits
+come from double precision and are reported by a specific error.}
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{probs}{Probability value.}
+\item{probs}{Probability value, strictly between 0 and 1 and within
+\code{(1e-12, 1 - 1e-12)}. For \code{type = "both"}, the
+representable endpoints must enclose the requested mass to relative
+error at most 1e-6, or a numerical-resolution error is reported.}
 
 \item{type}{Lower tail, upper tail or both.}
 
-\item{perc}{Quantile value.}
+\item{perc}{Quantile value(s): a single value for a lower or upper tail, or
+two values in nondecreasing order for the interval between them. Two
+values select \code{type = "both"} automatically.}
 }
 \value{
 An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
@@ -44,6 +62,51 @@ An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 Visualize how changes in mean and standard deviation affect the
 shape of the normal distribution. Compute & visualize quantiles out of given
 probability  and probability from a given quantile.
+}
+\details{
+Percentages below 1e-10\% are displayed as < 1e-10\%, and
+probabilities within 1e-10\% of 100\% as > 99.9999999999\%. A
+probability below 1 that would print 100.0\% is displayed as the bound
+> 99.9\%, the mirror of the floor; an exact 1 keeps 100.0\%.
+Percentages at or above 0.1\% keep at least one decimal. Smaller
+percentages use three significant digits in scientific notation, retaining
+trailing zeros (for example \code{5.00e-02\%}). Values that round to
+0.1\% at three significant digits use \code{1.00e-01\%} on either side
+of the notation switch. Cutoffs retain enough digits that the same event prints identical
+percentage text in the percentile and probability forms, including at
+halfway rounding boundaries. Extra percentage digits resolve exact halfway
+values (for example \code{5.05\%}).
+
+Supported values: for a central interval the representable endpoints
+must enclose \code{probs} to within 1e-6 relative error. If not, increase
+\code{sd} or choose a larger \code{probs}; ordinary inputs are unaffected.
+
+Drawing contract: every probability, cutoff and caption is computed from the
+normal density, distribution and quantile functions, never from the drawn
+grid. The shaded polygon spans the whole event and is sampled on a grid
+spaced in probability and in standardised units; its own area is checked
+against the exact event probability and kept within 1e-6 relative error for events above the display floor. A percentage is
+printed at a precision whose rounding interval contains the exact
+probability, and the printed cutoffs reproduce that displayed percentage.
+Because the normal is a location-scale family, multiplying \code{mean} and
+\code{sd} by the same factor changes only the axis labels: the shaded
+proportion, the probability caption and the standardised picture are the
+same. A part of the shaded region that lies outside the plotted window is
+disclosed in a plot caption. A shaded region too narrow to occupy a pixel at
+the plotted scale (for example an extreme percentile of a concentrated
+distribution) is marked with a visible strip in the panel and disclosed in
+the caption; its polygon and its checked area are unchanged. Every plotting
+grid has a bounded number of points, whatever the mean and standard
+deviation.
+A shaded region whose visible height is less than 0.4\% of the density peak
+is disclosed in the caption as too small to display.
+Probability labels are anchored to the cutoff line with a fixed absolute
+gap, so their layout does not depend on the device size. A label that would
+leave the panel (a cutoff close to an edge) is stacked on a second line
+instead of being drawn across the cutoff. Labels are drawn above the
+density, the cutoff lines and the markers, each on a small light patch in the
+panel background colour, so the shaded fill cannot erase the text and a
+cutoff line cannot cross it.
 }
 \examples{
 # visualize normal distribution

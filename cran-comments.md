@@ -1,26 +1,43 @@
 ## Test environments
-* local Windows 10 x64, R 4.5.2 ucrt
-* GitHub Actions: ubuntu-latest (release, devel, oldrel), windows-latest (release), macOS-latest (release)
-* win-builder: Windows Server 2022 x64, R Under development (unstable) (2026-09-16 r90549 ucrt)
+
+* local: Windows 11 x64, R 4.6.1 (ucrt)
+* Linux (Ubuntu): R 4.6.2 and R-devel (4.7.0)
+* win-builder: R-devel and R-release
+* GitHub Actions: ubuntu-latest (devel, release, oldrel-1), windows-latest
+  (release), macos-latest (release)
 
 ## R CMD check results
 
-0 errors | 0 warnings | 2 notes
+0 errors | 0 warnings | 1 note
 
-* win-builder (R-devel): Status OK (0 errors, 0 warnings, 0 notes).
-* Local `rcmdcheck::rcmdcheck(args = c("--as-cran", "--no-manual"))` on Windows 10 x64 (R 4.5.2 ucrt): 0 errors, 0 warnings, 2 notes, both benign:
-  * `checking for future file timestamps ... NOTE: unable to verify current time` — environmental (local Windows clock/NTP resolution), not a package issue.
-  * `checking examples ... NOTE: Examples with CPU (user + system) or elapsed time > 5s` — the five distribution `*_plot()` examples take 7-17 s because they render ggplot2 graphics; expected, not a code defect.
-* `urlchecker::url_check()`: all URLs are correct (12 checked).
+* `checking CRAN incoming feasibility ... NOTE`: the maintainer e-mail address
+  changes from hebbali.aravind@gmail.com to
+  aravindhebbali@rsquaredacademy.com. This is the same maintainer, Aravind
+  Hebbali; the change will be confirmed from the old address.
 
-## Submission Summary (v0.2.1)
-This is a patch release fixing 19 identified correctness and edge-case bugs:
-* Fixed normal distribution x-axis grid scaling.
-* Fixed F-distribution adaptive bounds and variance division-by-zero guards.
-* Fixed Student's t negative percentile sequence crash and annotation colors.
-* Fixed chi-square polygon range bounds.
-* Fixed binomial upper-tail and exact matching logic, and expanded quantile range.
-* Added missing positive degrees of freedom validations.
-* Removed unprompted network polling during package startup.
-* Corrected pedagogical discrepancies in vignette.
-* Updated test suite to testthat 3rd edition.
+The check was run on a tarball built from a clean `git archive` copy of the
+release commit.
+
+## Submission summary (0.2.2)
+
+This release fixes wrong results found in a pre-release audit of 0.2.1:
+
+* Non-integer degrees of freedom are no longer truncated (t, chi-square, F).
+* Quantile cutoffs are not rounded before shading and reference lines are
+  drawn.
+* Quantiles outside the default plotting range no longer fail.
+* Binomial functions reject non-integer counts and reversed intervals; the
+  quantile caption and shading follow `qbinom()`.
+* `vdist_t_prob()` with negative symmetric cutoffs uses `|perc|`
+  consistently.
+* Clearer errors for missing/vector arguments and for `probs` of 0 or 1.
+
+See NEWS.md for details.
+
+## Reverse dependencies
+
+We checked 1 reverse dependency (xplorerr), comparing R CMD check results
+with the CRAN version and this release of vistributions.
+
+* We saw 0 new problems
+* We failed to check 0 packages

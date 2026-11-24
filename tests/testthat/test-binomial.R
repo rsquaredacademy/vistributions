@@ -16,7 +16,8 @@ test_that("vdist_binom_prob throws the appropriate errors", {
   expect_error(vdist_binom_prob(10, 0.5, "4"), "s must be numeric.")
   expect_error(vdist_binom_prob(10, 0.5, as.factor(4)), "s must be numeric.")
   expect_error(vdist_binom_prob(10, 0.3, 4, type = 'interval'), "Please specify an interval for s.")
-  expect_error(vdist_binom_prob(3, 0.3, 4), "s must be less than or equal to n.")
+  expect_error(vdist_binom_prob(3, 0.3, 4),
+               "s must be a whole number of successes between 0 and n")
 })
 
 test_that("vdist_binom_perc throws the appropriate errors", {

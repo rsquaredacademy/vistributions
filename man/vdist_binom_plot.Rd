@@ -25,17 +25,26 @@ vdist_binom_perc(
 )
 }
 \arguments{
-\item{n}{Number of trials.}
+\item{n}{Number of trials (a single non-negative whole number).}
 
 \item{p}{Probability of success in each trial.}
 
 \item{print_plot}{logical; if \code{TRUE}, prints the plot else returns a plot object.}
 
-\item{s}{Number of successes (quantile value).}
+\item{s}{Number of successes: whole numbers in \code{[0, n]} only. Zero and
+\code{n} are counts of successes like any other; use \code{pbinom()} for
+an arbitrary threshold outside that range. For \code{type = "interval"},
+two values in increasing order.}
 
 \item{type}{Lower/upper/exact/interval.}
 
-\item{tp}{Tail probability for quantile calculation.}
+\item{tp}{Tail probability for quantile calculation, strictly between 0 and
+1. The cutoff follows \code{qbinom()}, including its numerical fuzz
+at cumulative jumps. The caption states the defining convention:
+\code{P(X <= k - 1) < tp} and \code{P(X <= k) >= tp} for the lower
+tail; \code{P(X >= k + 1) <= tp} and \code{P(X >= k) > tp} for the
+upper tail. Numerical fuzz can affect comparisons at jumps. For
+\code{type = "upper"} the bars with \code{x > k} are shaded.}
 }
 \value{
 An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
@@ -44,6 +53,21 @@ An object of class \code{ggplot} (invisibly if \code{print_plot = TRUE}).
 Visualize how changes in number of trials and the probability of
 success affect the shape of the binomial distribution. Compute & visualize
 probability from a given quantile and quantiles out of given probability.
+}
+\details{
+Probabilities below 1e-10\% (including underflows) are shown as
+< 1e-10\%, with the corresponding upper display > 99.9999999999\%.
+A probability below one that rounds to \code{1.000} at three decimals is
+shown as \code{> 0.999} when it is at most \code{1 - 1e-12};
+above that threshold it uses the percentage bound. Exact certainty is
+shown as \code{= 1.000}.
+
+Every bar is one count while \code{n + 1} counts fit in the plotting
+grid (2001 bars). A wider support is drawn in approximately 2001 bins
+of counts; event boundaries can split up to two bins, each bar showing the exact probability of its bin, with a caption
+that discloses the grouping; the grid therefore has a bounded number of
+points whatever \code{n} is. Probabilities, quantiles and shaded masses always
+come from \code{dbinom()}, \code{pbinom()} and \code{qbinom()}.
 }
 \examples{
 # visualize binomial distribution

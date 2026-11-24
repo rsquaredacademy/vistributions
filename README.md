@@ -71,7 +71,7 @@ vdist_normal_perc(0.10, mean = 60, sd = 3, type = "upper")
 
 ``` r
 
-# probability from quantiles (middle 50%)
+# probability between two quantiles (85 and 100)
 vdist_normal_prob(c(85, 100), mean = 90, sd = 4, type = "both")
 ```
 
@@ -203,3 +203,5 @@ If you encounter a bug, please file a minimal reproducible example using
 [GitHub](https://github.com/rsquaredacademy/vistributions/issues). For
 questions and clarifications, please use Stack Overflow (tagged
 `vistributions` or `r`).
+
+<div data-rsa-signup data-site="vistributions.rsquaredacademy.com" data-privacy-url="https://www.rsquaredacademy.com/privacy-policy.html"></div>

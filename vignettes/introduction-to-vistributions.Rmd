@@ -52,7 +52,7 @@ vdist_normal_plot(mean = 2, sd = 0.6)
 - probs: a probability value
 - mean: mean of the normal distribution
 - sd: standard deviation of the normal distribution
-- type: lower/upper tail
+- type: lower/upper/both tail
 
 Suppose X, the grade on a exam, is normally distributed with mean 60 
 and standard deviation 3. The teacher wants to give 10% of the class an A. 
@@ -122,9 +122,9 @@ vdist_binom_plot(10, 0.3)
 #### Calculate and visualize quantiles out of given probability
 
 ##### Input
-- p: a single aggregated probability of multiple trials
 - n: the number of trials
-- tp: the probability of success in a trial
+- p: the probability of success in each trial
+- tp: the tail probability used to compute the quantile
 - type: lower/upper tail
 
 
@@ -143,7 +143,7 @@ vdist_binom_perc(10, 0.5, 0.05, 'upper')
 ##### Input
 - p: probability of success
 - n: the number of trials
-- s: number of success in a trial
+- s: number of successes in n trials
 - type: lower/upper/interval/exact tail
 
 
