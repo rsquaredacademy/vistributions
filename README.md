@@ -1,207 +1,102 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# vistributions <img src="man/figures/logo.png" align="right" height="139" />
-
-> Visualize probability distributions
+# vistributions <img src="man/figures/logo.png" align="right" height="139" alt="vistributions logo" />
 
 <!-- badges: start -->
 
-[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/vistributions)](https://cran.r-project.org/package=vistributions)
-[![R-CMD-check](https://github.com/rsquaredacademy/vistributions/actions/workflows/R-CMD-check.yaml/badge.svg?branch=develop)](https://github.com/rsquaredacademy/vistributions/actions/workflows/R-CMD-check.yaml)
-[![Coverage
-Status](https://img.shields.io/codecov/c/github/rsquaredacademy/vistributions/develop.svg)](https://app.codecov.io/github/rsquaredacademy/vistributions?branch=develop)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/vistributions)](https://CRAN.R-project.org/package=vistributions)
+[![R-CMD-check](https://github.com/rsquaredacademy/vistributions/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/rsquaredacademy/vistributions/actions/workflows/R-CMD-check.yaml)
+[![Codecov test
+coverage](https://codecov.io/gh/rsquaredacademy/vistributions/branch/develop/graph/badge.svg)](https://app.codecov.io/gh/rsquaredacademy/vistributions?branch=develop)
 <!-- badges: end -->
 
-`vistributions` visualizes the normal, t, F, chi-square and binomial
-distributions with `ggplot2`. Each family exposes the same grammar:
-`_plot` for the shape, `_perc` for quantiles from probabilities and
-`_prob` for probabilities from quantiles, with shaded tails and
-annotated cutoffs for teaching and publication.
+vistributions draws shaded normal, t, F, chi-square and binomial curves
+for analysts who need probabilities without tables.
 
 ## Installation
 
 ``` r
-# Install release version from CRAN
+# Release version from CRAN
 install.packages("vistributions")
 
-# Install development version from GitHub
-# install.packages("devtools")
-devtools::install_github("rsquaredacademy/vistributions")
+# Development version from GitHub
+# install.packages("pak")
+pak::pak("rsquaredacademy/vistributions")
 ```
 
-## Supported distributions
+## Quick example
 
-| Family | Shape | Quantile from p | Probability from q |
-|----|----|----|----|
-| Normal | `vdist_normal_plot()` | `vdist_normal_perc()` | `vdist_normal_prob()` |
-| t | `vdist_t_plot()` | `vdist_t_perc()` | `vdist_t_prob()` |
-| F | `vdist_f_plot()` | `vdist_f_perc()` | `vdist_f_prob()` |
-| Chi-square | `vdist_chisquare_plot()` | `vdist_chisquare_perc()` | `vdist_chisquare_prob()` |
-| Binomial | `vdist_binom_plot()` | `vdist_binom_perc()` | `vdist_binom_prob()` |
+### See the shape of daily orders
 
-All plotting functions print by default and return the `ggplot` object
-invisibly. Pass `print_plot = FALSE` to get a composable plot object for
-further customization with `+ labs()`, `+ theme_minimal()` or
-`ggplot2::ggsave()`.
-
-## Articles
-
-- [Explore
-  Distributions](https://vistributions.rsquaredacademy.com/articles/introduction-to-vistributions.html)
-
-## Usage
-
-### Normal distribution
+In this example, a store’s daily orders average 25.2 units, with a
+standard deviation of 5.2 units. What shape does that describe?
 
 ``` r
-# distribution shape
-vdist_normal_plot()
+vdist_normal_plot(mean = 25.2, sd = 5.2)
 ```
 
-<img src="man/figures/README-normal-plot-1.png" width="100%" />
+<img src="man/figures/README-normal-plot-1.png" alt="Normal curve for daily orders, centred on 25.2 units with a standard deviation of 5.2. Shaded bands mark one, two and three standard deviations around the mean." width="75%" />
+
+The mean is 25.2 orders a day. The standard deviation is 5.2 orders, the
+typical distance from the mean; most days sit near the dark centre.
+
+### Find the chance of a busy day
+
+How often would a day sell more than 35 orders?
 
 ``` r
-
-# quantile from a probability (upper 10%)
-vdist_normal_perc(0.10, mean = 60, sd = 3, type = "upper")
+vdist_normal_prob(35, mean = 25.2, sd = 5.2, type = "upper")
 ```
 
-<img src="man/figures/README-normal-plot-2.png" width="100%" />
+<img src="man/figures/README-normal-prob-1.png" alt="Normal curve with the area above 35 orders shaded. The caption reads P(X &gt; 35) = 3.0%." width="75%" />
+
+The upper-tail probability is the share of days above the cutoff. Under
+this curve, 3.0% of days sell more than 35 orders.
+
+### Set a stock level for the busiest days
+
+What order level do only the top 10% of days exceed?
 
 ``` r
-
-# probability between two quantiles (85 and 100)
-vdist_normal_prob(c(85, 100), mean = 90, sd = 4, type = "both")
+vdist_normal_perc(0.10, mean = 25.2, sd = 5.2, type = "upper")
 ```
 
-<img src="man/figures/README-normal-plot-3.png" width="100%" />
+<img src="man/figures/README-normal-perc-1.png" alt="Normal curve with the area above 31.864 orders shaded. The caption reads P(X &gt; 31.864) = 10.0%." width="75%" />
 
-### t distribution
+A percentile turns a share into a level on the curve. Only the busiest
+10% of days sell more than 31.864 orders.
 
-``` r
-vdist_t_plot(df = 8)
-```
+The t, F, chi-square and binomial families follow the same `_plot`,
+`_perc` and `_prob` pattern.
 
-<img src="man/figures/README-t-plot-1.png" width="100%" />
+## Learn more
 
-``` r
+- [Documentation site](https://vistributions.rsquaredacademy.com)
+- Vignettes:
+  - [Exploring
+    Distributions](https://vistributions.rsquaredacademy.com/articles/introduction-to-vistributions.html)
+- [NEWS](https://vistributions.rsquaredacademy.com/news/index.html)
 
-# upper 15th percentile
-vdist_t_perc(0.15, df = 8, type = "upper")
-```
+## Getting help and contributing
 
-<img src="man/figures/README-t-plot-2.png" width="100%" />
+**Help:** open an
+[issue](https://github.com/rsquaredacademy/vistributions/issues) with a
+minimal reproducible example, built with
+[reprex](https://reprex.tidyverse.org/).
 
-``` r
+**Contributing:** read the [contributing
+guide](https://github.com/rsquaredacademy/vistributions/blob/develop/.github/CONTRIBUTING.md).
 
-# probability between -2 and 2
-vdist_t_prob(2, df = 6, type = "interval")
-```
+**Code of Conduct:** Please note that the vistributions project is
+released with a [Contributor Code of
+Conduct](https://vistributions.rsquaredacademy.com/CODE_OF_CONDUCT.html).
+By contributing to this project, you agree to abide by its terms.
 
-<img src="man/figures/README-t-plot-3.png" width="100%" />
+**Citation:** run `citation("vistributions")`.
 
-### Chi-square distribution
+<div data-rsa-signup="" data-site="vistributions.rsquaredacademy.com"
+data-privacy-url="https://www.rsquaredacademy.com/privacy-policy.html">
 
-``` r
-vdist_chisquare_plot(df = 5)
-```
-
-<img src="man/figures/README-chisquare-plot-1.png" width="100%" />
-
-``` r
-
-# tenth percentile
-vdist_chisquare_perc(0.10, df = 8, type = "lower")
-```
-
-<img src="man/figures/README-chisquare-plot-2.png" width="100%" />
-
-``` r
-
-# P(X > 8.79) with 12 df
-vdist_chisquare_prob(8.79, df = 12, type = "upper")
-```
-
-<img src="man/figures/README-chisquare-plot-3.png" width="100%" />
-
-### F distribution
-
-``` r
-vdist_f_plot()
-```
-
-<img src="man/figures/README-f-plot-1.png" width="100%" />
-
-``` r
-
-# upper twentieth percentile, F(4, 5)
-vdist_f_perc(0.20, num_df = 4, den_df = 5, type = "upper")
-```
-
-<img src="man/figures/README-f-plot-2.png" width="100%" />
-
-``` r
-
-# P(X > 3.89), F(4, 5)
-vdist_f_prob(3.89, num_df = 4, den_df = 5, type = "upper")
-```
-
-<img src="man/figures/README-f-plot-3.png" width="100%" />
-
-### Binomial distribution
-
-``` r
-vdist_binom_plot(12, 0.2)
-```
-
-<img src="man/figures/README-binom-plot-1.png" width="100%" />
-
-``` r
-
-# exactly 4 successes out of 12
-vdist_binom_prob(12, 0.2, 4, type = "exact")
-```
-
-<img src="man/figures/README-binom-plot-2.png" width="100%" />
-
-``` r
-
-# at most 1 success
-vdist_binom_prob(12, 0.2, 1, type = "lower")
-```
-
-<img src="man/figures/README-binom-plot-3.png" width="100%" />
-
-### Customize the plot object
-
-``` r
-library(ggplot2)
-
-p <- vdist_normal_plot(mean = 60, sd = 3, print_plot = FALSE)
-p + theme_minimal() + labs(title = "Normal(60, 3)")
-```
-
-<img src="man/figures/README-composable-1.png" width="100%" />
-
-## How it compares
-
-- [visualize](https://cran.r-project.org/package=visualize) covers more
-  families with base graphics; `vistributions` focuses on five teaching
-  families with annotated `ggplot2` output.
-- [mosaic](https://cran.r-project.org/package=mosaic) (`xpnorm()` and
-  friends) is course-framework bound; `vistributions` works standalone.
-- [distributional](https://pkg.mitchelloharawild.com/distributional/) +
-  [ggdist](https://mjskay.github.io/ggdist/) is the modeling-grade
-  stack; `vistributions` is the lightweight classroom companion. Native
-  `distributional` dispatch is planned for v1.0 (see `roadmap/`).
-
-## Getting Help
-
-If you encounter a bug, please file a minimal reproducible example using
-[reprex](https://reprex.tidyverse.org/index.html) on
-[GitHub](https://github.com/rsquaredacademy/vistributions/issues). For
-questions and clarifications, please use Stack Overflow (tagged
-`vistributions` or `r`).
-
-<div data-rsa-signup data-site="vistributions.rsquaredacademy.com" data-privacy-url="https://www.rsquaredacademy.com/privacy-policy.html"></div>
+</div>
