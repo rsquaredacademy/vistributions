@@ -1,3 +1,7 @@
+# vistributions (development version)
+
+* The README has a new quick example on daily order counts, with real output.
+
 # vistributions 0.2.2
 
 ## Bug Fixes
